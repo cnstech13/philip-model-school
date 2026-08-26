@@ -11,6 +11,7 @@ import {
     setDoc,
     deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
 import { db } from "./firebase-config.js";
 
 
@@ -54,25 +55,54 @@ const cancelStudentBtn =
 
 
 /* =========================================================
-   LOAD STUDENTS FROM FIRESTORE
+   CHECK REQUIRED ELEMENTS
+========================================================= */
+
+if (
+    !studentModal ||
+    !studentForm ||
+    !studentsTableBody ||
+    !emptyStudents ||
+    !studentSearch ||
+    !classFilter ||
+    !addStudentBtn ||
+    !closeStudentModal ||
+    !cancelStudentBtn
+) {
+
+    console.error(
+        "Students page: One or more required HTML elements are missing."
+    );
+
+}
+
+
+/* =========================================================
+   FIRESTORE COLLECTION
+========================================================= */
+
+const studentsCollection =
+    collection(
+        db,
+        "students"
+    );
+
+
+/* =========================================================
+   LOAD STUDENTS
 ========================================================= */
 
 async function loadStudents() {
 
     try {
 
-        students = [];
-
-        const studentsRef =
-            collection(
-                db,
-                "students"
-            );
-
         const snapshot =
             await getDocs(
-                studentsRef
+                studentsCollection
             );
+
+
+        students = [];
 
 
         snapshot.forEach(
@@ -80,7 +110,7 @@ async function loadStudents() {
 
                 students.push({
 
-                    id:
+                    firestoreId:
                         documentSnapshot.id,
 
                     ...documentSnapshot.data()
@@ -93,8 +123,9 @@ async function loadStudents() {
 
         renderStudents();
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error loading students:",
@@ -103,7 +134,8 @@ async function loadStudents() {
 
 
         alert(
-            "Unable to load students from Firebase."
+            "Unable to load students from Firebase.\n\n" +
+            error.message
         );
 
     }
@@ -125,38 +157,42 @@ function generateStudentId() {
         students.length + 1;
 
 
-    let id =
-        `BFA-${year}-${String(number).padStart(4, "0")}`;
+    let studentId =
+        `PMS-${year}-${String(number).padStart(4, "0")}`;
 
 
     while (
         students.some(
             student =>
-                student.id === id
+                student.id === studentId
         )
     ) {
 
         number++;
 
 
-        id =
-            `BFA-${year}-${String(number).padStart(4, "0")}`;
+        studentId =
+            `PMS-${year}-${String(number).padStart(4, "0")}`;
 
     }
 
 
-    return id;
+    return studentId;
 
 }
 
 
 /* =========================================================
-   OPEN MODAL
+   OPEN STUDENT MODAL
 ========================================================= */
 
 function openStudentModal(
     student = null
 ) {
+
+    if (!studentModal)
+        return;
+
 
     studentModal.classList.add(
         "show"
@@ -164,6 +200,10 @@ function openStudentModal(
 
 
     if (student) {
+
+        /* =========================
+           EDIT MODE
+        ========================= */
 
         document.getElementById(
             "modalTitle"
@@ -174,7 +214,7 @@ function openStudentModal(
         document.getElementById(
             "editingStudentId"
         ).value =
-            student.id;
+            student.firestoreId || "";
 
 
         document.getElementById(
@@ -246,6 +286,10 @@ function openStudentModal(
 
     else {
 
+        /* =========================
+           ADD MODE
+        ========================= */
+
         studentForm.reset();
 
 
@@ -266,40 +310,84 @@ function openStudentModal(
 
 
 /* =========================================================
-   CLOSE MODAL
+   CLOSE STUDENT MODAL
 ========================================================= */
 
 function closeModal() {
+
+    if (!studentModal)
+        return;
+
 
     studentModal.classList.remove(
         "show"
     );
 
-    studentForm.reset();
+
+    if (studentForm) {
+
+        studentForm.reset();
+
+    }
+
+
+    document.getElementById(
+        "editingStudentId"
+    ).value = "";
 
 }
 
 
+/* =========================================================
+   OPEN ADD STUDENT MODAL
+========================================================= */
+
 addStudentBtn.addEventListener(
     "click",
-    () => openStudentModal()
-);
+    function(event) {
 
+        event.preventDefault();
 
-closeStudentModal.addEventListener(
-    "click",
-    closeModal
-);
+        openStudentModal();
 
-
-cancelStudentBtn.addEventListener(
-    "click",
-    closeModal
+    }
 );
 
 
 /* =========================================================
-   CLOSE WHEN CLICKING OUTSIDE
+   CLOSE BUTTON
+========================================================= */
+
+closeStudentModal.addEventListener(
+    "click",
+    function(event) {
+
+        event.preventDefault();
+
+        closeModal();
+
+    }
+);
+
+
+/* =========================================================
+   CANCEL BUTTON
+========================================================= */
+
+cancelStudentBtn.addEventListener(
+    "click",
+    function(event) {
+
+        event.preventDefault();
+
+        closeModal();
+
+    }
+);
+
+
+/* =========================================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
 ========================================================= */
 
 studentModal.addEventListener(
@@ -330,87 +418,103 @@ studentForm.addEventListener(
         event.preventDefault();
 
 
-        const editingId =
+        /* =========================
+           GET EDITING ID
+        ========================= */
+
+        const editingFirestoreId =
             document.getElementById(
                 "editingStudentId"
+            ).value.trim();
+
+
+        /* =========================
+           GET FORM VALUES
+        ========================= */
+
+        const firstName =
+            document.getElementById(
+                "firstName"
+            ).value.trim();
+
+
+        const lastName =
+            document.getElementById(
+                "lastName"
+            ).value.trim();
+
+
+        const dateOfBirth =
+            document.getElementById(
+                "dateOfBirth"
             ).value;
 
 
-        const studentData = {
-
-            firstName:
-                document.getElementById(
-                    "firstName"
-                ).value.trim(),
-
-            lastName:
-                document.getElementById(
-                    "lastName"
-                ).value.trim(),
-
-            dateOfBirth:
-                document.getElementById(
-                    "dateOfBirth"
-                ).value,
-
-            gender:
-                document.getElementById(
-                    "gender"
-                ).value,
-
-            class:
-                document.getElementById(
-                    "studentClass"
-                ).value,
-
-            admissionDate:
-                document.getElementById(
-                    "admissionDate"
-                ).value,
-
-            parentName:
-                document.getElementById(
-                    "parentName"
-                ).value.trim(),
-
-            parentPhone:
-                document.getElementById(
-                    "parentPhone"
-                ).value.trim(),
-
-            parentEmail:
-                document.getElementById(
-                    "parentEmail"
-                ).value.trim(),
-
-            status:
-                document.getElementById(
-                    "studentStatus"
-                ).value,
-
-            address:
-                document.getElementById(
-                    "studentAddress"
-                ).value.trim(),
-
-            updatedAt:
-                new Date().toISOString()
-
-        };
+        const gender =
+            document.getElementById(
+                "gender"
+            ).value;
 
 
-        /* =================================================
+        const studentClass =
+            document.getElementById(
+                "studentClass"
+            ).value;
+
+
+        const admissionDate =
+            document.getElementById(
+                "admissionDate"
+            ).value;
+
+
+        const parentName =
+            document.getElementById(
+                "parentName"
+            ).value.trim();
+
+
+        const parentPhone =
+            document.getElementById(
+                "parentPhone"
+            ).value.trim();
+
+
+        const parentEmail =
+            document.getElementById(
+                "parentEmail"
+            ).value.trim();
+
+
+        const status =
+            document.getElementById(
+                "studentStatus"
+            ).value;
+
+
+        const address =
+            document.getElementById(
+                "studentAddress"
+            ).value.trim();
+
+
+        /* =========================
            VALIDATION
-        ================================================= */
+        ========================= */
 
         if (
-            !studentData.firstName ||
-            !studentData.lastName ||
-            !studentData.class
+            !firstName ||
+            !lastName ||
+            !dateOfBirth ||
+            !gender ||
+            !studentClass ||
+            !admissionDate ||
+            !parentName ||
+            !parentPhone
         ) {
 
             alert(
-                "Please enter the student's first name, last name and class."
+                "Please complete all required fields."
             );
 
             return;
@@ -418,30 +522,95 @@ studentForm.addEventListener(
         }
 
 
+        /* =========================
+           PREVENT DOUBLE SUBMISSION
+        ========================= */
+
+        const saveButton =
+            studentForm.querySelector(
+                'button[type="submit"]'
+            );
+
+
+        if (saveButton) {
+
+            saveButton.disabled =
+                true;
+
+            saveButton.textContent =
+                "Saving...";
+
+        }
+
+
         try {
 
-            /* =============================================
+            /* =================================================
                EDIT EXISTING STUDENT
-            ============================================= */
+            ================================================= */
 
-            if (editingId) {
+            if (editingFirestoreId) {
+
+                const existingStudent =
+                    students.find(
+                        student =>
+                            student.firestoreId ===
+                            editingFirestoreId
+                    );
+
+
+                if (!existingStudent) {
+
+                    throw new Error(
+                        "The student record could not be found."
+                    );
+
+                }
+
+
+                const studentData = {
+
+                    id:
+                        existingStudent.id,
+
+                    firstName,
+
+                    lastName,
+
+                    dateOfBirth,
+
+                    gender,
+
+                    class:
+                        studentClass,
+
+                    admissionDate,
+
+                    parentName,
+
+                    parentPhone,
+
+                    parentEmail,
+
+                    status,
+
+                    address,
+
+                    updatedAt:
+                        new Date().toISOString()
+
+                };
+
 
                 await setDoc(
 
                     doc(
                         db,
                         "students",
-                        editingId
+                        editingFirestoreId
                     ),
 
-                    {
-
-                        ...studentData,
-
-                        id:
-                            editingId
-
-                    },
+                    studentData,
 
                     {
                         merge: true
@@ -457,14 +626,51 @@ studentForm.addEventListener(
             }
 
 
-            /* =============================================
+            /* =================================================
                ADD NEW STUDENT
-            ============================================= */
+            ================================================= */
 
             else {
 
                 const studentId =
                     generateStudentId();
+
+
+                const newStudent = {
+
+                    id:
+                        studentId,
+
+                    firstName,
+
+                    lastName,
+
+                    dateOfBirth,
+
+                    gender,
+
+                    class:
+                        studentClass,
+
+                    admissionDate,
+
+                    parentName,
+
+                    parentPhone,
+
+                    parentEmail,
+
+                    status,
+
+                    address,
+
+                    createdAt:
+                        new Date().toISOString(),
+
+                    updatedAt:
+                        new Date().toISOString()
+
+                };
 
 
                 await setDoc(
@@ -475,17 +681,7 @@ studentForm.addEventListener(
                         studentId
                     ),
 
-                    {
-
-                        id:
-                            studentId,
-
-                        ...studentData,
-
-                        createdAt:
-                            new Date().toISOString()
-
-                    }
+                    newStudent
 
                 );
 
@@ -497,12 +693,22 @@ studentForm.addEventListener(
             }
 
 
+            /* =========================
+               RELOAD STUDENTS
+            ========================= */
+
             await loadStudents();
+
+
+            /* =========================
+               CLOSE MODAL
+            ========================= */
 
             closeModal();
 
+        }
 
-        } catch (error) {
+        catch (error) {
 
             console.error(
                 "Error saving student:",
@@ -511,8 +717,23 @@ studentForm.addEventListener(
 
 
             alert(
-                "Unable to save student. Check your Firestore rules and Firebase configuration."
+                "Unable to save student.\n\n" +
+                error.message
             );
+
+        }
+
+        finally {
+
+            if (saveButton) {
+
+                saveButton.disabled =
+                    false;
+
+                saveButton.textContent =
+                    "Save Student";
+
+            }
 
         }
 
@@ -548,8 +769,7 @@ function renderStudents() {
                 const studentId =
                     String(
                         student.id || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
 
 
                 const matchesSearch =
@@ -632,7 +852,11 @@ function renderStudents() {
                 <td>
 
                     <span class="student-id">
-                        ${escapeHTML(student.id)}
+
+                        ${escapeHTML(
+                            student.id
+                        )}
+
                     </span>
 
                 </td>
@@ -643,14 +867,26 @@ function renderStudents() {
                     <div class="student-name">
 
                         <div class="student-avatar">
-                            ${escapeHTML(initials)}
+
+                            ${escapeHTML(
+                                initials
+                            )}
+
                         </div>
+
 
                         <div>
 
                             <strong>
-                                ${escapeHTML(student.firstName)}
-                                ${escapeHTML(student.lastName)}
+
+                                ${escapeHTML(
+                                    student.firstName
+                                )}
+
+                                ${escapeHTML(
+                                    student.lastName
+                                )}
+
                             </strong>
 
                         </div>
@@ -661,17 +897,29 @@ function renderStudents() {
 
 
                 <td>
-                    ${escapeHTML(student.gender)}
+
+                    ${escapeHTML(
+                        student.gender
+                    )}
+
                 </td>
 
 
                 <td>
-                    ${escapeHTML(student.class)}
+
+                    ${escapeHTML(
+                        student.class
+                    )}
+
                 </td>
 
 
                 <td>
-                    ${escapeHTML(student.parentPhone)}
+
+                    ${escapeHTML(
+                        student.parentPhone
+                    )}
+
                 </td>
 
 
@@ -686,7 +934,9 @@ function renderStudents() {
                         }
                     ">
 
-                        ${escapeHTML(student.status)}
+                        ${escapeHTML(
+                            student.status
+                        )}
 
                     </span>
 
@@ -697,22 +947,30 @@ function renderStudents() {
 
                     <div class="table-actions">
 
+
                         <button
+                            type="button"
                             class="table-action"
                             title="Edit"
-                            onclick="editStudent('${escapeAttribute(student.id)}')"
+                            onclick="editStudent('${escapeAttribute(student.firestoreId)}')"
                         >
+
                             ✏️
+
                         </button>
 
 
                         <button
+                            type="button"
                             class="table-action"
                             title="Delete"
-                            onclick="deleteStudent('${escapeAttribute(student.id)}')"
+                            onclick="deleteStudent('${escapeAttribute(student.firestoreId)}')"
                         >
+
                             🗑️
+
                         </button>
+
 
                     </div>
 
@@ -736,22 +994,30 @@ function renderStudents() {
 ========================================================= */
 
 window.editStudent =
-    function(id) {
+    function(firestoreId) {
 
         const student =
             students.find(
-                student =>
-                    student.id === id
+                item =>
+                    item.firestoreId ===
+                    firestoreId
             );
 
 
-        if (student) {
+        if (!student) {
 
-            openStudentModal(
-                student
+            alert(
+                "Student record not found."
             );
+
+            return;
 
         }
+
+
+        openStudentModal(
+            student
+        );
 
     };
 
@@ -761,22 +1027,31 @@ window.editStudent =
 ========================================================= */
 
 window.deleteStudent =
-    async function(id) {
+    async function(firestoreId) {
 
         const student =
             students.find(
-                student =>
-                    student.id === id
+                item =>
+                    item.firestoreId ===
+                    firestoreId
             );
 
 
-        if (!student)
+        if (!student) {
+
+            alert(
+                "Student record not found."
+            );
+
             return;
+
+        }
 
 
         const confirmed =
             confirm(
-                `Delete ${student.firstName} ${student.lastName}?\n\nThis action cannot be undone.`
+                `Delete ${student.firstName} ${student.lastName}?\n\n` +
+                "This action cannot be undone."
             );
 
 
@@ -791,7 +1066,7 @@ window.deleteStudent =
                 doc(
                     db,
                     "students",
-                    id
+                    firestoreId
                 )
 
             );
@@ -804,8 +1079,9 @@ window.deleteStudent =
 
             await loadStudents();
 
+        }
 
-        } catch (error) {
+        catch (error) {
 
             console.error(
                 "Error deleting student:",
@@ -814,7 +1090,8 @@ window.deleteStudent =
 
 
             alert(
-                "Unable to delete student from Firebase."
+                "Unable to delete student.\n\n" +
+                error.message
             );
 
         }
@@ -832,6 +1109,10 @@ studentSearch.addEventListener(
 );
 
 
+/* =========================================================
+   CLASS FILTER
+========================================================= */
+
 classFilter.addEventListener(
     "change",
     renderStudents
@@ -839,12 +1120,10 @@ classFilter.addEventListener(
 
 
 /* =========================================================
-   HTML ESCAPE
+   ESCAPE HTML
 ========================================================= */
 
-function escapeHTML(
-    value
-) {
+function escapeHTML(value) {
 
     return String(
         value ?? ""
@@ -879,20 +1158,20 @@ function escapeHTML(
 
 
 /* =========================================================
-   ATTRIBUTE ESCAPE
+   ESCAPE ATTRIBUTE
 ========================================================= */
 
-function escapeAttribute(
-    value
-) {
+function escapeAttribute(value) {
 
     return String(
         value ?? ""
     )
+
         .replace(
             /\\/g,
             "\\\\"
         )
+
         .replace(
             /'/g,
             "\\'"
