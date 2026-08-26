@@ -35,7 +35,7 @@ const ADMIN_PASSWORD = "admin123";
 // you created in Firebase Console.
 
 const FIREBASE_ADMIN_EMAIL =
-    "admin@philipmodelschool.com";
+    "cnstech0013@gmail.com";
 
 
 // IMPORTANT:
@@ -43,7 +43,7 @@ const FIREBASE_ADMIN_EMAIL =
 // creating the Firebase Authentication user.
 
 const FIREBASE_ADMIN_PASSWORD =
-    "YOUR_FIREBASE_PASSWORD";
+    "824105";
 
 
 // ======================================================
