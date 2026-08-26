@@ -49,135 +49,122 @@ function setText(id, value) {
 
 
 /* =========================================================
-   DASHBOARD STATISTICS
+   LOAD ONE COLLECTION COUNT
 ========================================================= */
 
-async function updateDashboardStats() {
+async function getCollectionCount(
+    collectionRef,
+    collectionName
+) {
 
     try {
 
-        /*
-         * Load all four collections
-         */
-
-        const [
-            studentsSnapshot,
-            teachersSnapshot,
-            classesSnapshot,
-            subjectsSnapshot
-        ] = await Promise.all([
-
-            getDocs(
-                studentsCollection
-            ),
-
-            getDocs(
-                teachersCollection
-            ),
-
-            getDocs(
-                classesCollection
-            ),
-
-            getDocs(
-                subjectsCollection
-            )
-
-        ]);
-
-
-        /*
-         * Get the number of documents
-         */
-
-        const totalStudents =
-            studentsSnapshot.size;
-
-        const totalTeachers =
-            teachersSnapshot.size;
-
-        const totalClasses =
-            classesSnapshot.size;
-
-        const totalSubjects =
-            subjectsSnapshot.size;
-
-
-        /*
-         * Display statistics
-         */
-
-        setText(
-            "totalStudents",
-            totalStudents
-        );
-
-        setText(
-            "totalTeachers",
-            totalTeachers
-        );
-
-        setText(
-            "totalClasses",
-            totalClasses
-        );
-
-        setText(
-            "totalSubjects",
-            totalSubjects
-        );
-
+        const snapshot =
+            await getDocs(
+                collectionRef
+            );
 
         console.log(
-            "Dashboard statistics updated:",
-            {
-                students: totalStudents,
-                teachers: totalTeachers,
-                classes: totalClasses,
-                subjects: totalSubjects
-            }
+            `${collectionName}:`,
+            snapshot.size
         );
+
+        return snapshot.size;
 
     }
 
     catch (error) {
 
         console.error(
-            "Error loading dashboard statistics:",
+            `Error loading ${collectionName}:`,
             error
         );
 
-
-        /*
-         * Keep the dashboard usable
-         */
-
-        setText(
-            "totalStudents",
-            "0"
-        );
-
-        setText(
-            "totalTeachers",
-            "0"
-        );
-
-        setText(
-            "totalClasses",
-            "0"
-        );
-
-        setText(
-            "totalSubjects",
-            "0"
-        );
-
-
-        console.error(
-            "Make sure Firestore rules allow the admin to read these collections."
-        );
+        return 0;
 
     }
+
+}
+
+
+/* =========================================================
+   DASHBOARD STATISTICS
+========================================================= */
+
+async function updateDashboardStats() {
+
+    /*
+     * Load each collection separately.
+     *
+     * This prevents one permission error
+     * from making every counter show 0.
+     */
+
+    const totalStudents =
+        await getCollectionCount(
+            studentsCollection,
+            "Students"
+        );
+
+
+    const totalTeachers =
+        await getCollectionCount(
+            teachersCollection,
+            "Teachers"
+        );
+
+
+    const totalClasses =
+        await getCollectionCount(
+            classesCollection,
+            "Classes"
+        );
+
+
+    const totalSubjects =
+        await getCollectionCount(
+            subjectsCollection,
+            "Subjects"
+        );
+
+
+    /* =========================
+       DISPLAY COUNTS
+    ========================= */
+
+    setText(
+        "totalStudents",
+        totalStudents
+    );
+
+
+    setText(
+        "totalTeachers",
+        totalTeachers
+    );
+
+
+    setText(
+        "totalClasses",
+        totalClasses
+    );
+
+
+    setText(
+        "totalSubjects",
+        totalSubjects
+    );
+
+
+    console.log(
+        "Dashboard statistics:",
+        {
+            students: totalStudents,
+            teachers: totalTeachers,
+            classes: totalClasses,
+            subjects: totalSubjects
+        }
+    );
 
 }
 
@@ -217,12 +204,16 @@ async function updateTodayAttendance() {
 
     try {
 
+        const attendanceCollection =
+            collection(
+                db,
+                "attendance"
+            );
+
+
         const snapshot =
             await getDocs(
-                collection(
-                    db,
-                    "attendance"
-                )
+                attendanceCollection
             );
 
 
@@ -293,9 +284,9 @@ async function updateTodayAttendance() {
         );
 
 
-        /*
-         * Update attendance numbers
-         */
+        /* =========================
+           UPDATE ATTENDANCE CARDS
+        ========================= */
 
         const numbers =
             document.querySelectorAll(
@@ -310,20 +301,32 @@ async function updateTodayAttendance() {
             numbers[0].textContent =
                 present;
 
+
             numbers[1].textContent =
                 absent;
+
 
             numbers[2].textContent =
                 late;
 
         }
 
+
+        console.log(
+            "Today's attendance:",
+            {
+                present,
+                absent,
+                late
+            }
+        );
+
     }
 
     catch (error) {
 
         console.error(
-            "Error loading today's attendance:",
+            "Error loading attendance:",
             error
         );
 
@@ -350,12 +353,6 @@ async function loadRecentActivities() {
 
     }
 
-
-    /*
-     * We can still use localStorage
-     * for dashboard activities if your
-     * other pages are storing them there.
-     */
 
     let activities = [];
 
@@ -471,7 +468,7 @@ async function loadRecentActivities() {
 
 
 /* =========================================================
-   HTML ESCAPE
+   ESCAPE HTML
 ========================================================= */
 
 function escapeHTML(value) {
@@ -514,38 +511,40 @@ function escapeHTML(value) {
 
 async function initializeDashboard() {
 
-    /*
-     * Display date immediately
-     */
+    console.log(
+        "Philip Model School Dashboard loading..."
+    );
+
+
+    /* Display date immediately */
 
     displayCurrentDate();
 
 
-    /*
-     * Load Firestore statistics
-     */
+    /* Load Firestore statistics */
 
     await updateDashboardStats();
 
 
-    /*
-     * Load today's attendance
-     */
+    /* Load today's attendance */
 
     await updateTodayAttendance();
 
 
-    /*
-     * Load recent activities
-     */
+    /* Load recent activities */
 
     await loadRecentActivities();
+
+
+    console.log(
+        "Dashboard loaded successfully."
+    );
 
 }
 
 
 /* =========================================================
-   START
+   START DASHBOARD
 ========================================================= */
 
 initializeDashboard();
