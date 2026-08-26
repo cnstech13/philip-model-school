@@ -1,29 +1,26 @@
 /* =========================================================
-   CLASSES - FIRESTORE VERSION
-   Philip Model School
+   PHILIP MODEL SCHOOL
+   CLASS MANAGEMENT
+   FIRESTORE VERSION
 ========================================================= */
 
 import {
     collection,
     getDocs,
-    addDoc,
-    updateDoc,
-    deleteDoc,
     doc,
-    query,
-    orderBy
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    setDoc,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-import { db } from "./firebase.js";
+import { db } from "./firebase-config.js";
 
 
 /* =========================================================
-   DATABASE
+   DATA
 ========================================================= */
 
 let classes = [];
 let teachers = [];
-let students = [];
 
 
 /* =========================================================
@@ -48,9 +45,6 @@ const classSearch =
 const sectionFilter =
     document.getElementById("sectionFilter");
 
-const classTeacher =
-    document.getElementById("classTeacher");
-
 const addClassBtn =
     document.getElementById("addClassBtn");
 
@@ -60,97 +54,19 @@ const closeClassModal =
 const cancelClassBtn =
     document.getElementById("cancelClassBtn");
 
+const classTeacher =
+    document.getElementById("classTeacher");
+
 
 /* =========================================================
-   LOAD ALL DATA FROM FIRESTORE
+   FIRESTORE COLLECTIONS
 ========================================================= */
 
-async function loadFirestoreData() {
+const classesCollection =
+    collection(db, "classes");
 
-    try {
-
-        /* =========================
-           LOAD CLASSES
-        ========================== */
-
-        const classesSnapshot =
-            await getDocs(
-                collection(db, "classes")
-            );
-
-        classes =
-            classesSnapshot.docs.map(
-                document => ({
-
-                    id: document.id,
-
-                    ...document.data()
-
-                })
-            );
-
-
-        /* =========================
-           LOAD TEACHERS
-        ========================== */
-
-        const teachersSnapshot =
-            await getDocs(
-                collection(db, "teachers")
-            );
-
-        teachers =
-            teachersSnapshot.docs.map(
-                document => ({
-
-                    id: document.id,
-
-                    ...document.data()
-
-                })
-            );
-
-
-        /* =========================
-           LOAD STUDENTS
-        ========================== */
-
-        const studentsSnapshot =
-            await getDocs(
-                collection(db, "students")
-            );
-
-        students =
-            studentsSnapshot.docs.map(
-                document => ({
-
-                    id: document.id,
-
-                    ...document.data()
-
-                })
-            );
-
-
-        console.log(
-            "Firestore data loaded successfully."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Error loading Firestore data:",
-            error
-        );
-
-        alert(
-            "Unable to load school data from Firestore."
-        );
-
-    }
-
-}
+const teachersCollection =
+    collection(db, "teachers");
 
 
 /* =========================================================
@@ -161,7 +77,6 @@ function generateClassId() {
 
     let number =
         classes.length + 1;
-
 
     let id =
         `CLS-${String(number).padStart(3, "0")}`;
@@ -176,7 +91,6 @@ function generateClassId() {
 
         number++;
 
-
         id =
             `CLS-${String(number).padStart(3, "0")}`;
 
@@ -184,7 +98,6 @@ function generateClassId() {
 
 
     return id;
-
 }
 
 
@@ -198,64 +111,34 @@ async function loadTeachers() {
 
         const snapshot =
             await getDocs(
-                collection(db, "teachers")
+                teachersCollection
             );
 
 
-        teachers =
-            snapshot.docs.map(
-                document => ({
-
-                    id: document.id,
-
-                    ...document.data()
-
-                })
-            );
+        teachers = [];
 
 
-        classTeacher.innerHTML = `
+        snapshot.forEach(
+            teacherDocument => {
 
-            <option value="">
-                No Class Teacher
-            </option>
+                teachers.push({
 
-        `;
+                    firestoreId:
+                        teacherDocument.id,
 
+                    ...teacherDocument.data()
 
-        teachers
+                });
 
-            .filter(
-                teacher =>
-                    teacher.status === "Active"
-            )
-
-            .forEach(
-                teacher => {
-
-                    const option =
-                        document.createElement(
-                            "option"
-                        );
+            }
+        );
 
 
-                    option.value =
-                        teacher.id;
+        populateTeacherDropdown();
 
+    }
 
-                    option.textContent =
-                        `${teacher.firstName || ""} ${teacher.lastName || ""} (${teacher.id})`;
-
-
-                    classTeacher.appendChild(
-                        option
-                    );
-
-                }
-            );
-
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error loading teachers:",
@@ -268,15 +151,120 @@ async function loadTeachers() {
 
 
 /* =========================================================
-   OPEN MODAL
+   POPULATE TEACHER DROPDOWN
 ========================================================= */
 
-async function openClassModal(
+function populateTeacherDropdown() {
+
+    if (!classTeacher)
+        return;
+
+
+    classTeacher.innerHTML = `
+
+        <option value="">
+            No Class Teacher
+        </option>
+
+    `;
+
+
+    teachers.forEach(
+        teacher => {
+
+            const fullName =
+                `${teacher.firstName || ""} ${teacher.lastName || ""}`
+                    .trim();
+
+
+            if (!fullName)
+                return;
+
+
+            const option =
+                document.createElement("option");
+
+
+            option.value =
+                teacher.id ||
+                teacher.firestoreId;
+
+
+            option.textContent =
+                fullName;
+
+
+            classTeacher.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOAD CLASSES
+========================================================= */
+
+async function loadClasses() {
+
+    try {
+
+        const snapshot =
+            await getDocs(
+                classesCollection
+            );
+
+
+        classes = [];
+
+
+        snapshot.forEach(
+            classDocument => {
+
+                classes.push({
+
+                    firestoreId:
+                        classDocument.id,
+
+                    ...classDocument.data()
+
+                });
+
+            }
+        );
+
+
+        renderClasses();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading classes:",
+            error
+        );
+
+
+        alert(
+            "Unable to load classes from Firestore."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   OPEN CLASS MODAL
+========================================================= */
+
+function openClassModal(
     classData = null
 ) {
-
-    await loadTeachers();
-
 
     classModal.classList.add(
         "show"
@@ -294,7 +282,7 @@ async function openClassModal(
         document.getElementById(
             "editingClassId"
         ).value =
-            classData.id;
+            classData.firestoreId;
 
 
         document.getElementById(
@@ -318,7 +306,8 @@ async function openClassModal(
         document.getElementById(
             "academicSession"
         ).value =
-            classData.academicSession || "";
+            classData.academicSession ||
+            "2026/2027";
 
 
         document.getElementById(
@@ -360,7 +349,19 @@ async function openClassModal(
         document.getElementById(
             "maxStudents"
         ).value =
-            "40";
+            40;
+
+
+        document.getElementById(
+            "classStatus"
+        ).value =
+            "Active";
+
+
+        document.getElementById(
+            "classTeacher"
+        ).value =
+            "";
 
     }
 
@@ -368,7 +369,7 @@ async function openClassModal(
 
 
 /* =========================================================
-   CLOSE MODAL
+   CLOSE CLASS MODAL
 ========================================================= */
 
 function closeClassModalFunction() {
@@ -380,312 +381,373 @@ function closeClassModalFunction() {
 
     classForm.reset();
 
+
+    document.getElementById(
+        "academicSession"
+    ).value =
+        "2026/2027";
+
+
+    document.getElementById(
+        "maxStudents"
+    ).value =
+        40;
+
+
+    document.getElementById(
+        "classStatus"
+    ).value =
+        "Active";
+
 }
 
 
-addClassBtn.addEventListener(
-    "click",
-    () => openClassModal()
-);
+/* =========================================================
+   OPEN MODAL BUTTON
+========================================================= */
 
+if (addClassBtn) {
 
-closeClassModal.addEventListener(
-    "click",
-    closeClassModalFunction
-);
+    addClassBtn.addEventListener(
+        "click",
+        function() {
 
-
-cancelClassBtn.addEventListener(
-    "click",
-    closeClassModalFunction
-);
-
-
-classModal.addEventListener(
-    "click",
-    function(event) {
-
-        if (
-            event.target ===
-            classModal
-        ) {
-
-            closeClassModalFunction();
+            openClassModal();
 
         }
+    );
 
-    }
-);
+}
 
 
 /* =========================================================
-   SAVE CLASS TO FIRESTORE
+   CLOSE BUTTONS
 ========================================================= */
 
-classForm.addEventListener(
-    "submit",
-    async function(event) {
+if (closeClassModal) {
 
-        event.preventDefault();
+    closeClassModal.addEventListener(
+        "click",
+        closeClassModalFunction
+    );
 
-
-        const editingId =
-            document.getElementById(
-                "editingClassId"
-            ).value;
+}
 
 
-        const name =
-            document.getElementById(
-                "className"
-            ).value.trim();
+if (cancelClassBtn) {
+
+    cancelClassBtn.addEventListener(
+        "click",
+        closeClassModalFunction
+    );
+
+}
 
 
-        const section =
-            document.getElementById(
-                "classSection"
-            ).value;
+/* =========================================================
+   CLOSE WHEN CLICKING OUTSIDE
+========================================================= */
+
+if (classModal) {
+
+    classModal.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                classModal
+            ) {
+
+                closeClassModalFunction();
+
+            }
+
+        }
+    );
+
+}
 
 
-        const teacherId =
-            document.getElementById(
-                "classTeacher"
-            ).value;
+/* =========================================================
+   SAVE CLASS
+========================================================= */
+
+if (classForm) {
+
+    classForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
 
 
-        const academicSession =
-            document.getElementById(
-                "academicSession"
-            ).value.trim();
-
-
-        const maxStudents =
-            Number(
+            const editingId =
                 document.getElementById(
-                    "maxStudents"
-                ).value
-            );
+                    "editingClassId"
+                ).value;
 
 
-        const status =
-            document.getElementById(
-                "classStatus"
-            ).value;
+            const className =
+                document.getElementById(
+                    "className"
+                ).value.trim();
 
 
-        /* =========================
-           VALIDATION
-        ========================== */
-
-        if (
-            !name ||
-            !section ||
-            !academicSession
-        ) {
-
-            alert(
-                "Please complete all required fields."
-            );
-
-            return;
-
-        }
+            const section =
+                document.getElementById(
+                    "classSection"
+                ).value;
 
 
-        /* =========================
-           DUPLICATE CHECK
-        ========================== */
-
-        const duplicate =
-            classes.some(
-                item =>
-
-                    item.name
-                        ?.toLowerCase() ===
-                    name.toLowerCase() &&
-
-                    item.id !== editingId &&
-
-                    item.academicSession ===
-                    academicSession
-            );
+            const teacherId =
+                document.getElementById(
+                    "classTeacher"
+                ).value;
 
 
-        if (duplicate) {
-
-            alert(
-                "This class already exists for this academic session."
-            );
-
-            return;
-
-        }
+            const academicSession =
+                document.getElementById(
+                    "academicSession"
+                ).value.trim();
 
 
-        const classData = {
-
-            name,
-
-            section,
-
-            teacherId,
-
-            academicSession,
-
-            maxStudents,
-
-            status,
-
-            updatedAt:
-                new Date().toISOString()
-
-        };
-
-
-        try {
-
-            /* =========================
-               EDIT EXISTING CLASS
-            ========================== */
-
-            if (editingId) {
-
-                const classRef =
-                    doc(
-                        db,
-                        "classes",
-                        editingId
-                    );
-
-
-                await updateDoc(
-                    classRef,
-                    classData
+            const maxStudents =
+                Number(
+                    document.getElementById(
+                        "maxStudents"
+                    ).value
                 );
 
+
+            const status =
+                document.getElementById(
+                    "classStatus"
+                ).value;
+
+
+            /* =============================================
+               VALIDATION
+            ============================================= */
+
+            if (
+                !className ||
+                !section ||
+                !academicSession ||
+                !maxStudents
+            ) {
 
                 alert(
-                    "Class updated successfully."
+                    "Please complete all required fields."
                 );
+
+                return;
 
             }
 
 
-            /* =========================
-               ADD NEW CLASS
-            ========================== */
+            /* =============================================
+               DUPLICATE CLASS CHECK
+            ============================================= */
 
-            else {
+            const duplicate =
+                classes.some(
+                    item =>
 
-                const classId =
-                    generateClassId();
+                        item.name
+                            ?.toLowerCase() ===
+                        className.toLowerCase() &&
+
+                        item.academicSession ===
+                        academicSession &&
+
+                        item.firestoreId !==
+                        editingId
+
+                );
 
 
-                const classRef =
-                    doc(
-                        db,
-                        "classes",
-                        classId
-                    );
+            if (duplicate) {
+
+                alert(
+                    "This class already exists for the selected academic session."
+                );
+
+                return;
+
+            }
 
 
-                await import(
-                    "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"
-                ).then(
-                    async module => {
+            /* =============================================
+               FIND TEACHER NAME
+            ============================================= */
 
-                        await module.setDoc(
-                            classRef,
-                            {
+            const teacher =
+                teachers.find(
+                    item =>
 
-                                id:
-                                    classId,
+                        (
+                            item.id ||
+                            item.firestoreId
+                        ) ===
+                        teacherId
 
-                                ...classData,
+                );
 
-                                createdAt:
-                                    new Date().toISOString()
 
-                            }
+            const teacherName =
+                teacher
+                    ? `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim()
+                    : "No Class Teacher";
+
+
+            /* =============================================
+               CLASS DATA
+            ============================================= */
+
+            const classData = {
+
+                id:
+                    editingId
+                        ? (
+                            classes.find(
+                                item =>
+                                    item.firestoreId ===
+                                    editingId
+                            )?.id ||
+                            generateClassId()
+                        )
+                        : generateClassId(),
+
+                name:
+                    className,
+
+                section:
+                    section,
+
+                teacherId:
+                    teacherId,
+
+                teacherName:
+                    teacherName,
+
+                academicSession:
+                    academicSession,
+
+                maxStudents:
+                    maxStudents,
+
+                status:
+                    status,
+
+                studentCount:
+                    editingId
+                        ? (
+                            classes.find(
+                                item =>
+                                    item.firestoreId ===
+                                    editingId
+                            )?.studentCount || 0
+                        )
+                        : 0,
+
+                updatedAt:
+                    new Date().toISOString()
+
+            };
+
+
+            /* =============================================
+               SAVE TO FIRESTORE
+            ============================================= */
+
+            try {
+
+                let classRef;
+
+
+                if (editingId) {
+
+                    classRef =
+                        doc(
+                            db,
+                            "classes",
+                            editingId
                         );
 
-                    }
+
+                    await setDoc(
+                        classRef,
+                        classData,
+                        {
+                            merge: true
+                        }
+                    );
+
+
+                    alert(
+                        "Class updated successfully."
+                    );
+
+                }
+
+                else {
+
+                    const classId =
+                        classData.id;
+
+
+                    classRef =
+                        doc(
+                            db,
+                            "classes",
+                            classId
+                        );
+
+
+                    await setDoc(
+                        classRef,
+                        {
+
+                            ...classData,
+
+                            createdAt:
+                                new Date().toISOString()
+
+                        }
+                    );
+
+
+                    alert(
+                        "Class added successfully."
+                    );
+
+                }
+
+
+                await loadClasses();
+
+
+                closeClassModalFunction();
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Error saving class:",
+                    error
                 );
 
 
                 alert(
-                    "Class added successfully."
+                    "Unable to save class. Check your Firestore rules and Firebase configuration."
                 );
 
             }
 
-
-            await loadFirestoreData();
-
-            renderClasses();
-
-            closeClassModalFunction();
-
-
-        } catch (error) {
-
-            console.error(
-                "Error saving class:",
-                error
-            );
-
-
-            alert(
-                "Unable to save class. Check your Firestore rules and Firebase configuration."
-            );
-
         }
-
-    }
-);
-
-
-/* =========================================================
-   GET TEACHER NAME
-========================================================= */
-
-function getTeacherName(
-    teacherId
-) {
-
-    if (!teacherId)
-        return "Not Assigned";
-
-
-    const teacher =
-        teachers.find(
-            item =>
-                item.id === teacherId
-        );
-
-
-    if (!teacher)
-        return "Not Assigned";
-
-
-    return `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim();
-
-}
-
-
-/* =========================================================
-   COUNT STUDENTS
-========================================================= */
-
-function getStudentCount(
-    className
-) {
-
-    return students.filter(
-        student =>
-            student.class ===
-            className
-    ).length;
+    );
 
 }
 
@@ -696,38 +758,58 @@ function getStudentCount(
 
 function renderClasses() {
 
+    if (
+        !classesTableBody
+    )
+        return;
+
+
     const search =
-        classSearch.value
-            .trim()
-            .toLowerCase();
+        classSearch
+            ? classSearch.value
+                .trim()
+                .toLowerCase()
+            : "";
 
 
     const selectedSection =
-        sectionFilter.value;
+        sectionFilter
+            ? sectionFilter.value
+            : "";
 
 
     const filtered =
         classes.filter(
-            item => {
+            classData => {
+
+                const classId =
+                    String(
+                        classData.id || ""
+                    ).toLowerCase();
+
+
+                const className =
+                    String(
+                        classData.name || ""
+                    ).toLowerCase();
+
 
                 const matchesSearch =
-
                     !search ||
 
-                    (item.name || "")
-                        .toLowerCase()
-                        .includes(search) ||
+                    classId.includes(
+                        search
+                    ) ||
 
-                    (item.id || "")
-                        .toLowerCase()
-                        .includes(search);
+                    className.includes(
+                        search
+                    );
 
 
                 const matchesSection =
-
                     !selectedSection ||
 
-                    item.section ===
+                    classData.section ===
                     selectedSection;
 
 
@@ -748,30 +830,32 @@ function renderClasses() {
         filtered.length === 0
     ) {
 
-        emptyClasses.style.display =
-            "block";
+        if (emptyClasses) {
+
+            emptyClasses.style.display =
+                "block";
+
+        }
 
         return;
 
     }
 
 
-    emptyClasses.style.display =
-        "none";
+    if (emptyClasses) {
+
+        emptyClasses.style.display =
+            "none";
+
+    }
 
 
     filtered.forEach(
-        item => {
+        classData => {
 
             const row =
                 document.createElement(
                     "tr"
-                );
-
-
-            const studentCount =
-                getStudentCount(
-                    item.name
                 );
 
 
@@ -782,7 +866,7 @@ function renderClasses() {
                     <span class="student-id">
 
                         ${escapeHTML(
-                            item.id
+                            classData.id
                         )}
 
                     </span>
@@ -795,7 +879,7 @@ function renderClasses() {
                     <strong>
 
                         ${escapeHTML(
-                            item.name
+                            classData.name
                         )}
 
                     </strong>
@@ -806,7 +890,7 @@ function renderClasses() {
                 <td>
 
                     ${escapeHTML(
-                        item.section
+                        classData.section
                     )}
 
                 </td>
@@ -815,9 +899,8 @@ function renderClasses() {
                 <td>
 
                     ${escapeHTML(
-                        getTeacherName(
-                            item.teacherId
-                        )
+                        classData.teacherName ||
+                        "No Class Teacher"
                     )}
 
                 </td>
@@ -825,9 +908,17 @@ function renderClasses() {
 
                 <td>
 
-                    ${studentCount}
+                    ${escapeHTML(
+                        classData.studentCount ||
+                        0
+                    )}
+
                     /
-                    ${item.maxStudents || 0}
+
+                    ${escapeHTML(
+                        classData.maxStudents ||
+                        0
+                    )}
 
                 </td>
 
@@ -835,7 +926,7 @@ function renderClasses() {
                 <td>
 
                     ${escapeHTML(
-                        item.academicSession
+                        classData.academicSession
                     )}
 
                 </td>
@@ -846,14 +937,17 @@ function renderClasses() {
                     <span class="
                         status-badge
                         ${
-                            item.status === "Active"
+                            classData.status ===
+                            "Active"
+
                                 ? "status-active"
+
                                 : "status-inactive"
                         }
                     ">
 
                         ${escapeHTML(
-                            item.status
+                            classData.status
                         )}
 
                     </span>
@@ -865,40 +959,26 @@ function renderClasses() {
 
                     <div class="table-actions">
 
-
                         <button
-
                             class="table-action"
-
                             title="Edit"
-
-                            onclick="
-                                editClass('${escapeHTML(item.id)}')
-                            "
-
+                            data-edit-class="${escapeAttribute(
+                                classData.firestoreId
+                            )}"
                         >
-
                             ✏️
-
                         </button>
 
 
                         <button
-
                             class="table-action"
-
                             title="Delete"
-
-                            onclick="
-                                deleteClass('${escapeHTML(item.id)}')
-                            "
-
+                            data-delete-class="${escapeAttribute(
+                                classData.firestoreId
+                            )}"
                         >
-
                             🗑️
-
                         </button>
-
 
                     </div>
 
@@ -914,6 +994,58 @@ function renderClasses() {
         }
     );
 
+
+    /* =============================================
+       EDIT BUTTONS
+    ============================================= */
+
+    document
+        .querySelectorAll(
+            "[data-edit-class]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        editClass(
+                            this.dataset.editClass
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    /* =============================================
+       DELETE BUTTONS
+    ============================================= */
+
+    document
+        .querySelectorAll(
+            "[data-delete-class]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        deleteClass(
+                            this.dataset.deleteClass
+                        );
+
+                    }
+                );
+
+            }
+        );
+
 }
 
 
@@ -921,22 +1053,25 @@ function renderClasses() {
    EDIT CLASS
 ========================================================= */
 
-function editClass(id) {
+function editClass(
+    firestoreId
+) {
 
     const classData =
         classes.find(
             item =>
-                item.id === id
+                item.firestoreId ===
+                firestoreId
         );
 
 
-    if (classData) {
+    if (!classData)
+        return;
 
-        openClassModal(
-            classData
-        );
 
-    }
+    openClassModal(
+        classData
+    );
 
 }
 
@@ -945,36 +1080,20 @@ function editClass(id) {
    DELETE CLASS
 ========================================================= */
 
-async function deleteClass(id) {
+async function deleteClass(
+    firestoreId
+) {
 
     const classData =
         classes.find(
             item =>
-                item.id === id
+                item.firestoreId ===
+                firestoreId
         );
 
 
     if (!classData)
         return;
-
-
-    const studentsInClass =
-        getStudentCount(
-            classData.name
-        );
-
-
-    if (
-        studentsInClass > 0
-    ) {
-
-        alert(
-            `This class has ${studentsInClass} student(s). Move the students to another class before deleting it.`
-        );
-
-        return;
-
-    }
 
 
     const confirmed =
@@ -990,22 +1109,14 @@ async function deleteClass(id) {
     try {
 
         await deleteDoc(
+
             doc(
                 db,
                 "classes",
-                id
+                firestoreId
             )
+
         );
-
-
-        classes =
-            classes.filter(
-                item =>
-                    item.id !== id
-            );
-
-
-        renderClasses();
 
 
         alert(
@@ -1013,7 +1124,11 @@ async function deleteClass(id) {
         );
 
 
-    } catch (error) {
+        await loadClasses();
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error deleting class:",
@@ -1034,16 +1149,28 @@ async function deleteClass(id) {
    SEARCH
 ========================================================= */
 
-classSearch.addEventListener(
-    "input",
-    renderClasses
-);
+if (classSearch) {
+
+    classSearch.addEventListener(
+        "input",
+        renderClasses
+    );
+
+}
 
 
-sectionFilter.addEventListener(
-    "change",
-    renderClasses
-);
+/* =========================================================
+   SECTION FILTER
+========================================================= */
+
+if (sectionFilter) {
+
+    sectionFilter.addEventListener(
+        "change",
+        renderClasses
+    );
+
+}
 
 
 /* =========================================================
@@ -1087,16 +1214,54 @@ function escapeHTML(
 
 
 /* =========================================================
+   ATTRIBUTE ESCAPE
+========================================================= */
+
+function escapeAttribute(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        );
+
+}
+
+
+/* =========================================================
    INITIALIZE
 ========================================================= */
 
 async function initializeClassesPage() {
 
-    await loadFirestoreData();
-
     await loadTeachers();
 
-    renderClasses();
+    await loadClasses();
 
 }
 

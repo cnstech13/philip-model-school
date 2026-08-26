@@ -1,27 +1,26 @@
 /* =========================================================
-   RESULTS MANAGEMENT - FIRESTORE VERSION
-   Philip Model School Admin Portal
+   PHILIP MODEL SCHOOL
+   RESULTS MANAGEMENT
+   FIRESTORE VERSION
 ========================================================= */
 
 import {
     collection,
-    doc,
     getDocs,
-    getDoc,
+    doc,
+    addDoc,
     setDoc,
     updateDoc,
     deleteDoc,
     query,
-    where,
-    serverTimestamp,
-    writeBatch
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-import { db } from "./firebase.js";
+import { db } from "./firebase-config.js";
 
 
 /* =========================================================
-   FIRESTORE COLLECTIONS
+   DATABASE COLLECTIONS
 ========================================================= */
 
 const resultsCollection =
@@ -30,22 +29,21 @@ const resultsCollection =
 const studentsCollection =
     collection(db, "students");
 
-const classesCollection =
-    collection(db, "classes");
-
 const subjectsCollection =
     collection(db, "subjects");
 
+const classesCollection =
+    collection(db, "classes");
+
 
 /* =========================================================
-   LOCAL MEMORY ONLY
-   These are NOT localStorage.
+   LOCAL DATA
 ========================================================= */
 
 let results = [];
 let students = [];
-let classes = [];
 let subjects = [];
+let classes = [];
 
 
 /* =========================================================
@@ -72,6 +70,24 @@ const closeResultModal =
 
 const cancelResultBtn =
     document.getElementById("cancelResultBtn");
+
+const resultSessionFilter =
+    document.getElementById("resultSessionFilter");
+
+const resultTermFilter =
+    document.getElementById("resultTermFilter");
+
+const resultClassFilter =
+    document.getElementById("resultClassFilter");
+
+const resultSearch =
+    document.getElementById("resultSearch");
+
+const resultSession =
+    document.getElementById("resultSession");
+
+const resultTerm =
+    document.getElementById("resultTerm");
 
 const resultClass =
     document.getElementById("resultClass");
@@ -100,146 +116,90 @@ const resultGrade =
 const resultRemark =
     document.getElementById("resultRemark");
 
+const editingResultId =
+    document.getElementById("editingResultId");
+
 
 /* =========================================================
-   LOAD ALL DATA FROM FIRESTORE
+   BULK RESULT ELEMENTS
 ========================================================= */
 
-async function refreshData() {
+const bulkResultBtn =
+    document.getElementById("bulkResultBtn");
+
+const bulkResultModal =
+    document.getElementById("bulkResultModal");
+
+const closeBulkResultModal =
+    document.getElementById("closeBulkResultModal");
+
+const cancelBulkResultBtn =
+    document.getElementById("cancelBulkResultBtn");
+
+const bulkSession =
+    document.getElementById("bulkSession");
+
+const bulkTerm =
+    document.getElementById("bulkTerm");
+
+const bulkClass =
+    document.getElementById("bulkClass");
+
+const bulkSubject =
+    document.getElementById("bulkSubject");
+
+const loadClassStudentsBtn =
+    document.getElementById(
+        "loadClassStudentsBtn"
+    );
+
+const bulkResultTableContainer =
+    document.getElementById(
+        "bulkResultTableContainer"
+    );
+
+const bulkResultTableBody =
+    document.getElementById(
+        "bulkResultTableBody"
+    );
+
+const saveBulkResultsBtn =
+    document.getElementById(
+        "saveBulkResultsBtn"
+    );
+
+
+/* =========================================================
+   LOAD ALL DATA
+========================================================= */
+
+async function loadAllData() {
 
     try {
 
-        const [
-            studentsSnapshot,
-            classesSnapshot,
-            subjectsSnapshot,
-            resultsSnapshot
-        ] = await Promise.all([
-
-            getDocs(studentsCollection),
-
-            getDocs(classesCollection),
-
-            getDocs(subjectsCollection),
-
-            getDocs(resultsCollection)
-
+        await Promise.all([
+            loadStudents(),
+            loadSubjects(),
+            loadClasses(),
+            loadResults()
         ]);
 
-
-        students =
-            studentsSnapshot.docs.map(
-                docSnap => ({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                })
-            );
-
-
-        classes =
-            classesSnapshot.docs.map(
-                docSnap => ({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                })
-            );
-
-
-        subjects =
-            subjectsSnapshot.docs.map(
-                docSnap => ({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                })
-            );
-
-
-        results =
-            resultsSnapshot.docs.map(
-                docSnap => ({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                })
-            );
-
+        populateClassFilters();
 
     }
 
     catch (error) {
 
         console.error(
-            "Error loading Firestore data:",
+            "Error loading result data:",
             error
         );
 
-
         alert(
-            "Unable to load result data from Firestore."
+            "Unable to load result data from Firebase."
         );
 
     }
-
-}
-
-
-/* =========================================================
-   GENERATE RESULT ID
-========================================================= */
-
-function generateResultId() {
-
-    return `RES-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 7)
-        .toUpperCase()}`;
-
-}
-
-
-/* =========================================================
-   LOAD CLASSES
-========================================================= */
-
-async function loadClasses() {
-
-    await refreshData();
-
-
-    resultClass.innerHTML = `
-
-        <option value="">
-            Select Class
-        </option>
-
-    `;
-
-
-    classes
-        .filter(
-            item =>
-                item.status === "Active"
-        )
-        .forEach(item => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                item.name;
-
-
-            option.textContent =
-                item.name;
-
-
-            resultClass.appendChild(
-                option
-            );
-
-        });
 
 }
 
@@ -248,52 +208,29 @@ async function loadClasses() {
    LOAD STUDENTS
 ========================================================= */
 
-function loadStudents() {
+async function loadStudents() {
 
-    const selectedClass =
-        resultClass.value;
+    const snapshot =
+        await getDocs(
+            studentsCollection
+        );
 
+    students = [];
 
-    resultStudent.innerHTML = `
+    snapshot.forEach(
+        documentSnapshot => {
 
-        <option value="">
-            Select Student
-        </option>
+            students.push({
 
-    `;
+                firestoreId:
+                    documentSnapshot.id,
 
+                ...documentSnapshot.data()
 
-    if (!selectedClass)
-        return;
+            });
 
-
-    students
-        .filter(
-            student =>
-                student.class ===
-                selectedClass
-        )
-        .forEach(student => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                student.id;
-
-
-            option.textContent =
-                `${student.firstName} ${student.lastName} (${student.id})`;
-
-
-            resultStudent.appendChild(
-                option
-            );
-
-        });
+        }
+    );
 
 }
 
@@ -304,38 +241,165 @@ function loadStudents() {
 
 async function loadSubjects() {
 
-    await refreshData();
+    const snapshot =
+        await getDocs(
+            subjectsCollection
+        );
 
+    subjects = [];
+
+    snapshot.forEach(
+        documentSnapshot => {
+
+            subjects.push({
+
+                firestoreId:
+                    documentSnapshot.id,
+
+                ...documentSnapshot.data()
+
+            });
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOAD CLASSES
+========================================================= */
+
+async function loadClasses() {
+
+    const snapshot =
+        await getDocs(
+            classesCollection
+        );
+
+    classes = [];
+
+    snapshot.forEach(
+        documentSnapshot => {
+
+            classes.push({
+
+                firestoreId:
+                    documentSnapshot.id,
+
+                ...documentSnapshot.data()
+
+            });
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOAD RESULTS
+========================================================= */
+
+async function loadResults() {
+
+    const snapshot =
+        await getDocs(
+            resultsCollection
+        );
+
+    results = [];
+
+    snapshot.forEach(
+        documentSnapshot => {
+
+            results.push({
+
+                firestoreId:
+                    documentSnapshot.id,
+
+                ...documentSnapshot.data()
+
+            });
+
+        }
+    );
+
+    renderResults();
+
+}
+
+
+/* =========================================================
+   POPULATE CLASS FILTERS
+========================================================= */
+
+function populateClassFilters() {
+
+    const classNames = [
+        ...new Set(
+
+            classes
+                .map(item =>
+                    item.name ||
+                    item.className
+                )
+                .filter(Boolean)
+
+        )
+    ];
+
+
+    populateSelect(
+        resultClassFilter,
+        classNames,
+        "All Classes"
+    );
+
+
+    populateSelect(
+        resultClass,
+        classNames,
+        "Select Class"
+    );
+
+
+    populateSelect(
+        bulkClass,
+        classNames,
+        "Select Class"
+    );
+
+}
+
+
+/* =========================================================
+   POPULATE SUBJECT SELECT
+========================================================= */
+
+function populateSubjectSelect() {
 
     resultSubject.innerHTML = `
-
         <option value="">
             Select Subject
         </option>
-
     `;
 
 
     subjects
-        .filter(
-            subject =>
-                subject.status === "Active"
+        .filter(subject =>
+            subject.status !== "Inactive"
         )
         .forEach(subject => {
 
             const option =
-                document.createElement(
-                    "option"
-                );
-
+                document.createElement("option");
 
             option.value =
-                subject.id;
-
+                subject.firestoreId;
 
             option.textContent =
-                `${subject.name} (${subject.code})`;
-
+                `${subject.name} (${subject.code || ""})`;
 
             resultSubject.appendChild(
                 option
@@ -347,23 +411,143 @@ async function loadSubjects() {
 
 
 /* =========================================================
+   BULK SUBJECT SELECT
+========================================================= */
+
+function populateBulkSubjectSelect() {
+
+    bulkSubject.innerHTML = `
+        <option value="">
+            Select Subject
+        </option>
+    `;
+
+
+    subjects
+        .filter(subject =>
+            subject.status !== "Inactive"
+        )
+        .forEach(subject => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                subject.firestoreId;
+
+            option.textContent =
+                `${subject.name} (${subject.code || ""})`;
+
+            bulkSubject.appendChild(
+                option
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   GENERIC SELECT POPULATOR
+========================================================= */
+
+function populateSelect(
+    select,
+    values,
+    defaultText
+) {
+
+    select.innerHTML = `
+        <option value="">
+            ${defaultText}
+        </option>
+    `;
+
+
+    values.forEach(value => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            value;
+
+        option.textContent =
+            value;
+
+        select.appendChild(
+            option
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   LOAD STUDENTS FOR SELECTED CLASS
+========================================================= */
+
+function populateStudentsForClass(
+    className
+) {
+
+    resultStudent.innerHTML = `
+        <option value="">
+            Select Student
+        </option>
+    `;
+
+
+    if (!className)
+        return;
+
+
+    const classStudents =
+        students.filter(
+            student =>
+                student.class ===
+                className
+        );
+
+
+    classStudents.forEach(
+        student => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                student.firestoreId;
+
+            option.textContent =
+                `${student.firstName || ""} ${student.lastName || ""}`
+                    .trim();
+
+            resultStudent.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
    OPEN RESULT MODAL
 ========================================================= */
 
-async function openResultModal(
+function openResultModal(
     result = null
 ) {
-
-    await refreshData();
-
-    await loadClasses();
-
-    await loadSubjects();
-
 
     resultModal.classList.add(
         "show"
     );
+
+
+    populateSubjectSelect();
 
 
     if (result) {
@@ -374,29 +558,25 @@ async function openResultModal(
             "Edit Result";
 
 
-        document.getElementById(
-            "editingResultId"
-        ).value =
-            result.id;
+        editingResultId.value =
+            result.firestoreId;
 
 
-        document.getElementById(
-            "resultSession"
-        ).value =
+        resultSession.value =
             result.session || "";
 
 
-        document.getElementById(
-            "resultTerm"
-        ).value =
+        resultTerm.value =
             result.term || "";
 
 
         resultClass.value =
-            result.className || "";
+            result.class || "";
 
 
-        loadStudents();
+        populateStudentsForClass(
+            result.class
+        );
 
 
         resultStudent.value =
@@ -428,20 +608,18 @@ async function openResultModal(
         resultForm.reset();
 
 
+        editingResultId.value =
+            "";
+
+
         document.getElementById(
             "resultModalTitle"
         ).textContent =
             "Enter Result";
 
 
-        document.getElementById(
-            "editingResultId"
-        ).value =
-            "";
-
-
         resultTotal.value =
-            0;
+            "0";
 
 
         resultGrade.value =
@@ -468,8 +646,56 @@ function closeResultModalFunction() {
 
     resultForm.reset();
 
+    editingResultId.value =
+        "";
+
 }
 
+
+/* =========================================================
+   OPEN BULK MODAL
+========================================================= */
+
+function openBulkModal() {
+
+    bulkResultModal.classList.add(
+        "show"
+    );
+
+
+    populateBulkSubjectSelect();
+
+
+    bulkResultTableBody.innerHTML =
+        "";
+
+
+    bulkResultTableContainer.style.display =
+        "none";
+
+
+    saveBulkResultsBtn.style.display =
+        "none";
+
+}
+
+
+/* =========================================================
+   CLOSE BULK MODAL
+========================================================= */
+
+function closeBulkModal() {
+
+    bulkResultModal.classList.remove(
+        "show"
+    );
+
+}
+
+
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
 addResultBtn.addEventListener(
     "click",
@@ -489,9 +715,31 @@ cancelResultBtn.addEventListener(
 );
 
 
+bulkResultBtn.addEventListener(
+    "click",
+    openBulkModal
+);
+
+
+closeBulkResultModal.addEventListener(
+    "click",
+    closeBulkModal
+);
+
+
+cancelBulkResultBtn.addEventListener(
+    "click",
+    closeBulkModal
+);
+
+
+/* =========================================================
+   CLOSE MODALS OUTSIDE
+========================================================= */
+
 resultModal.addEventListener(
     "click",
-    function(event) {
+    event => {
 
         if (
             event.target ===
@@ -506,77 +754,41 @@ resultModal.addEventListener(
 );
 
 
+bulkResultModal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            bulkResultModal
+        ) {
+
+            closeBulkModal();
+
+        }
+
+    }
+);
+
+
 /* =========================================================
    CLASS CHANGE
 ========================================================= */
 
 resultClass.addEventListener(
     "change",
-    loadStudents
+    () => {
+
+        populateStudentsForClass(
+            resultClass.value
+        );
+
+    }
 );
 
 
 /* =========================================================
-   GRADE FUNCTION
-========================================================= */
-
-function getGrade(total) {
-
-    if (total >= 75) {
-
-        return {
-            grade: "A",
-            remark: "Excellent"
-        };
-
-    }
-
-    if (total >= 65) {
-
-        return {
-            grade: "B",
-            remark: "Very Good"
-        };
-
-    }
-
-    if (total >= 55) {
-
-        return {
-            grade: "C",
-            remark: "Good"
-        };
-
-    }
-
-    if (total >= 45) {
-
-        return {
-            grade: "D",
-            remark: "Fair"
-        };
-
-    }
-
-    if (total >= 40) {
-
-        return {
-            grade: "E",
-            remark: "Pass"
-        };
-
-    }
-
-    return {
-        grade: "F",
-        remark: "Fail"
-    };
-
-}
-
-
-/* =========================================================
-   CALCULATE RESULT
+   SCORE CALCULATION
 ========================================================= */
 
 function calculateResult() {
@@ -584,41 +796,91 @@ function calculateResult() {
     const score1 =
         Number(ca1.value) || 0;
 
-
     const score2 =
         Number(ca2.value) || 0;
 
-
-    const examScore =
+    const examination =
         Number(exam.value) || 0;
 
 
     const total =
         score1 +
         score2 +
-        examScore;
-
-
-    const result =
-        getGrade(total);
+        examination;
 
 
     resultTotal.value =
         total;
 
 
+    const grade =
+        getGrade(total);
+
+
     resultGrade.value =
-        result.grade;
+        grade;
 
 
     resultRemark.value =
-        result.remark;
+        getRemark(total);
 
 }
 
 
 /* =========================================================
-   SCORE EVENTS
+   GRADE
+========================================================= */
+
+function getGrade(score) {
+
+    if (score >= 70)
+        return "A";
+
+    if (score >= 60)
+        return "B";
+
+    if (score >= 50)
+        return "C";
+
+    if (score >= 45)
+        return "D";
+
+    if (score >= 40)
+        return "E";
+
+    return "F";
+
+}
+
+
+/* =========================================================
+   REMARK
+========================================================= */
+
+function getRemark(score) {
+
+    if (score >= 70)
+        return "Excellent";
+
+    if (score >= 60)
+        return "Very Good";
+
+    if (score >= 50)
+        return "Good";
+
+    if (score >= 45)
+        return "Fair";
+
+    if (score >= 40)
+        return "Pass";
+
+    return "Fail";
+
+}
+
+
+/* =========================================================
+   SCORE INPUT EVENTS
 ========================================================= */
 
 ca1.addEventListener(
@@ -640,329 +902,160 @@ exam.addEventListener(
 
 
 /* =========================================================
-   CHECK DUPLICATE RESULT
-========================================================= */
-
-async function checkDuplicateResult(
-    studentId,
-    subjectId,
-    session,
-    term,
-    editingId = ""
-) {
-
-    const q =
-        query(
-            resultsCollection,
-
-            where(
-                "studentId",
-                "==",
-                studentId
-            ),
-
-            where(
-                "subjectId",
-                "==",
-                subjectId
-            ),
-
-            where(
-                "session",
-                "==",
-                session
-            ),
-
-            where(
-                "term",
-                "==",
-                term
-            )
-        );
-
-
-    const snapshot =
-        await getDocs(q);
-
-
-    return snapshot.docs.some(
-        docSnap =>
-            docSnap.id !== editingId
-    );
-
-}
-
-
-/* =========================================================
-   SAVE RESULT
+   SAVE SINGLE RESULT
 ========================================================= */
 
 resultForm.addEventListener(
     "submit",
-    async function(event) {
+    async event => {
 
         event.preventDefault();
 
 
-        try {
-
-            const editingId =
-                document.getElementById(
-                    "editingResultId"
-                ).value;
+        calculateResult();
 
 
-            const session =
-                document.getElementById(
-                    "resultSession"
-                ).value;
+        const session =
+            resultSession.value;
+
+        const term =
+            resultTerm.value;
+
+        const className =
+            resultClass.value;
+
+        const studentId =
+            resultStudent.value;
+
+        const subjectId =
+            resultSubject.value;
 
 
-            const term =
-                document.getElementById(
-                    "resultTerm"
-                ).value;
+        if (
+            !session ||
+            !term ||
+            !className ||
+            !studentId ||
+            !subjectId
+        ) {
+
+            alert(
+                "Please complete all required fields."
+            );
+
+            return;
+
+        }
 
 
-            const className =
-                resultClass.value;
+        const student =
+            students.find(
+                item =>
+                    item.firestoreId ===
+                    studentId
+            );
 
 
-            const studentId =
-                resultStudent.value;
+        const subject =
+            subjects.find(
+                item =>
+                    item.firestoreId ===
+                    subjectId
+            );
 
 
-            const subjectId =
-                resultSubject.value;
+        const resultData = {
 
+            session,
 
-            const score1 =
-                Number(ca1.value);
+            term,
 
-
-            const score2 =
-                Number(ca2.value);
-
-
-            const examScore =
-                Number(exam.value);
-
-
-            const total =
-                score1 +
-                score2 +
-                examScore;
-
-
-            /* =====================
-               VALIDATION
-            ===================== */
-
-            if (!studentId) {
-
-                alert(
-                    "Please select a student."
-                );
-
-                return;
-
-            }
-
-
-            if (!subjectId) {
-
-                alert(
-                    "Please select a subject."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                score1 < 0 ||
-                score1 > 10
-            ) {
-
-                alert(
-                    "CA 1 must be between 0 and 10."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                score2 < 0 ||
-                score2 > 10
-            ) {
-
-                alert(
-                    "CA 2 must be between 0 and 10."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                examScore < 0 ||
-                examScore > 80
-            ) {
-
-                alert(
-                    "Examination score must be between 0 and 80."
-                );
-
-                return;
-
-            }
-
-
-            /* =====================
-               DUPLICATE CHECK
-            ===================== */
-
-            const duplicate =
-                await checkDuplicateResult(
-                    studentId,
-                    subjectId,
-                    session,
-                    term,
-                    editingId
-                );
-
-
-            if (duplicate) {
-
-                alert(
-                    "A result already exists for this student, subject, session and term."
-                );
-
-                return;
-
-            }
-
-
-            const gradeData =
-                getGrade(total);
-
-
-            const resultData = {
-
-                session,
-
-                term,
-
+            class:
                 className,
 
-                studentId,
+            studentId,
 
-                subjectId,
+            studentName:
+                `${student?.firstName || ""} ${student?.lastName || ""}`
+                    .trim(),
 
-                ca1: score1,
+            subjectId,
 
-                ca2: score2,
+            subjectName:
+                subject?.name || "",
 
-                exam: examScore,
+            subjectCode:
+                subject?.code || "",
 
-                total,
+            ca1:
+                Number(ca1.value) || 0,
 
-                grade:
-                    gradeData.grade,
+            ca2:
+                Number(ca2.value) || 0,
 
-                remark:
-                    gradeData.remark
+            exam:
+                Number(exam.value) || 0,
 
-            };
+            total:
+                Number(resultTotal.value) || 0,
+
+            grade:
+                resultGrade.value,
+
+            remark:
+                resultRemark.value,
+
+            updatedAt:
+                new Date().toISOString()
+
+        };
 
 
-            /* =====================
-               EDIT
-            ===================== */
+        try {
 
-            if (editingId) {
+            if (editingResultId.value) {
 
-                const resultRef =
+                await updateDoc(
+
                     doc(
                         db,
                         "results",
-                        editingId
-                    );
+                        editingResultId.value
+                    ),
 
+                    resultData
 
-                await updateDoc(
-                    resultRef,
-                    {
+                );
 
-                        ...resultData,
-
-                        updatedAt:
-                            serverTimestamp()
-
-                    }
+                alert(
+                    "Result updated successfully."
                 );
 
             }
-
-
-            /* =====================
-               ADD
-            ===================== */
 
             else {
 
-                const newId =
-                    generateResultId();
-
-
-                const resultRef =
-                    doc(
-                        db,
-                        "results",
-                        newId
-                    );
-
-
-                await setDoc(
-                    resultRef,
+                await addDoc(
+                    resultsCollection,
                     {
-
-                        id:
-                            newId,
-
                         ...resultData,
 
                         createdAt:
-                            serverTimestamp(),
-
-                        updatedAt:
-                            serverTimestamp()
-
+                            new Date().toISOString()
                     }
+                );
+
+
+                alert(
+                    "Result saved successfully."
                 );
 
             }
 
 
-            await refreshData();
-
-            await loadResultClassFilter();
-
-            renderResults();
-
+            await loadResults();
 
             closeResultModalFunction();
-
-
-            alert(
-                editingId
-                    ? "Result updated successfully."
-                    : "Result saved successfully."
-            );
 
         }
 
@@ -975,7 +1068,7 @@ resultForm.addEventListener(
 
 
             alert(
-                "Unable to save result to Firestore."
+                "Unable to save result. Check your Firestore rules and Firebase configuration."
             );
 
         }
@@ -985,135 +1078,85 @@ resultForm.addEventListener(
 
 
 /* =========================================================
-   GET STUDENT NAME
-========================================================= */
-
-function getStudentName(id) {
-
-    const student =
-        students.find(
-            item =>
-                item.id === id
-        );
-
-
-    if (!student)
-        return "Unknown Student";
-
-
-    return `${student.firstName} ${student.lastName}`;
-
-}
-
-
-/* =========================================================
-   GET SUBJECT NAME
-========================================================= */
-
-function getSubjectName(id) {
-
-    const subject =
-        subjects.find(
-            item =>
-                item.id === id
-        );
-
-
-    if (!subject)
-        return "Unknown Subject";
-
-
-    return subject.name;
-
-}
-
-
-/* =========================================================
    RENDER RESULTS
 ========================================================= */
 
-async function renderResults() {
-
-    await refreshData();
-
+function renderResults() {
 
     const search =
-        document.getElementById(
-            "resultSearch"
-        ).value
+        resultSearch.value
             .trim()
             .toLowerCase();
 
 
-    const session =
-        document.getElementById(
-            "resultSessionFilter"
-        ).value;
+    const selectedSession =
+        resultSessionFilter.value;
 
 
-    const term =
-        document.getElementById(
-            "resultTermFilter"
-        ).value;
+    const selectedTerm =
+        resultTermFilter.value;
 
 
-    const className =
-        document.getElementById(
-            "resultClassFilter"
-        ).value;
+    const selectedClass =
+        resultClassFilter.value;
 
 
     const filtered =
-        results.filter(result => {
+        results.filter(
+            result => {
 
-            const studentName =
-                getStudentName(
-                    result.studentId
-                ).toLowerCase();
+                const matchesSearch =
+                    !search ||
 
+                    String(
+                        result.studentName || ""
+                    )
+                    .toLowerCase()
+                    .includes(search) ||
 
-            const subjectName =
-                getSubjectName(
-                    result.subjectId
-                ).toLowerCase();
-
-
-            const matchesSearch =
-                !search ||
-                studentName.includes(search) ||
-                subjectName.includes(search);
-
-
-            const matchesSession =
-                !session ||
-                result.session === session;
+                    String(
+                        result.subjectName || ""
+                    )
+                    .toLowerCase()
+                    .includes(search);
 
 
-            const matchesTerm =
-                !term ||
-                result.term === term;
+                const matchesSession =
+                    !selectedSession ||
+                    result.session ===
+                    selectedSession;
 
 
-            const matchesClass =
-                !className ||
-                result.className === className;
+                const matchesTerm =
+                    !selectedTerm ||
+                    result.term ===
+                    selectedTerm;
 
 
-            return (
-                matchesSearch &&
-                matchesSession &&
-                matchesTerm &&
-                matchesClass
-            );
+                const matchesClass =
+                    !selectedClass ||
+                    result.class ===
+                    selectedClass;
 
-        });
+
+                return (
+                    matchesSearch &&
+                    matchesSession &&
+                    matchesTerm &&
+                    matchesClass
+                );
+
+            }
+        );
 
 
     resultsTableBody.innerHTML =
         "";
 
 
-    if (filtered.length === 0) {
+    if (
+        filtered.length === 0
+    ) {
 
         emptyResults.style.display =
             "block";
@@ -1127,122 +1170,118 @@ async function renderResults() {
         "none";
 
 
-    filtered.forEach(result => {
+    filtered.forEach(
+        result => {
 
-        const row =
-            document.createElement(
-                "tr"
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+
+                    <strong>
+                        ${escapeHTML(
+                            result.studentName
+                        )}
+                    </strong>
+
+                </td>
+
+
+                <td>
+                    ${escapeHTML(
+                        result.class
+                    )}
+                </td>
+
+
+                <td>
+                    ${escapeHTML(
+                        result.subjectName
+                    )}
+                </td>
+
+
+                <td>
+                    ${result.ca1 ?? 0}
+                </td>
+
+
+                <td>
+                    ${result.ca2 ?? 0}
+                </td>
+
+
+                <td>
+                    ${result.exam ?? 0}
+                </td>
+
+
+                <td>
+
+                    <strong>
+                        ${result.total ?? 0}
+                    </strong>
+
+                </td>
+
+
+                <td>
+
+                    <strong>
+                        ${escapeHTML(
+                            result.grade
+                        )}
+                    </strong>
+
+                </td>
+
+
+                <td>
+                    ${escapeHTML(
+                        result.remark
+                    )}
+                </td>
+
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <button
+                            class="table-action"
+                            title="Edit"
+                            onclick="editResult('${escapeAttribute(result.firestoreId)}')"
+                        >
+                            ✏️
+                        </button>
+
+
+                        <button
+                            class="table-action"
+                            title="Delete"
+                            onclick="deleteResult('${escapeAttribute(result.firestoreId)}')"
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            resultsTableBody.appendChild(
+                row
             );
 
-
-        row.innerHTML = `
-
-            <td>
-
-                <strong>
-                    ${escapeHTML(
-                        getStudentName(
-                            result.studentId
-                        )
-                    )}
-                </strong>
-
-            </td>
-
-
-            <td>
-                ${escapeHTML(
-                    result.className
-                )}
-            </td>
-
-
-            <td>
-                ${escapeHTML(
-                    getSubjectName(
-                        result.subjectId
-                    )
-                )}
-            </td>
-
-
-            <td>
-                ${result.ca1 ?? 0}
-            </td>
-
-
-            <td>
-                ${result.ca2 ?? 0}
-            </td>
-
-
-            <td>
-                ${result.exam ?? 0}
-            </td>
-
-
-            <td>
-
-                <strong>
-                    ${result.total ?? 0}
-                </strong>
-
-            </td>
-
-
-            <td>
-
-                <strong>
-                    ${escapeHTML(
-                        result.grade || ""
-                    )}
-                </strong>
-
-            </td>
-
-
-            <td>
-
-                ${escapeHTML(
-                    result.remark || ""
-                )}
-
-            </td>
-
-
-            <td>
-
-                <div class="table-actions">
-
-                    <button
-                        class="table-action"
-                        onclick="editResult('${result.id}')"
-                        title="Edit"
-                    >
-                        ✏️
-                    </button>
-
-
-                    <button
-                        class="table-action"
-                        onclick="deleteResult('${result.id}')"
-                        title="Delete"
-                    >
-                        🗑️
-                    </button>
-
-                </div>
-
-            </td>
-
-        `;
-
-
-        resultsTableBody.appendChild(
-            row
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -1252,18 +1291,19 @@ async function renderResults() {
 ========================================================= */
 
 window.editResult =
-    async function(id) {
+    function(id) {
 
         const result =
             results.find(
                 item =>
-                    item.id === id
+                    item.firestoreId ===
+                    id
             );
 
 
         if (result) {
 
-            await openResultModal(
+            openResultModal(
                 result
             );
 
@@ -1282,7 +1322,8 @@ window.deleteResult =
         const result =
             results.find(
                 item =>
-                    item.id === id
+                    item.firestoreId ===
+                    id
             );
 
 
@@ -1292,7 +1333,7 @@ window.deleteResult =
 
         const confirmed =
             confirm(
-                "Delete this result?"
+                `Delete result for ${result.studentName} in ${result.subjectName}?`
             );
 
 
@@ -1303,17 +1344,17 @@ window.deleteResult =
         try {
 
             await deleteDoc(
+
                 doc(
                     db,
                     "results",
                     id
                 )
+
             );
 
 
-            await refreshData();
-
-            renderResults();
+            await loadResults();
 
 
             alert(
@@ -1340,355 +1381,23 @@ window.deleteResult =
 
 
 /* =========================================================
-   LOAD RESULT CLASS FILTER
-========================================================= */
-
-async function loadResultClassFilter() {
-
-    await refreshData();
-
-
-    const filter =
-        document.getElementById(
-            "resultClassFilter"
-        );
-
-
-    filter.innerHTML = `
-
-        <option value="">
-            All Classes
-        </option>
-
-    `;
-
-
-    classes.forEach(item => {
-
-        const option =
-            document.createElement(
-                "option"
-            );
-
-
-        option.value =
-            item.name;
-
-
-        option.textContent =
-            item.name;
-
-
-        filter.appendChild(
-            option
-        );
-
-    });
-
-}
-
-
-/* =========================================================
-   FILTER EVENTS
-========================================================= */
-
-document.getElementById(
-    "resultSearch"
-).addEventListener(
-    "input",
-    renderResults
-);
-
-
-document.getElementById(
-    "resultSessionFilter"
-).addEventListener(
-    "change",
-    renderResults
-);
-
-
-document.getElementById(
-    "resultTermFilter"
-).addEventListener(
-    "change",
-    renderResults
-);
-
-
-document.getElementById(
-    "resultClassFilter"
-).addEventListener(
-    "change",
-    renderResults
-);
-
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-/* =========================================================
-   BULK RESULT ELEMENTS
-========================================================= */
-
-const bulkResultBtn =
-    document.getElementById(
-        "bulkResultBtn"
-    );
-
-const bulkResultModal =
-    document.getElementById(
-        "bulkResultModal"
-    );
-
-const closeBulkResultModal =
-    document.getElementById(
-        "closeBulkResultModal"
-    );
-
-const cancelBulkResultBtn =
-    document.getElementById(
-        "cancelBulkResultBtn"
-    );
-
-const bulkSession =
-    document.getElementById(
-        "bulkSession"
-    );
-
-const bulkTerm =
-    document.getElementById(
-        "bulkTerm"
-    );
-
-const bulkClass =
-    document.getElementById(
-        "bulkClass"
-    );
-
-const bulkSubject =
-    document.getElementById(
-        "bulkSubject"
-    );
-
-const loadClassStudentsBtn =
-    document.getElementById(
-        "loadClassStudentsBtn"
-    );
-
-const bulkResultTableBody =
-    document.getElementById(
-        "bulkResultTableBody"
-    );
-
-const bulkResultTableContainer =
-    document.getElementById(
-        "bulkResultTableContainer"
-    );
-
-const saveBulkResultsBtn =
-    document.getElementById(
-        "saveBulkResultsBtn"
-    );
-
-
-/* =========================================================
-   LOAD BULK CLASSES
-========================================================= */
-
-async function loadBulkClasses() {
-
-    await refreshData();
-
-
-    bulkClass.innerHTML = `
-
-        <option value="">
-            Select Class
-        </option>
-
-    `;
-
-
-    classes
-        .filter(
-            item =>
-                item.status === "Active"
-        )
-        .forEach(item => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                item.name;
-
-
-            option.textContent =
-                item.name;
-
-
-            bulkClass.appendChild(
-                option
-            );
-
-        });
-
-}
-
-
-/* =========================================================
-   LOAD BULK SUBJECTS
-========================================================= */
-
-async function loadBulkSubjects() {
-
-    await refreshData();
-
-
-    bulkSubject.innerHTML = `
-
-        <option value="">
-            Select Subject
-        </option>
-
-    `;
-
-
-    subjects
-        .filter(
-            subject =>
-                subject.status === "Active"
-        )
-        .forEach(subject => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                subject.id;
-
-
-            option.textContent =
-                `${subject.name} (${subject.code})`;
-
-
-            bulkSubject.appendChild(
-                option
-            );
-
-    });
-
-}
-
-
-/* =========================================================
-   OPEN BULK RESULT
-========================================================= */
-
-bulkResultBtn.addEventListener(
-    "click",
-    async function() {
-
-        await loadBulkClasses();
-
-        await loadBulkSubjects();
-
-
-        bulkResultModal.classList.add(
-            "show"
-        );
-
-
-        bulkResultTableContainer.style.display =
-            "none";
-
-
-        saveBulkResultsBtn.style.display =
-            "none";
-
-
-        bulkResultTableBody.innerHTML =
-            "";
-
-    }
-);
-
-
-/* =========================================================
-   CLOSE BULK RESULT
-========================================================= */
-
-function closeBulkResult() {
-
-    bulkResultModal.classList.remove(
-        "show"
-    );
-
-}
-
-
-closeBulkResultModal.addEventListener(
-    "click",
-    closeBulkResult
-);
-
-
-cancelBulkResultBtn.addEventListener(
-    "click",
-    closeBulkResult
-);
-
-
-bulkResultModal.addEventListener(
-    "click",
-    function(event) {
-
-        if (
-            event.target ===
-            bulkResultModal
-        ) {
-
-            closeBulkResult();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   LOAD STUDENTS FOR BULK RESULT
+   BULK: LOAD STUDENTS
 ========================================================= */
 
 loadClassStudentsBtn.addEventListener(
     "click",
-    async function() {
-
-        await refreshData();
-
+    () => {
 
         const className =
             bulkClass.value;
+
+
+        const session =
+            bulkSession.value;
+
+
+        const term =
+            bulkTerm.value;
 
 
         const subjectId =
@@ -1696,14 +1405,14 @@ loadClassStudentsBtn.addEventListener(
 
 
         if (
-            !bulkSession.value ||
-            !bulkTerm.value ||
             !className ||
+            !session ||
+            !term ||
             !subjectId
         ) {
 
             alert(
-                "Please complete all selections."
+                "Please select session, term, class and subject."
             );
 
             return;
@@ -1715,14 +1424,8 @@ loadClassStudentsBtn.addEventListener(
             students.filter(
                 student =>
                     student.class ===
-                    className &&
-                    student.status ===
-                    "Active"
+                    className
             );
-
-
-        bulkResultTableBody.innerHTML =
-            "";
 
 
         if (
@@ -1730,7 +1433,7 @@ loadClassStudentsBtn.addEventListener(
         ) {
 
             alert(
-                "No active students found in this class."
+                "No students were found in this class."
             );
 
             return;
@@ -1738,8 +1441,12 @@ loadClassStudentsBtn.addEventListener(
         }
 
 
+        bulkResultTableBody.innerHTML =
+            "";
+
+
         classStudents.forEach(
-            student => {
+            (student, index) => {
 
                 const row =
                     document.createElement(
@@ -1748,19 +1455,22 @@ loadClassStudentsBtn.addEventListener(
 
 
                 row.dataset.studentId =
-                    student.id;
+                    student.firestoreId;
 
 
                 row.innerHTML = `
 
                     <td>
+                        ${index + 1}
+                    </td>
+
+
+                    <td>
 
                         <strong>
                             ${escapeHTML(
-                                student.firstName
-                            )}
-                            ${escapeHTML(
-                                student.lastName
+                                `${student.firstName || ""} ${student.lastName || ""}`
+                                    .trim()
                             )}
                         </strong>
 
@@ -1806,28 +1516,18 @@ loadClassStudentsBtn.addEventListener(
                     </td>
 
 
-                    <td>
-                        <strong
-                            class="bulk-total"
-                        >
-                            0
-                        </strong>
+                    <td class="bulk-total">
+                        0
                     </td>
 
 
-                    <td>
-                        <strong
-                            class="bulk-grade"
-                        >
-                            F
-                        </strong>
+                    <td class="bulk-grade">
+                        -
                     </td>
 
 
-                    <td
-                        class="bulk-remark"
-                    >
-                        Fail
+                    <td class="bulk-remark">
+                        -
                     </td>
 
                 `;
@@ -1838,7 +1538,7 @@ loadClassStudentsBtn.addEventListener(
                 );
 
 
-                setupBulkCalculation(
+                addBulkCalculationEvents(
                     row
                 );
 
@@ -1858,57 +1558,29 @@ loadClassStudentsBtn.addEventListener(
 
 
 /* =========================================================
-   BULK CALCULATION
+   BULK SCORE CALCULATION
 ========================================================= */
 
-function setupBulkCalculation(row) {
+function addBulkCalculationEvents(
+    row
+) {
 
     const ca1Input =
-        row.querySelector(
-            ".bulk-ca1"
-        );
-
+        row.querySelector(".bulk-ca1");
 
     const ca2Input =
-        row.querySelector(
-            ".bulk-ca2"
-        );
-
+        row.querySelector(".bulk-ca2");
 
     const examInput =
-        row.querySelector(
-            ".bulk-exam"
-        );
+        row.querySelector(".bulk-exam");
 
 
-    function calculate() {
-
-        const score1 =
-            Number(
-                ca1Input.value
-            ) || 0;
-
-
-        const score2 =
-            Number(
-                ca2Input.value
-            ) || 0;
-
-
-        const examScore =
-            Number(
-                examInput.value
-            ) || 0;
-
+    const calculate = () => {
 
         const total =
-            score1 +
-            score2 +
-            examScore;
-
-
-        const gradeData =
-            getGrade(total);
+            Number(ca1Input.value || 0) +
+            Number(ca2Input.value || 0) +
+            Number(examInput.value || 0);
 
 
         row.querySelector(
@@ -1920,15 +1592,15 @@ function setupBulkCalculation(row) {
         row.querySelector(
             ".bulk-grade"
         ).textContent =
-            gradeData.grade;
+            getGrade(total);
 
 
         row.querySelector(
             ".bulk-remark"
         ).textContent =
-            gradeData.remark;
+            getRemark(total);
 
-    }
+    };
 
 
     ca1Input.addEventListener(
@@ -1952,77 +1624,93 @@ function setupBulkCalculation(row) {
 
 
 /* =========================================================
-   SAVE BULK RESULTS TO FIRESTORE
+   SAVE BULK RESULTS
 ========================================================= */
 
 saveBulkResultsBtn.addEventListener(
     "click",
-    async function() {
+    async () => {
+
+        const session =
+            bulkSession.value;
+
+        const term =
+            bulkTerm.value;
+
+        const className =
+            bulkClass.value;
+
+        const subjectId =
+            bulkSubject.value;
+
+
+        if (
+            !session ||
+            !term ||
+            !className ||
+            !subjectId
+        ) {
+
+            alert(
+                "Please complete all selections."
+            );
+
+            return;
+
+        }
+
+
+        const subject =
+            subjects.find(
+                item =>
+                    item.firestoreId ===
+                    subjectId
+            );
+
+
+        const rows =
+            [
+                ...bulkResultTableBody
+                    .querySelectorAll("tr")
+            ];
+
+
+        if (
+            rows.length === 0
+        ) {
+
+            alert(
+                "Please load the class students first."
+            );
+
+            return;
+
+        }
+
+
+        saveBulkResultsBtn.disabled =
+            true;
+
+        saveBulkResultsBtn.textContent =
+            "Saving...";
+
 
         try {
 
-            await refreshData();
-
-
-            const session =
-                bulkSession.value;
-
-
-            const term =
-                bulkTerm.value;
-
-
-            const className =
-                bulkClass.value;
-
-
-            const subjectId =
-                bulkSubject.value;
-
-
-            if (
-                !session ||
-                !term ||
-                !className ||
-                !subjectId
+            for (
+                const row of rows
             ) {
-
-                alert(
-                    "Please complete all selections."
-                );
-
-                return;
-
-            }
-
-
-            const rows =
-                bulkResultTableBody
-                    .querySelectorAll("tr");
-
-
-            if (rows.length === 0) {
-
-                alert(
-                    "No students to save."
-                );
-
-                return;
-
-            }
-
-
-            const batch =
-                writeBatch(db);
-
-
-            let savedCount = 0;
-
-
-            for (const row of rows) {
 
                 const studentId =
                     row.dataset.studentId;
+
+
+                const student =
+                    students.find(
+                        item =>
+                            item.firestoreId ===
+                            studentId
+                    );
 
 
                 const score1 =
@@ -2041,7 +1729,7 @@ saveBulkResultsBtn.addEventListener(
                     ) || 0;
 
 
-                const examScore =
+                const examination =
                     Number(
                         row.querySelector(
                             ".bulk-exam"
@@ -2049,57 +1737,10 @@ saveBulkResultsBtn.addEventListener(
                     ) || 0;
 
 
-                /* VALIDATION */
-
-                if (
-                    score1 < 0 ||
-                    score1 > 10 ||
-                    score2 < 0 ||
-                    score2 > 10 ||
-                    examScore < 0 ||
-                    examScore > 80
-                ) {
-
-                    alert(
-                        "One or more scores are invalid."
-                    );
-
-                    return;
-
-                }
-
-
                 const total =
                     score1 +
                     score2 +
-                    examScore;
-
-
-                const gradeData =
-                    getGrade(total);
-
-
-                /* =====================
-                   FIND EXISTING RESULT
-                ===================== */
-
-                const existing =
-                    results.find(
-                        result =>
-
-                            result.studentId ===
-                            studentId &&
-
-                            result.subjectId ===
-                            subjectId &&
-
-                            result.session ===
-                            session &&
-
-                            result.term ===
-                            term
-
-                    );
+                    examination;
 
 
                 const resultData = {
@@ -2108,106 +1749,65 @@ saveBulkResultsBtn.addEventListener(
 
                     term,
 
-                    className,
+                    class:
+                        className,
 
                     studentId,
 
+                    studentName:
+                        `${student?.firstName || ""} ${student?.lastName || ""}`
+                            .trim(),
+
                     subjectId,
 
-                    ca1: score1,
+                    subjectName:
+                        subject?.name || "",
 
-                    ca2: score2,
+                    subjectCode:
+                        subject?.code || "",
 
-                    exam: examScore,
+                    ca1:
+                        score1,
+
+                    ca2:
+                        score2,
+
+                    exam:
+                        examination,
 
                     total,
 
                     grade:
-                        gradeData.grade,
+                        getGrade(total),
 
                     remark:
-                        gradeData.remark,
+                        getRemark(total),
+
+                    createdAt:
+                        new Date().toISOString(),
 
                     updatedAt:
-                        serverTimestamp()
+                        new Date().toISOString()
 
                 };
 
 
-                /* UPDATE */
-
-                if (existing) {
-
-                    const resultRef =
-                        doc(
-                            db,
-                            "results",
-                            existing.id
-                        );
-
-
-                    batch.update(
-                        resultRef,
-                        resultData
-                    );
-
-                }
-
-                /* CREATE */
-
-                else {
-
-                    const newId =
-                        generateResultId();
-
-
-                    const resultRef =
-                        doc(
-                            db,
-                            "results",
-                            newId
-                        );
-
-
-                    batch.set(
-                        resultRef,
-                        {
-
-                            id:
-                                newId,
-
-                            ...resultData,
-
-                            createdAt:
-                                serverTimestamp()
-
-                        }
-                    );
-
-                }
-
-
-                savedCount++;
+                await addDoc(
+                    resultsCollection,
+                    resultData
+                );
 
             }
 
 
-            await batch.commit();
-
-
-            await refreshData();
-
-            await loadResultClassFilter();
-
-            renderResults();
-
-
             alert(
-                `${savedCount} result(s) saved successfully.`
+                "All class results saved successfully."
             );
 
 
-            closeBulkResult();
+            await loadResults();
+
+            closeBulkModal();
 
         }
 
@@ -2220,31 +1820,120 @@ saveBulkResultsBtn.addEventListener(
 
 
             alert(
-                "Unable to save bulk results to Firestore."
+                "Some results could not be saved. Check your Firebase configuration and Firestore rules."
             );
 
         }
 
-    });
+        finally {
+
+            saveBulkResultsBtn.disabled =
+                false;
+
+            saveBulkResultsBtn.textContent =
+                "Save All Results";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+resultSessionFilter.addEventListener(
+    "change",
+    renderResults
+);
+
+
+resultTermFilter.addEventListener(
+    "change",
+    renderResults
+);
+
+
+resultClassFilter.addEventListener(
+    "change",
+    renderResults
+);
+
+
+resultSearch.addEventListener(
+    "input",
+    renderResults
+);
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   ESCAPE ATTRIBUTE
+========================================================= */
+
+function escapeAttribute(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+
+        .replace(
+            /'/g,
+            "\\'"
+        );
+
+}
 
 
 /* =========================================================
    INITIALIZE
 ========================================================= */
 
-async function initializeResultsPage() {
-
-    await refreshData();
-
-    await loadResultClassFilter();
-
-    await renderResults();
-
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-initializeResultsPage();
+loadAllData();

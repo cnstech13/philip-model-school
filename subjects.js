@@ -3,16 +3,15 @@
 ========================= */
 
 import {
-    db,
     collection,
     getDocs,
+    doc,
     addDoc,
     updateDoc,
-    deleteDoc,
-    doc
-} from "./firebase.js";
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-
+import { db } from "./firebase-config.js";
 let subjects = [];
 
 
