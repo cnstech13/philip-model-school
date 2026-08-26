@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Parent Dashboard | Philip Model School
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="parent-dashboard.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <header class="portal-header">
+
+        <div class="brand-area">
+
+            <button
+                class="menu-toggle"
+                id="menuToggle"
+            >
+                ☰
+            </button>
+
+
+            <div class="school-logo">
+                PMS
+            </div>
+
+
+            <div>
+
+                <h2>
+                    Philip Model School
+                </h2>
+
+                <small>
+                    Parent Portal
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <div class="parent-area">
+
+            <div
+                class="parent-avatar"
+                id="parentAvatar"
+            >
+                P
+            </div>
+
+            <div class="parent-name">
+                <strong id="parentName">
+                    Parent
+                </strong>
+
+                <small>
+                    Parent Account
+                </small>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         PORTAL
+    ========================= -->
+
+    <div class="portal-layout">
+
+
+        <!-- SIDEBAR -->
+
+        <aside
+            class="sidebar"
+            id="sidebar"
+        >
+
+            <div class="sidebar-label">
+                Parent Portal
+            </div>
+
+
+            <a
+                href="#"
+                class="active"
+            >
+                🏠
+                <span>Dashboard</span>
+            </a>
+
+
+            <a href="#">
+                👨‍👩‍👧
+                <span>My Children</span>
+            </a>
+
+
+            <a href="#">
+                📊
+                <span>Results</span>
+            </a>
+
+
+            <a href="#">
+                📈
+                <span>Performance</span>
+            </a>
+
+
+            <a href="#">
+                📅
+                <span>Attendance</span>
+            </a>
+
+
+            <a href="#">
+                📄
+                <span>Report Cards</span>
+            </a>
+
+
+            <a href="#">
+                💰
+                <span>Fees</span>
+            </a>
+
+
+            <a href="#">
+                🕐
+                <span>Timetable</span>
+            </a>
+
+
+            <a href="#">
+                📢
+                <span>Announcements</span>
+            </a>
+
+
+            <a href="#">
+                💬
+                <span>Messages</span>
+            </a>
+
+
+            <div class="sidebar-logout">
+
+                <button id="logoutBtn">
+                    🚪
+                    <span>Logout</span>
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+
+        <main class="main-content">
+
+
+            <!-- WELCOME -->
+
+            <section class="welcome">
+
+                <p class="welcome-label">
+                    PARENT PORTAL
+                </p>
+
+                <h1>
+                    Welcome,
+                    <span id="welcomeName">
+                        Parent
+                    </span>
+                    👋
+                </h1>
+
+                <p>
+                    Here's an overview of your
+                    children's academic progress.
+                </p>
+
+            </section>
+
+
+            <!-- CHILDREN -->
+
+            <section>
+
+                <div class="section-heading">
+
+                    <h2>
+                        My Children
+                    </h2>
+
+                </div>
+
+
+                <div
+                    class="children-grid"
+                    id="childrenGrid"
+                >
+
+                    <div class="loading-card">
+
+                        <div class="loader"></div>
+
+                        <p>
+                            Loading your children...
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ACADEMIC OVERVIEW -->
+
+            <section>
+
+                <div class="section-heading">
+
+                    <h2>
+                        Academic Overview
+                    </h2>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            📊
+                        </div>
+
+                        <strong id="overallAverage">
+                            --
+                        </strong>
+
+                        <span>
+                            Overall Average
+                        </span>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            🏆
+                        </div>
+
+                        <strong id="performanceStatus">
+                            --
+                        </strong>
+
+                        <span>
+                            Overall Performance
+                        </span>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            📅
+                        </div>
+
+                        <strong id="attendanceRate">
+                            --
+                        </strong>
+
+                        <span>
+                            Average Attendance
+                        </span>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            💰
+                        </div>
+
+                        <strong id="outstandingFees">
+                            --
+                        </strong>
+
+                        <span>
+                            Outstanding Fees
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RECENT RESULTS -->
+
+            <section class="results-card">
+
+                <div class="card-header">
+
+                    <h2>
+                        Recent Results
+                    </h2>
+
+                    <a href="#">
+                        View All
+                    </a>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Subject
+                                </th>
+
+                                <th>
+                                    CA
+                                </th>
+
+                                <th>
+                                    Exam
+                                </th>
+
+                                <th>
+                                    Total
+                                </th>
+
+                                <th>
+                                    Grade
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="recentResultsBody"
+                        >
+
+                            <tr>
+
+                                <td
+                                    colspan="5"
+                                    class="table-loading"
+                                >
+                                    Results will appear here.
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- ANNOUNCEMENTS -->
+
+            <section>
+
+                <div class="section-heading">
+
+                    <h2>
+                        School Announcements
+                    </h2>
+
+                </div>
+
+
+                <div id="announcementsContainer">
+
+                    <div class="announcement">
+
+                        <h3>
+                            Welcome to the Parent Portal
+                        </h3>
+
+                        <p>
+                            Important school announcements
+                            will appear here.
+                        </p>
+
+                        <small>
+                            Philip Model School
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+    <script
+        type="module"
+        src="parent-dashboard.js">
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Parent Portal Login - Philip Model School">
+
+    <title>Parent Login | Philip Model School</title>
+
+    <link rel="stylesheet" href="parent-login.css">
+</head>
+
+<body>
+
+    <main class="login-page">
+
+        <div class="login-wrapper">
+
+            <!-- BRAND -->
+
+            <div class="brand">
+
+                <div class="brand-logo">
+                    PMS
+                </div>
+
+                <h1>
+                    Philip Model School
+                </h1>
+
+                <p>
+                    Parent & Guardian Portal
+                </p>
+
+            </div>
+
+
+            <!-- LOGIN CARD -->
+
+            <div class="login-card">
+
+                <div class="login-heading">
+
+                    <h2>
+                        Parent Login
+                    </h2>
+
+                    <p>
+                        Sign in to view your child's
+                        academic information.
+                    </p>
+
+                </div>
+
+
+                <form id="parentLoginForm">
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email Address
+                        </label>
+
+                        <div class="input-box">
+
+                            <span>✉️</span>
+
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="Enter your email"
+                                autocomplete="email"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PASSWORD -->
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="input-box">
+
+                            <span>🔒</span>
+
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="password-toggle"
+                            >
+                                👁
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- OPTIONS -->
+
+                    <div class="login-options">
+
+                        <label class="remember">
+
+                            <input
+                                type="checkbox"
+                                id="rememberMe"
+                            >
+
+                            <span>
+                                Remember me
+                            </span>
+
+                        </label>
+
+
+                        <a href="#" id="forgotPassword">
+                            Forgot Password?
+                        </a>
+
+                    </div>
+
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+                        type="submit"
+                        class="login-btn"
+                        id="loginBtn"
+                    >
+
+                        <span id="loginBtnText">
+                            Sign In
+                        </span>
+
+                    </button>
+
+
+                    <!-- MESSAGE -->
+
+                    <div
+                        id="loginMessage"
+                        class="login-message"
+                    ></div>
+
+                </form>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div class="login-footer">
+
+                <p>
+                    Don't have a parent account?
+                </p>
+
+                <p>
+                    Contact the school administration.
+                </p>
+
+                <a href="index.html">
+                    ← Back to School Website
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script
+        type="module"
+        src="parent-login.js">
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Admin Login | Philip Model School</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-login.css">
+
+</head>
+
+<body class="admin-login-page">
+
+
+<div class="login-container">
+
+    <div class="login-card">
+
+
+        <div class="login-logo">
+
+            <div class="logo-icon">
+                PMS
+            </div>
+
+            <h1>
+                Philip Model
+            </h1>
+
+            <p>
+                School Management System
+            </p>
+
+        </div>
+
+
+        <form id="adminLoginForm">
+
+
+            <div class="form-group">
+
+                <label for="username">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    required
+                >
+
+            </div>
+
+
+            <div
+                id="loginError"
+                class="login-error"
+            ></div>
+
+
+            <button
+                type="submit"
+                class="btn btn-primary login-btn"
+            >
+                Sign In
+            </button>
+
+
+        </form>
+
+
+        <a
+            href="index.html"
+            class="back-home"
+        >
+            ← Back to website
+        </a>
+
+
+    </div>
+
+</div>
+
+
+<script src="admin-login.js"></script>
+
+</body>
+
+</html>

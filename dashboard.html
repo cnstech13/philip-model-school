@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Dashboard | Philip Model School
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="admin-login.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="dashboard.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="admin-layout">
+
+
+    <!-- =================================
+         SIDEBAR
+    ================================== -->
+
+    <aside class="admin-sidebar">
+
+        <div class="admin-brand">
+
+            <div class="logo-icon">
+                BF
+            </div>
+
+            <div>
+
+                <strong>
+                    Philip Model
+                </strong>
+
+                <small>
+                    Admin Portal
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <nav class="admin-nav">
+
+            <a
+                href="dashboard.html"
+                class="active"
+            >
+                📊 Dashboard
+            </a>
+
+            <a href="student.html">
+                👨‍🎓 Students
+            </a>
+
+            <a href="teachers.html">
+                👨‍🏫 Teachers
+            </a>
+
+            <a href="classes.html">
+                🏫 Classes
+            </a>
+
+            <a href="subjects.html">
+                📚 Subjects
+            </a>
+
+            <a href="admissions.html">
+                📝 Admissions
+            </a>
+
+            <a href="results.html">
+                📊 Results
+            </a>
+
+            <a href="attendance.html">
+                📅 Attendance
+            </a>
+
+            <a href="report-card.html">
+                📄 Report Cards
+            </a>
+
+            <a href="fees.html">
+                💰 Fees
+            </a>
+
+            <a href="news.html">
+                📰 News
+            </a>
+
+            <a href="messages.html">
+                💬 Messages
+            </a>
+
+            <a href="settings.html">
+                ⚙️ Settings
+            </a>
+
+            <a
+                href="logout.html"
+                id="logoutBtn"
+            >
+                🚪 Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- =================================
+         MAIN
+    ================================== -->
+
+    <main class="admin-main">
+
+
+        <!-- HEADER -->
+
+        <header class="admin-header">
+
+            <div>
+
+                <strong>
+                    Dashboard
+                </strong>
+
+                <small
+                    id="currentDate"
+                ></small>
+
+            </div>
+
+
+            <div class="admin-profile">
+
+                <div class="profile-avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <strong>
+                        Administrator
+                    </strong>
+
+                    <small>
+                        School Admin
+                    </small>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================
+             CONTENT
+        ================================== -->
+
+        <section class="admin-content">
+
+
+            <!-- WELCOME -->
+
+            <div class="dashboard-welcome">
+
+                <div>
+
+                    <h1>
+                        Welcome  👋
+                    </h1>
+
+                    <p>
+                        Here's what's happening
+                        in your school today.
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <a
+                        href="student.html"
+                        class="btn btn-primary"
+                    >
+                        + Add Student
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 STATISTICS
+            ================================== -->
+
+            <div class="dashboard-stats">
+
+
+                <!-- STUDENTS -->
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        👨‍🎓
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Total Students
+                        </span>
+
+                        <strong
+                            id="totalStudents"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TEACHERS -->
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        👨‍🏫
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Teachers
+                        </span>
+
+                        <strong
+                            id="totalTeachers"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CLASSES -->
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        🏫
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Classes
+                        </span>
+
+                        <strong
+                            id="totalClasses"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUBJECTS -->
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        📚
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Subjects
+                        </span>
+
+                        <strong
+                            id="totalSubjects"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 SECOND ROW
+            ================================== -->
+
+            <div class="dashboard-grid">
+
+
+                <!-- QUICK ACTIONS -->
+
+                <div class="admin-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h2>
+                                Quick Actions
+                            </h2>
+
+                            <p>
+                                Common administrative tasks
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-actions">
+
+
+                        <a
+                            href="student.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                👨‍🎓
+                            </span>
+
+                            <strong>
+                                Add Student
+                            </strong>
+
+                        </a>
+
+
+                        <a
+                            href="teachers.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                👨‍🏫
+                            </span>
+
+                            <strong>
+                                Add Teacher
+                            </strong>
+
+                        </a>
+
+
+                        <a
+                            href="results.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                📊
+                            </span>
+
+                            <strong>
+                                Enter Results
+                            </strong>
+
+                        </a>
+
+
+                        <a
+                            href="attendance.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                📅
+                            </span>
+
+                            <strong>
+                                Attendance
+                            </strong>
+
+                        </a>
+
+
+                        <a
+                            href="report-cards.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                📄
+                            </span>
+
+                            <strong>
+                                Report Cards
+                            </strong>
+
+                        </a>
+
+
+                        <a
+                            href="subjects.html"
+                            class="quick-action"
+                        >
+
+                            <span>
+                                📚
+                            </span>
+
+                            <strong>
+                                Manage Subjects
+                            </strong>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SCHOOL OVERVIEW -->
+
+                <div class="admin-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h2>
+                                School Overview
+                            </h2>
+
+                            <p>
+                                Current academic information
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="overview-list">
+
+
+                        <div>
+
+                            <span>
+                                Academic Session
+                            </span>
+
+                            <strong
+                                id="dashboardSession"
+                            >
+                                2026/2027
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Current Term
+                            </span>
+
+                            <strong
+                                id="dashboardTerm"
+                            >
+                                First Term
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                School Status
+                            </span>
+
+                            <strong class="status-active">
+                                Active
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                System
+                            </span>
+
+                            <strong>
+                                Localhost
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 THIRD ROW
+            ================================== -->
+
+            <div class="dashboard-grid">
+
+
+                <!-- RECENT ACTIVITIES -->
+
+                <div class="admin-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h2>
+                                Recent Activities
+                            </h2>
+
+                            <p>
+                                Latest system activities
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="activity-list"
+                        id="activityList"
+                    >
+
+                        <div class="empty-activity">
+
+                            No recent activities.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ATTENDANCE SUMMARY -->
+
+                <div class="admin-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <h2>
+                                Attendance Today
+                            </h2>
+
+                            <p>
+                                School-wide attendance
+                            </p>
+
+                        </div>
+
+                        <a
+                            href="attendance.html"
+                            class="view-link"
+                        >
+                            View
+                        </a>
+
+                    </div>
+
+
+                    <div class="attendance-dashboard">
+
+
+                        <div>
+
+                            <span class="attendance-number">
+                                0
+                            </span>
+
+                            <small>
+                                Present
+                            </small>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="attendance-number">
+                                0
+                            </span>
+
+                            <small>
+                                Absent
+                            </small>
+
+                        </div>
+
+
+                        <div>
+
+                            <span class="attendance-number">
+                                0
+                            </span>
+
+                            <small>
+                                Late
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================
+                 SYSTEM SHORTCUTS
+            ================================== -->
+
+            <div class="admin-card">
+
+                <div class="card-heading">
+
+                    <div>
+
+                        <h2>
+                            Management Modules
+                        </h2>
+
+                        <p>
+                            Access school management
+                            modules
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="module-grid">
+
+
+                    <a href="student.html">
+
+                        <span>
+                            👨‍🎓
+                        </span>
+
+                        <strong>
+                            Students
+                        </strong>
+
+                        <small>
+                            Manage student records
+                        </small>
+
+                    </a>
+
+
+                    <a href="teachers.html">
+
+                        <span>
+                            👨‍🏫
+                        </span>
+
+                        <strong>
+                            Teachers
+                        </strong>
+
+                        <small>
+                            Manage teaching staff
+                        </small>
+
+                    </a>
+
+
+                    <a href="classes.html">
+
+                        <span>
+                            🏫
+                        </span>
+
+                        <strong>
+                            Classes
+                        </strong>
+
+                        <small>
+                            Manage school classes
+                        </small>
+
+                    </a>
+
+
+                    <a href="subjects.html">
+
+                        <span>
+                            📚
+                        </span>
+
+                        <strong>
+                            Subjects
+                        </strong>
+
+                        <small>
+                            Manage subjects
+                        </small>
+
+                    </a>
+
+
+                    <a href="results.html">
+
+                        <span>
+                            📊
+                        </span>
+
+                        <strong>
+                            Results
+                        </strong>
+
+                        <small>
+                            Enter student results
+                        </small>
+
+                    </a>
+
+
+                    <a href="attendance.html">
+
+                        <span>
+                            📅
+                        </span>
+
+                        <strong>
+                            Attendance
+                        </strong>
+
+                        <small>
+                            Track attendance
+                        </small>
+
+                    </a>
+
+
+                    <a href="report-cards.html">
+
+                        <span>
+                            📄
+                        </span>
+
+                        <strong>
+                            Report Cards
+                        </strong>
+
+                        <small>
+                            Generate reports
+                        </small>
+
+                    </a>
+
+
+                    <a href="settings.html">
+
+                        <span>
+                            ⚙️
+                        </span>
+
+                        <strong>
+                            Settings
+                        </strong>
+
+                        <small>
+                            Configure school
+                        </small>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script
+    src="admin-login.js"
+></script>
+
+<script
+    src="dashboard.js"
+></script>
+
+</body>
+
+</html>

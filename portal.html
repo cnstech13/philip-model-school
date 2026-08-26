@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Philip Model School | Portal</title>
+
+    <link rel="stylesheet" href="portal.css">
+
+</head>
+
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="portal-header">
+
+        <div class="header-left">
+
+            <div class="school-logo">
+                PM
+            </div>
+
+            <div>
+                <h2>Philip Model School</h2>
+                <span>Parent & Student Portal</span>
+            </div>
+
+        </div>
+
+
+        <div class="header-right">
+
+            <span id="userName">
+                Loading...
+            </span>
+
+            <button id="logoutBtn">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= LAYOUT ================= -->
+
+    <div class="portal-layout">
+
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside class="sidebar">
+
+            <nav>
+
+                <a
+                    href="#"
+                    class="portal-link active"
+                    data-section="dashboard"
+                >
+                    📊 Dashboard
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="profile"
+                >
+                    👤 My Profile
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="results"
+                >
+                    📝 Results
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="performance"
+                >
+                    📈 Performance
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="attendance"
+                >
+                    📅 Attendance
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="report"
+                >
+                    📄 Report Card
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="fees"
+                >
+                    💰 Fees
+                </a>
+
+
+                <a
+                    href="#"
+                    class="portal-link"
+                    data-section="announcements"
+                >
+                    📢 Announcements
+                </a>
+
+            </nav>
+
+        </aside>
+
+
+
+        <!-- ================= MAIN ================= -->
+
+        <main class="portal-main">
+
+
+            <!-- ================= DASHBOARD ================= -->
+
+            <section
+                id="dashboard"
+                class="portal-section active-section"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <span class="small-title">
+                            PORTAL DASHBOARD
+                        </span>
+
+                        <h1>
+                            Welcome,
+                            <span id="welcomeName">
+                                Student
+                            </span>
+                            👋
+                        </h1>
+
+                        <p>
+                            Here's an overview of your
+                            academic information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- CHILD SELECTOR -->
+
+                <div
+                    id="childSelectorContainer"
+                    class="child-selector"
+                    style="display:none;"
+                >
+
+                    <label>
+                        Select Child
+                    </label>
+
+                    <select id="childSelector">
+
+                        <option value="">
+                            Select Child
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- STUDENT INFORMATION -->
+
+                <div class="student-summary">
+
+                    <div class="student-info-card">
+
+                        <div class="student-avatar">
+                            👨‍🎓
+                        </div>
+
+                        <div>
+
+                            <h2 id="studentName">
+                                Loading...
+                            </h2>
+
+                            <p>
+                                Class:
+                                <strong id="studentClass">
+                                    -
+                                </strong>
+                            </p>
+
+                            <p>
+                                Admission No:
+                                <strong id="admissionNo">
+                                    -
+                                </strong>
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- STATISTICS -->
+
+                <div class="stats-grid">
+
+
+                    <div class="stat-card">
+
+                        <span class="stat-icon">
+                            📊
+                        </span>
+
+                        <div>
+
+                            <span>
+                                Average
+                            </span>
+
+                            <strong id="average">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="stat-card">
+
+                        <span class="stat-icon">
+                            🏆
+                        </span>
+
+                        <div>
+
+                            <span>
+                                Position
+                            </span>
+
+                            <strong id="position">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="stat-card">
+
+                        <span class="stat-icon">
+                            📅
+                        </span>
+
+                        <div>
+
+                            <span>
+                                Attendance
+                            </span>
+
+                            <strong id="attendance">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="stat-card">
+
+                        <span class="stat-icon">
+                            📚
+                        </span>
+
+                        <div>
+
+                            <span>
+                                Subjects
+                            </span>
+
+                            <strong id="subjectCount">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- RECENT RESULTS -->
+
+                <div class="portal-card">
+
+                    <div class="card-header">
+
+                        <div>
+
+                            <span class="small-title">
+                                ACADEMIC RESULTS
+                            </span>
+
+                            <h2>
+                                Recent Results
+                            </h2>
+
+                        </div>
+
+                        <button
+                            class="view-btn"
+                            data-section="results"
+                        >
+                            View All
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Subject
+                                    </th>
+
+                                    <th>
+                                        CA 1
+                                    </th>
+
+                                    <th>
+                                        CA 2
+                                    </th>
+
+                                    <th>
+                                        Exam
+                                    </th>
+
+                                    <th>
+                                        Total
+                                    </th>
+
+                                    <th>
+                                        Grade
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="recentResults">
+
+                                <tr>
+
+                                    <td
+                                        colspan="6"
+                                        class="loading"
+                                    >
+                                        Loading results...
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= PROFILE ================= -->
+
+            <section
+                id="profile"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        ACCOUNT
+                    </span>
+
+                    <h1>
+                        My Profile
+                    </h1>
+
+                </div>
+
+                <div class="portal-card profile-card">
+
+                    <div class="profile-avatar">
+                        👤
+                    </div>
+
+                    <div class="profile-details">
+
+                        <h2 id="profileName">
+                            -
+                        </h2>
+
+                        <p>
+                            Email:
+                            <span id="profileEmail">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            Role:
+                            <span id="profileRole">
+                                -
+                            </span>
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= RESULTS ================= -->
+
+            <section
+                id="results"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        ACADEMICS
+                    </span>
+
+                    <h1>
+                        Academic Results
+                    </h1>
+
+                    <p>
+                        View your complete academic performance.
+                    </p>
+
+                </div>
+
+
+                <div class="filters">
+
+                    <select id="sessionFilter">
+
+                        <option value="2026/2027">
+                            2026/2027
+                        </option>
+
+                        <option value="2025/2026">
+                            2025/2026
+                        </option>
+
+                    </select>
+
+
+                    <select id="termFilter">
+
+                        <option value="First Term">
+                            First Term
+                        </option>
+
+                        <option value="Second Term">
+                            Second Term
+                        </option>
+
+                        <option value="Third Term">
+                            Third Term
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="portal-card">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Subject</th>
+                                    <th>CW1</th>
+                                    <th>CW2</th>
+                                    <th>A1</th>
+                                    <th>A2</th>
+                                    <th>CA1</th>
+                                    <th>CA2</th>
+                                    <th>Exam</th>
+                                    <th>Total</th>
+                                    <th>Grade</th>
+                                    <th>Remark</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="resultsTable">
+
+                                <tr>
+
+                                    <td
+                                        colspan="11"
+                                        class="loading"
+                                    >
+                                        Loading results...
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= PERFORMANCE ================= -->
+
+            <section
+                id="performance"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        ACADEMIC ANALYSIS
+                    </span>
+
+                    <h1>
+                        Performance
+                    </h1>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <span>
+                            Overall Average
+                        </span>
+
+                        <strong id="performanceAverage">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <span>
+                            Best Subject
+                        </span>
+
+                        <strong id="bestSubject">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <span>
+                            Lowest Subject
+                        </span>
+
+                        <strong id="lowestSubject">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= ATTENDANCE ================= -->
+
+            <section
+                id="attendanceSection"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        ATTENDANCE
+                    </span>
+
+                    <h1>
+                        Attendance Record
+                    </h1>
+
+                </div>
+
+
+                <div class="portal-card">
+
+                    <div class="attendance-summary">
+
+                        <div>
+
+                            <span>
+                                Attendance Rate
+                            </span>
+
+                            <strong id="attendanceRate">
+                                -
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                Present
+                            </span>
+
+                            <strong id="presentDays">
+                                -
+                            </strong>
+
+                        </div>
+
+                        <div>
+
+                            <span>
+                                Absent
+                            </span>
+
+                            <strong id="absentDays">
+                                -
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= REPORT CARD ================= -->
+
+            <!-- ================= REPORT CARD ================= -->
+
+<section
+    id="report"
+    class="portal-section"
+>
+
+    <div class="page-heading">
+
+        <span class="small-title">
+            ACADEMIC RECORD
+        </span>
+
+        <h1>
+            Report Card
+        </h1>
+
+        <p>
+            View your complete academic report for the
+            selected session and term.
+        </p>
+
+    </div>
+
+
+    <!-- REPORT CARD HEADER -->
+
+    <div class="portal-card report-header">
+
+        <div>
+
+            <span>Student</span>
+
+            <strong id="reportStudentName">
+                -
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>Class</span>
+
+            <strong id="reportStudentClass">
+                -
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>Session</span>
+
+            <strong id="reportSession">
+                -
+            </strong>
+
+        </div>
+
+
+        <div>
+
+            <span>Term</span>
+
+            <strong id="reportTerm">
+                -
+            </strong>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- REPORT FILTER -->
+
+    <div class="filters">
+
+        <select id="reportSessionFilter">
+
+            <option value="2026/2027">
+                2026/2027
+            </option>
+
+            <option value="2025/2026">
+                2025/2026
+            </option>
+
+        </select>
+
+
+        <select id="reportTermFilter">
+
+            <option value="First Term">
+                First Term
+            </option>
+
+            <option value="Second Term">
+                Second Term
+            </option>
+
+            <option value="Third Term">
+                Third Term
+            </option>
+
+        </select>
+
+
+        <button
+            class="primary-btn"
+            id="loadReportCardBtn"
+        >
+            Load Report Card
+        </button>
+
+    </div>
+
+
+
+    <!-- ACADEMIC RESULTS -->
+
+    <div class="portal-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <span class="small-title">
+                    ACADEMIC PERFORMANCE
+                </span>
+
+                <h2>
+                    Academic Results
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Subject</th>
+                        <th>CW1</th>
+                        <th>CW2</th>
+                        <th>A1</th>
+                        <th>A2</th>
+                        <th>CA1</th>
+                        <th>CA2</th>
+                        <th>Exam</th>
+                        <th>Total</th>
+                        <th>Grade</th>
+                        <th>Remark</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="reportResultsTable">
+
+                    <tr>
+
+                        <td
+                            colspan="11"
+                            class="loading"
+                        >
+                            Select a session and term
+                            to load the report card.
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PSYCHOMOTOR -->
+
+    <div class="portal-card">
+
+        <div class="card-header"> <div> <span class="small-title"> PSYCHOMOTOR & BEHAVIOURAL </span> <h2> Psychomotor Assessment </h2> </div> </div> <div class="psychomotor-grid"> <!-- 1. PUNCTUALITY --> <div class="assessment-item"> <span> Punctuality </span> <strong id="punctuality"> - </strong> </div> <!-- 2. NEATNESS --> <div class="assessment-item"> <span> Neatness </span> <strong id="neatness"> - </strong> </div> <!-- 3. ATTENTIVENESS --> <div class="assessment-item"> <span> Attentiveness </span> <strong id="attentiveness"> - </strong> </div> <!-- 4. CLASS PARTICIPATION --> <div class="assessment-item"> <span> Class Participation </span> <strong id="classParticipation"> - </strong> </div> <!-- 5. LEADERSHIP --> <div class="assessment-item"> <span> Leadership </span> <strong id="leadership"> - </strong> </div> <!-- 6. TEAMWORK --> <div class="assessment-item"> <span> Teamwork </span> <strong id="teamwork"> - </strong> </div> <!-- 7. RESPONSIBILITY --> <div class="assessment-item"> <span> Responsibility </span> <strong id="responsibility"> - </strong> </div> <!-- 8. CREATIVITY --> <div class="assessment-item"> <span> Creativity </span> <strong id="creativity"> - </strong> </div> <!-- 9. SELF CONFIDENCE --> <div class="assessment-item"> <span> Self Confidence </span> <strong id="selfConfidence"> - </strong> </div> <!-- 10. SELF CONTROL --> <div class="assessment-item"> <span> Self Control </span> <strong id="selfControl"> - </strong> </div> <!-- 11. RELATIONSHIP WITH OTHERS --> <div class="assessment-item"> <span> Relationship With Others </span> <strong id="relationshipWithOthers"> - </strong> </div> <!-- 12. SPORTS --> <div class="assessment-item"> <span> Sports </span> <strong id="sports"> - </strong> </div> </div> 
+
+
+    </div>
+
+
+
+    <!-- ATTENDANCE -->
+
+    <div class="portal-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <span class="small-title">
+                    ATTENDANCE
+                </span>
+
+                <h2>
+                    Attendance Summary
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="attendance-summary">
+
+            <div>
+
+                <span>
+                    Present
+                </span>
+
+                <strong id="reportPresent">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Absent
+                </span>
+
+                <strong id="reportAbsent">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Late
+                </span>
+
+                <strong id="reportLate">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Attendance Rate
+                </span>
+
+                <strong id="reportAttendanceRate">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- TEACHER COMMENT -->
+
+    <div class="portal-card comment-card">
+
+        <span class="small-title">
+            TEACHER'S COMMENT
+        </span>
+
+        <h2>
+            Teacher's Comment
+        </h2>
+
+
+        <div
+            class="comment-box"
+            id="teacherComment"
+        >
+
+            No teacher's comment available.
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PRINCIPAL COMMENT -->
+
+    <div class="portal-card comment-card">
+
+        <span class="small-title">
+            PRINCIPAL'S COMMENT
+        </span>
+
+        <h2>
+            Principal's Comment
+        </h2>
+
+
+        <div
+            class="comment-box"
+            id="principalComment"
+        >
+
+            No principal's comment available.
+
+        </div>
+
+    </div>
+
+
+
+    <!-- DOWNLOAD -->
+
+    <div class="report-actions">
+
+        <button
+            class="primary-btn"
+            id="downloadReportBtn"
+        >
+            Download Report Card
+        </button>
+
+    </div>
+
+</section>
+
+
+
+            <!-- ================= FEES ================= -->
+
+            <section
+                id="fees"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        FINANCE
+                    </span>
+
+                    <h1>
+                        School Fees
+                    </h1>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <span>
+                            Total Fees
+                        </span>
+
+                        <strong id="totalFees">
+                            ₦0
+                        </strong>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <span>
+                            Amount Paid
+                        </span>
+
+                        <strong id="amountPaid">
+                            ₦0
+                        </strong>
+
+                    </div>
+
+                    <div class="stat-card">
+
+                        <span>
+                            Balance
+                        </span>
+
+                        <strong id="feeBalance">
+                            ₦0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ================= ANNOUNCEMENTS ================= -->
+
+            <section
+                id="announcements"
+                class="portal-section"
+            >
+
+                <div class="page-heading">
+
+                    <span class="small-title">
+                        SCHOOL INFORMATION
+                    </span>
+
+                    <h1>
+                        Announcements
+                    </h1>
+
+                </div>
+
+
+                <div id="announcementsList">
+
+                    <div class="portal-card">
+
+                        <h3>
+                            Welcome to Philip Model School
+                            Portal
+                        </h3>
+
+                        <p>
+                            School announcements will appear
+                            here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+    <script
+        type="module"
+        src="portal.js"
+    ></script>
+
+</body>
+
+</html>

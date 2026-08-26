@@ -1,0 +1,598 @@
+/* =========================
+   REPORT CARD
+========================= */
+
+.report-card {
+
+    background: white;
+
+    max-width: 1000px;
+
+    margin: 30px auto;
+
+    padding: 40px;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 4px 20px
+        rgba(0, 0, 0, 0.08);
+
+}
+
+
+/* =========================
+   SCHOOL HEADER
+========================= */
+
+.report-school-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 20px;
+
+    text-align: center;
+
+    border-bottom: 2px solid #222;
+
+    padding-bottom: 20px;
+
+}
+
+
+.school-logo {
+
+    width: 80px;
+
+    height: 80px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 25px;
+
+    font-weight: bold;
+
+    background: #1d4ed8;
+
+    color: white;
+
+}
+
+
+.report-school-header h1 {
+
+    margin: 0;
+
+    font-size: 28px;
+
+}
+
+
+.report-school-header p {
+
+    margin: 4px 0;
+
+    color: #555;
+
+}
+
+
+/* =========================
+   REPORT TITLE
+========================= */
+
+.report-title {
+
+    text-align: center;
+
+    margin: 25px 0;
+
+}
+
+
+.report-title h2 {
+
+    margin: 0;
+
+    font-size: 20px;
+
+}
+
+
+.report-title p {
+
+    margin-top: 5px;
+
+    font-weight: bold;
+
+}
+
+
+/* =========================
+   STUDENT INFORMATION
+========================= */
+
+.student-report-info {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 25px;
+
+    padding: 15px;
+
+    border: 1px solid #ddd;
+
+}
+
+
+.student-report-info div {
+
+    display: flex;
+
+    gap: 5px;
+
+}
+
+
+/* =========================
+   RESULT TABLE
+========================= */
+
+.report-table-wrapper {
+
+    overflow-x: auto;
+
+}
+
+
+.report-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+
+.report-table th,
+.report-table td {
+
+    border: 1px solid #ccc;
+
+    padding: 10px;
+
+    text-align: center;
+
+}
+
+
+.report-table th {
+
+    background: #f1f5f9;
+
+    font-weight: bold;
+
+}
+
+
+.report-table td:nth-child(2) {
+
+    text-align: left;
+
+}
+
+
+/* =========================
+   SUMMARY
+========================= */
+
+.report-summary {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+    margin-top: 25px;
+
+}
+
+
+.report-summary div {
+
+    border: 1px solid #ddd;
+
+    padding: 15px;
+
+    text-align: center;
+
+}
+
+
+.report-summary strong {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+}
+
+
+.report-summary span {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+}
+
+
+/* =========================
+   COMMENTS
+========================= */
+
+.comments-section {
+
+    margin-top: 30px;
+
+}
+
+
+.comment-box {
+
+    margin-bottom: 20px;
+
+}
+
+
+.comment-box label {
+
+    display: block;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+
+}
+
+
+.comment-box textarea {
+
+    width: 100%;
+
+    min-height: 80px;
+
+    padding: 10px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 5px;
+
+    resize: vertical;
+
+    font-family: inherit;
+
+}
+
+
+/* =========================
+   SIGNATURES
+========================= */
+
+.signature-section {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 100px;
+
+    margin-top: 50px;
+
+    text-align: center;
+
+}
+
+
+.signature-line {
+
+    border-top: 1px solid #222;
+
+    margin-bottom: 8px;
+
+}
+
+
+/* =========================
+   ACTIONS
+========================= */
+
+.report-actions {
+
+    text-align: center;
+
+    margin-top: 30px;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+    .report-card {
+
+        padding: 20px;
+
+    }
+
+
+    .report-school-header {
+
+        flex-direction: column;
+
+    }
+
+
+    .report-school-header h1 {
+
+        font-size: 20px;
+
+    }
+
+
+    .student-report-info {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .report-summary {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .signature-section {
+
+        grid-template-columns: 1fr;
+
+        gap: 50px;
+
+    }
+
+}
+
+
+/* =========================
+   PRINT
+========================= */
+
+@media print {
+
+    body * {
+
+        visibility: hidden;
+
+    }
+
+
+    #reportCard,
+    #reportCard * {
+
+        visibility: visible;
+
+    }
+
+
+    #reportCard {
+
+        position: absolute;
+
+        left: 0;
+
+        top: 0;
+
+        width: 100%;
+
+        margin: 0;
+
+        box-shadow: none;
+
+        border-radius: 0;
+
+    }
+
+
+    .report-actions {
+
+        display: none;
+
+    }
+
+
+    .comment-box textarea {
+
+        border: none;
+
+        resize: none;
+
+    }
+
+}
+
+/* =========================
+   REPORT SECTIONS
+========================= */
+
+.report-section {
+
+    margin-top: 30px;
+
+}
+
+
+.report-section h3 {
+
+    border-bottom: 2px solid #222;
+
+    padding-bottom: 8px;
+
+    margin-bottom: 15px;
+
+}
+
+
+/* =========================
+   ATTENDANCE
+========================= */
+
+.attendance-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+
+}
+
+
+.attendance-grid div {
+
+    border: 1px solid #ddd;
+
+    padding: 15px;
+
+    text-align: center;
+
+}
+
+
+.attendance-grid strong {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+}
+
+
+.attendance-grid span {
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+}
+
+
+/* =========================
+   CONDUCT
+========================= */
+
+.conduct-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+
+.conduct-table th,
+.conduct-table td {
+
+    border: 1px solid #ccc;
+
+    padding: 10px;
+
+}
+
+
+.conduct-table th {
+
+    background: #f1f5f9;
+
+}
+
+
+.conduct-table td:last-child {
+
+    text-align: center;
+
+}
+
+
+/* =========================
+   PROMOTION
+========================= */
+
+.promotion-box {
+
+    margin-top: 20px;
+
+}
+
+
+.promotion-box label {
+
+    display: block;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+
+}
+
+
+.promotion-box select {
+
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 5px;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+    .attendance-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
