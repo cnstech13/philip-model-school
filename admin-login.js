@@ -1,3 +1,8 @@
+// ======================================================
+// PHILIP MODEL SCHOOL
+// ADMIN LOGIN + FIREBASE AUTHENTICATION
+// ======================================================
+
 import {
     signInWithEmailAndPassword,
     onAuthStateChanged,
@@ -15,9 +20,35 @@ import {
 } from "./firebase-config.js";
 
 
-/* =========================
-   ADMIN LOGIN
-========================= */
+// ======================================================
+// ADMIN LOGIN CREDENTIALS
+// ======================================================
+
+// These are the credentials the administrator enters
+// on your existing login page.
+
+const ADMIN_USERNAME = "admin";
+const ADMIN_PASSWORD = "admin123";
+
+
+// This is the Firebase Authentication account
+// you created in Firebase Console.
+
+const FIREBASE_ADMIN_EMAIL =
+    "admin@philipmodelschool.com";
+
+
+// IMPORTANT:
+// Put the SAME password here that you used when
+// creating the Firebase Authentication user.
+
+const FIREBASE_ADMIN_PASSWORD =
+    "YOUR_FIREBASE_PASSWORD";
+
+
+// ======================================================
+// LOGIN FORM
+// ======================================================
 
 const adminLoginForm =
     document.getElementById("adminLoginForm");
@@ -33,15 +64,16 @@ if (adminLoginForm) {
 
 
             const username =
-                document.getElementById(
-                    "username"
-                ).value.trim();
+                document
+                    .getElementById("username")
+                    .value
+                    .trim();
 
 
             const password =
-                document.getElementById(
-                    "password"
-                ).value;
+                document
+                    .getElementById("password")
+                    .value;
 
 
             const error =
@@ -50,7 +82,7 @@ if (adminLoginForm) {
                 );
 
 
-            const submitButton =
+            const loginButton =
                 adminLoginForm.querySelector(
                     'button[type="submit"]'
                 );
@@ -59,10 +91,17 @@ if (adminLoginForm) {
             error.textContent = "";
 
 
-            if (!username || !password) {
+            // ==================================================
+            // CHECK YOUR NORMAL ADMIN LOGIN
+            // ==================================================
+
+            if (
+                username !== ADMIN_USERNAME ||
+                password !== ADMIN_PASSWORD
+            ) {
 
                 error.textContent =
-                    "Please enter your email and password.";
+                    "Invalid username or password.";
 
                 return;
 
@@ -71,29 +110,27 @@ if (adminLoginForm) {
 
             try {
 
-                /*
-                 * Firebase Authentication
-                 *
-                 * The username field should contain
-                 * the Firebase administrator email.
-                 */
+                // Disable button while Firebase signs in
 
-                if (submitButton) {
+                if (loginButton) {
 
-                    submitButton.disabled =
-                        true;
+                    loginButton.disabled = true;
 
-                    submitButton.textContent =
+                    loginButton.textContent =
                         "Signing in...";
 
                 }
 
 
+                // ==================================================
+                // FIREBASE AUTHENTICATION
+                // ==================================================
+
                 const userCredential =
                     await signInWithEmailAndPassword(
                         auth,
-                        username,
-                        password
+                        FIREBASE_ADMIN_EMAIL,
+                        FIREBASE_ADMIN_PASSWORD
                     );
 
 
@@ -101,12 +138,9 @@ if (adminLoginForm) {
                     userCredential.user;
 
 
-                /*
-                 * Save basic session information.
-                 *
-                 * Firebase Authentication itself
-                 * remains the real authentication system.
-                 */
+                // ==================================================
+                // SAVE ADMIN SESSION
+                // ==================================================
 
                 sessionStorage.setItem(
                     "adminLoggedIn",
@@ -116,7 +150,7 @@ if (adminLoginForm) {
 
                 sessionStorage.setItem(
                     "adminUsername",
-                    user.email
+                    "admin"
                 );
 
 
@@ -126,43 +160,35 @@ if (adminLoginForm) {
                 );
 
 
-                /*
-                 * Go to dashboard
-                 */
+                // ==================================================
+                // GO TO DASHBOARD
+                // ==================================================
 
                 window.location.href =
                     "dashboard.html";
 
             }
 
-            catch (firebaseError) {
+            catch (errorObject) {
 
                 console.error(
-                    "Firebase login error:",
-                    firebaseError
+                    "Firebase authentication error:",
+                    errorObject
                 );
 
 
                 let message =
-                    "Unable to sign in. Please try again.";
+                    "Unable to connect to Firebase.";
 
 
                 switch (
-                    firebaseError.code
+                    errorObject.code
                 ) {
 
                     case "auth/invalid-credential":
 
                         message =
-                            "Invalid email or password.";
-
-                        break;
-
-
-                    case "auth/invalid-email":
-
-                        message =
-                            "Please enter a valid email address.";
+                            "Firebase admin account or password is incorrect.";
 
                         break;
 
@@ -170,7 +196,7 @@ if (adminLoginForm) {
                     case "auth/user-not-found":
 
                         message =
-                            "No administrator account was found with this email.";
+                            "The Firebase admin account does not exist.";
 
                         break;
 
@@ -178,15 +204,15 @@ if (adminLoginForm) {
                     case "auth/wrong-password":
 
                         message =
-                            "Incorrect password.";
+                            "The Firebase admin password is incorrect.";
 
                         break;
 
 
-                    case "auth/too-many-requests":
+                    case "auth/invalid-email":
 
                         message =
-                            "Too many failed attempts. Please try again later.";
+                            "The Firebase admin email is invalid.";
 
                         break;
 
@@ -199,18 +225,26 @@ if (adminLoginForm) {
                         break;
 
 
-                    case "auth/network-request-failed":
+                    case "auth/unauthorized-domain":
 
                         message =
-                            "Network error. Please check your internet connection.";
+                            "Your Vercel domain is not authorized in Firebase.";
 
                         break;
 
 
-                    case "auth/unauthorized-domain":
+                    case "auth/network-request-failed":
 
                         message =
-                            "This website domain is not authorized in Firebase.";
+                            "Network error. Check your internet connection.";
+
+                        break;
+
+
+                    case "auth/too-many-requests":
+
+                        message =
+                            "Too many login attempts. Try again later.";
 
                         break;
 
@@ -224,12 +258,12 @@ if (adminLoginForm) {
 
             finally {
 
-                if (submitButton) {
+                if (loginButton) {
 
-                    submitButton.disabled =
+                    loginButton.disabled =
                         false;
 
-                    submitButton.textContent =
+                    loginButton.textContent =
                         "Login";
 
                 }
@@ -242,28 +276,21 @@ if (adminLoginForm) {
 }
 
 
-/* =========================
-   PROTECT ADMIN PAGES
-========================= */
+// ======================================================
+// PROTECT ADMIN PAGES
+// ======================================================
 
 const currentPage =
     window.location.pathname;
 
 
-const isLoginPage =
+const loginPage =
     currentPage.endsWith(
         "login.html"
-    ) ||
-    currentPage.endsWith(
-        "/"
     );
 
 
-/*
- * Pages that require authentication
- */
-
-if (!isLoginPage) {
+if (!loginPage) {
 
     onAuthStateChanged(
         auth,
@@ -271,23 +298,7 @@ if (!isLoginPage) {
 
             if (!user) {
 
-                /*
-                 * Firebase says the user is
-                 * not authenticated.
-                 */
-
-                sessionStorage.removeItem(
-                    "adminLoggedIn"
-                );
-
-                sessionStorage.removeItem(
-                    "adminUsername"
-                );
-
-                sessionStorage.removeItem(
-                    "adminUid"
-                );
-
+                sessionStorage.clear();
 
                 window.location.href =
                     "login.html";
@@ -297,9 +308,7 @@ if (!isLoginPage) {
             }
 
 
-            /*
-             * User is authenticated.
-             */
+            // Firebase confirms authentication
 
             sessionStorage.setItem(
                 "adminLoggedIn",
@@ -309,7 +318,7 @@ if (!isLoginPage) {
 
             sessionStorage.setItem(
                 "adminUsername",
-                user.email
+                "admin"
             );
 
 
@@ -319,9 +328,7 @@ if (!isLoginPage) {
             );
 
 
-            updateAdminUser(
-                user.email
-            );
+            updateAdminUser();
 
         }
     );
@@ -329,181 +336,9 @@ if (!isLoginPage) {
 }
 
 
-/* =========================
-   DASHBOARD
-========================= */
-
-async function loadDashboardCounts() {
-
-    const totalStudents =
-        document.getElementById(
-            "totalStudents"
-        );
-
-
-    if (!totalStudents)
-        return;
-
-
-    try {
-
-        const studentsSnapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "students"
-                )
-            );
-
-
-        totalStudents.textContent =
-            studentsSnapshot.size;
-
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Error loading students:",
-            error
-        );
-
-
-        totalStudents.textContent =
-            "0";
-
-    }
-
-
-    const totalTeachers =
-        document.getElementById(
-            "totalTeachers"
-        );
-
-
-    if (totalTeachers) {
-
-        try {
-
-            const teachersSnapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "teachers"
-                    )
-                );
-
-
-            totalTeachers.textContent =
-                teachersSnapshot.size;
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Error loading teachers:",
-                error
-            );
-
-
-            totalTeachers.textContent =
-                "0";
-
-        }
-
-    }
-
-
-    const totalApplications =
-        document.getElementById(
-            "totalApplications"
-        );
-
-
-    if (totalApplications) {
-
-        try {
-
-            const applicationsSnapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "admissions"
-                    )
-                );
-
-
-            totalApplications.textContent =
-                applicationsSnapshot.size;
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Error loading admissions:",
-                error
-            );
-
-
-            totalApplications.textContent =
-                "0";
-
-        }
-
-    }
-
-
-    const totalMessages =
-        document.getElementById(
-            "totalMessages"
-        );
-
-
-    if (totalMessages) {
-
-        try {
-
-            const messagesSnapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "messages"
-                    )
-                );
-
-
-            totalMessages.textContent =
-                messagesSnapshot.size;
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Error loading messages:",
-                error
-            );
-
-
-            totalMessages.textContent =
-                "0";
-
-        }
-
-    }
-
-}
-
-
-loadDashboardCounts();
-
-
-/* =========================
-   LOGOUT
-========================= */
+// ======================================================
+// LOGOUT
+// ======================================================
 
 const logoutBtn =
     document.getElementById(
@@ -525,17 +360,7 @@ if (logoutBtn) {
                 await signOut(auth);
 
 
-                sessionStorage.removeItem(
-                    "adminLoggedIn"
-                );
-
-                sessionStorage.removeItem(
-                    "adminUsername"
-                );
-
-                sessionStorage.removeItem(
-                    "adminUid"
-                );
+                sessionStorage.clear();
 
 
                 window.location.href =
@@ -550,9 +375,8 @@ if (logoutBtn) {
                     error
                 );
 
-
                 alert(
-                    "Unable to logout. Please try again."
+                    "Unable to logout."
                 );
 
             }
@@ -563,13 +387,11 @@ if (logoutBtn) {
 }
 
 
-/* =========================
-   ADMIN USER
-========================= */
+// ======================================================
+// DISPLAY ADMIN NAME
+// ======================================================
 
-function updateAdminUser(
-    email
-) {
+function updateAdminUser() {
 
     const adminUser =
         document.getElementById(
@@ -580,28 +402,177 @@ function updateAdminUser(
     if (adminUser) {
 
         adminUser.textContent =
-            email || "Administrator";
+            "Administrator";
 
     }
 
 }
 
 
-/* =========================
-   INITIAL AUTH USER
-========================= */
+// ======================================================
+// DASHBOARD COUNTS
+// ======================================================
 
-onAuthStateChanged(
-    auth,
-    function (user) {
+async function loadDashboardCounts() {
 
-        if (user) {
+    const totalStudents =
+        document.getElementById(
+            "totalStudents"
+        );
 
-            updateAdminUser(
-                user.email
+
+    // Not the dashboard page
+
+    if (!totalStudents)
+        return;
+
+
+    try {
+
+        const studentsSnapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "students"
+                )
             );
+
+
+        totalStudents.textContent =
+            studentsSnapshot.size;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Students count error:",
+            error
+        );
+
+        totalStudents.textContent =
+            "0";
+
+    }
+
+
+    const totalTeachers =
+        document.getElementById(
+            "totalTeachers"
+        );
+
+
+    if (totalTeachers) {
+
+        try {
+
+            const snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "teachers"
+                    )
+                );
+
+
+            totalTeachers.textContent =
+                snapshot.size;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Teachers count error:",
+                error
+            );
+
+            totalTeachers.textContent =
+                "0";
 
         }
 
     }
-);
+
+
+    const totalApplications =
+        document.getElementById(
+            "totalApplications"
+        );
+
+
+    if (totalApplications) {
+
+        try {
+
+            const snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "admissions"
+                    )
+                );
+
+
+            totalApplications.textContent =
+                snapshot.size;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Admissions count error:",
+                error
+            );
+
+            totalApplications.textContent =
+                "0";
+
+        }
+
+    }
+
+
+    const totalMessages =
+        document.getElementById(
+            "totalMessages"
+        );
+
+
+    if (totalMessages) {
+
+        try {
+
+            const snapshot =
+                await getDocs(
+                    collection(
+                        db,
+                        "messages"
+                    )
+                );
+
+
+            totalMessages.textContent =
+                snapshot.size;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Messages count error:",
+                error
+            );
+
+            totalMessages.textContent =
+                "0";
+
+        }
+
+    }
+
+}
+
+
+loadDashboardCounts();
