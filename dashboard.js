@@ -1,64 +1,190 @@
-/* =================================
-   DASHBOARD DATA
-================================= */
+/* =========================================================
+   PHILIP MODEL SCHOOL
+   DASHBOARD.JS
+   FIRESTORE VERSION
+========================================================= */
 
-function getData(key) {
+import {
+    collection,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-    return JSON.parse(
-        localStorage.getItem(key)
-    ) || [];
-
-}
-
-
-/* =================================
-   UPDATE STATISTICS
-================================= */
-
-function updateDashboardStats() {
-
-    const students =
-        getData("students");
-
-    const teachers =
-        getData("teachers");
-
-    const classes =
-        getData("classes");
-
-    const subjects =
-        getData("subjects");
+import { db } from "./firebase-config.js";
 
 
-    document.getElementById(
-        "totalStudents"
-    ).textContent =
-        students.length;
+/* =========================================================
+   FIRESTORE COLLECTIONS
+========================================================= */
+
+const studentsCollection =
+    collection(db, "students");
+
+const teachersCollection =
+    collection(db, "teachers");
+
+const classesCollection =
+    collection(db, "classes");
+
+const subjectsCollection =
+    collection(db, "subjects");
 
 
-    document.getElementById(
-        "totalTeachers"
-    ).textContent =
-        teachers.length;
+/* =========================================================
+   HELPER
+========================================================= */
 
+function setText(id, value) {
 
-    document.getElementById(
-        "totalClasses"
-    ).textContent =
-        classes.length;
+    const element =
+        document.getElementById(id);
 
+    if (element) {
 
-    document.getElementById(
-        "totalSubjects"
-    ).textContent =
-        subjects.length;
+        element.textContent =
+            value;
+
+    }
 
 }
 
 
-/* =================================
-   DATE
-================================= */
+/* =========================================================
+   DASHBOARD STATISTICS
+========================================================= */
+
+async function updateDashboardStats() {
+
+    try {
+
+        /*
+         * Load all four collections
+         */
+
+        const [
+            studentsSnapshot,
+            teachersSnapshot,
+            classesSnapshot,
+            subjectsSnapshot
+        ] = await Promise.all([
+
+            getDocs(
+                studentsCollection
+            ),
+
+            getDocs(
+                teachersCollection
+            ),
+
+            getDocs(
+                classesCollection
+            ),
+
+            getDocs(
+                subjectsCollection
+            )
+
+        ]);
+
+
+        /*
+         * Get the number of documents
+         */
+
+        const totalStudents =
+            studentsSnapshot.size;
+
+        const totalTeachers =
+            teachersSnapshot.size;
+
+        const totalClasses =
+            classesSnapshot.size;
+
+        const totalSubjects =
+            subjectsSnapshot.size;
+
+
+        /*
+         * Display statistics
+         */
+
+        setText(
+            "totalStudents",
+            totalStudents
+        );
+
+        setText(
+            "totalTeachers",
+            totalTeachers
+        );
+
+        setText(
+            "totalClasses",
+            totalClasses
+        );
+
+        setText(
+            "totalSubjects",
+            totalSubjects
+        );
+
+
+        console.log(
+            "Dashboard statistics updated:",
+            {
+                students: totalStudents,
+                teachers: totalTeachers,
+                classes: totalClasses,
+                subjects: totalSubjects
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading dashboard statistics:",
+            error
+        );
+
+
+        /*
+         * Keep the dashboard usable
+         */
+
+        setText(
+            "totalStudents",
+            "0"
+        );
+
+        setText(
+            "totalTeachers",
+            "0"
+        );
+
+        setText(
+            "totalClasses",
+            "0"
+        );
+
+        setText(
+            "totalSubjects",
+            "0"
+        );
+
+
+        console.error(
+            "Make sure Firestore rules allow the admin to read these collections."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CURRENT DATE
+========================================================= */
 
 function displayCurrentDate() {
 
@@ -66,9 +192,9 @@ function displayCurrentDate() {
         new Date();
 
 
-    document.getElementById(
-        "currentDate"
-    ).textContent =
+    setText(
+        "currentDate",
+
         date.toLocaleDateString(
             "en-NG",
             {
@@ -77,87 +203,140 @@ function displayCurrentDate() {
                 month: "long",
                 year: "numeric"
             }
-        );
+        )
+    );
 
 }
 
 
-/* =================================
-   ATTENDANCE TODAY
-================================= */
+/* =========================================================
+   TODAY'S ATTENDANCE
+========================================================= */
 
-function updateTodayAttendance() {
+async function updateTodayAttendance() {
 
-    const records =
-        getData(
-            "attendanceRecords"
+    try {
+
+        const snapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "attendance"
+                )
+            );
+
+
+        const today =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+
+
+        let present = 0;
+
+        let absent = 0;
+
+        let late = 0;
+
+
+        snapshot.forEach(
+            documentSnapshot => {
+
+                const record =
+                    documentSnapshot.data();
+
+
+                if (
+                    record.date !==
+                    today
+                ) {
+
+                    return;
+
+                }
+
+
+                const status =
+                    String(
+                        record.status || ""
+                    ).toLowerCase();
+
+
+                if (
+                    status ===
+                    "present"
+                ) {
+
+                    present++;
+
+                }
+
+                else if (
+                    status ===
+                    "absent"
+                ) {
+
+                    absent++;
+
+                }
+
+                else if (
+                    status ===
+                    "late"
+                ) {
+
+                    late++;
+
+                }
+
+            }
         );
 
 
-    const today =
-        new Date()
-            .toISOString()
-            .split("T")[0];
+        /*
+         * Update attendance numbers
+         */
+
+        const numbers =
+            document.querySelectorAll(
+                ".attendance-number"
+            );
 
 
-    const todayRecords =
-        records.filter(
-            record =>
-                record.date === today
+        if (
+            numbers.length >= 3
+        ) {
+
+            numbers[0].textContent =
+                present;
+
+            numbers[1].textContent =
+                absent;
+
+            numbers[2].textContent =
+                late;
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading today's attendance:",
+            error
         );
-
-
-    const present =
-        todayRecords.filter(
-            record =>
-                record.status ===
-                "present"
-        ).length;
-
-
-    const absent =
-        todayRecords.filter(
-            record =>
-                record.status ===
-                "absent"
-        ).length;
-
-
-    const late =
-        todayRecords.filter(
-            record =>
-                record.status ===
-                "late"
-        ).length;
-
-
-    const numbers =
-        document.querySelectorAll(
-            ".attendance-number"
-        );
-
-
-    if (numbers.length >= 3) {
-
-        numbers[0].textContent =
-            present;
-
-        numbers[1].textContent =
-            absent;
-
-        numbers[2].textContent =
-            late;
 
     }
 
 }
 
 
-/* =================================
+/* =========================================================
    RECENT ACTIVITIES
-================================= */
+========================================================= */
 
-function loadRecentActivities() {
+async function loadRecentActivities() {
 
     const activityList =
         document.getElementById(
@@ -165,10 +344,43 @@ function loadRecentActivities() {
         );
 
 
-    const activities =
-        getData(
-            "schoolActivities"
+    if (!activityList) {
+
+        return;
+
+    }
+
+
+    /*
+     * We can still use localStorage
+     * for dashboard activities if your
+     * other pages are storing them there.
+     */
+
+    let activities = [];
+
+
+    try {
+
+        activities =
+            JSON.parse(
+                localStorage.getItem(
+                    "schoolActivities"
+                )
+            ) || [];
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading activities:",
+            error
         );
+
+        activities = [];
+
+    }
 
 
     if (
@@ -213,21 +425,34 @@ function loadRecentActivities() {
                 div.innerHTML = `
 
                     <div class="activity-icon">
-                        ${activity.icon || "📌"}
+
+                        ${escapeHTML(
+                            activity.icon ||
+                            "📌"
+                        )}
+
                     </div>
+
 
                     <div>
 
                         <strong>
+
                             ${escapeHTML(
-                                activity.title
+                                activity.title ||
+                                ""
                             )}
+
                         </strong>
 
+
                         <small>
+
                             ${escapeHTML(
-                                activity.time || ""
+                                activity.time ||
+                                ""
                             )}
+
                         </small>
 
                     </div>
@@ -245,13 +470,15 @@ function loadRecentActivities() {
 }
 
 
-/* =================================
-   ESCAPE HTML
-================================= */
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
 
 function escapeHTML(value) {
 
-    return String(value)
+    return String(
+        value ?? ""
+    )
 
         .replace(
             /&/g,
@@ -281,14 +508,44 @@ function escapeHTML(value) {
 }
 
 
-/* =================================
-   INITIALIZE
-================================= */
+/* =========================================================
+   INITIALIZE DASHBOARD
+========================================================= */
 
-updateDashboardStats();
+async function initializeDashboard() {
 
-displayCurrentDate();
+    /*
+     * Display date immediately
+     */
 
-updateTodayAttendance();
+    displayCurrentDate();
 
-loadRecentActivities();
+
+    /*
+     * Load Firestore statistics
+     */
+
+    await updateDashboardStats();
+
+
+    /*
+     * Load today's attendance
+     */
+
+    await updateTodayAttendance();
+
+
+    /*
+     * Load recent activities
+     */
+
+    await loadRecentActivities();
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+initializeDashboard();
