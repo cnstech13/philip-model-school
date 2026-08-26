@@ -1,16 +1,16 @@
-/* =========================================================
-   PHILIP MODEL SCHOOL
-   TEACHERS MANAGEMENT
-   FIRESTORE VERSION
-========================================================= */
+// ======================================================
+// TEACHERS.JS
+// Philip Model School
+// Firebase Firestore Version
+// ======================================================
 
 import {
     collection,
     getDocs,
-    doc,
-    setDoc,
+    addDoc,
     updateDoc,
     deleteDoc,
+    doc,
     query,
     orderBy,
     serverTimestamp
@@ -19,16 +19,16 @@ import {
 import { db } from "./firebase-config.js";
 
 
-/* =========================================================
-   TEACHER DATABASE
-========================================================= */
+// ======================================================
+// DATA
+// ======================================================
 
 let teachers = [];
 
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
+// ======================================================
+// ELEMENTS
+// ======================================================
 
 const teacherModal =
     document.getElementById("teacherModal");
@@ -46,38 +46,29 @@ const teacherSearch =
     document.getElementById("teacherSearch");
 
 const teacherStatusFilter =
-    document.getElementById(
-        "teacherStatusFilter"
-    );
+    document.getElementById("teacherStatusFilter");
 
 const addTeacherBtn =
     document.getElementById("addTeacherBtn");
 
 const closeTeacherModal =
-    document.getElementById(
-        "closeTeacherModal"
-    );
+    document.getElementById("closeTeacherModal");
 
 const cancelTeacherBtn =
-    document.getElementById(
-        "cancelTeacherBtn"
-    );
+    document.getElementById("cancelTeacherBtn");
 
 
-/* =========================================================
-   FIRESTORE COLLECTION
-========================================================= */
+// ======================================================
+// FIRESTORE COLLECTION
+// ======================================================
 
 const teachersCollection =
-    collection(
-        db,
-        "teachers"
-    );
+    collection(db, "teachers");
 
 
-/* =========================================================
-   GENERATE TEACHER ID
-========================================================= */
+// ======================================================
+// GENERATE TEACHER ID
+// ======================================================
 
 function generateTeacherId() {
 
@@ -102,63 +93,35 @@ function generateTeacherId() {
 
         id =
             `TCH-${year}-${String(number).padStart(4, "0")}`;
-
     }
 
 
     return id;
-
 }
 
 
-/* =========================================================
-   LOAD TEACHERS
-========================================================= */
+// ======================================================
+// LOAD TEACHERS
+// ======================================================
 
 async function loadTeachers() {
 
     try {
 
-        let snapshot;
-
-
-        /*
-         * Try loading by createdAt.
-         * If older documents do not have
-         * createdAt, load normally.
-         */
-
-        try {
-
-            const teachersQuery =
-                query(
-                    teachersCollection,
-                    orderBy(
-                        "createdAt",
-                        "desc"
-                    )
-                );
-
-            snapshot =
-                await getDocs(
-                    teachersQuery
-                );
-
-        }
-
-        catch (orderError) {
-
-            console.warn(
-                "Ordered teacher query failed. Loading without order:",
-                orderError
+        const teacherQuery =
+            query(
+                teachersCollection,
+                orderBy(
+                    "createdAt",
+                    "desc"
+                )
             );
 
-            snapshot =
-                await getDocs(
-                    teachersCollection
-                );
 
-        }
+        const snapshot =
+            await getDocs(
+                teacherQuery
+            );
 
 
         teachers = [];
@@ -192,46 +155,72 @@ async function loadTeachers() {
         );
 
 
-        teachersTableBody.innerHTML = `
+        /*
+         * If the collection is empty or
+         * createdAt is not available,
+         * try loading without orderBy.
+         */
 
-            <tr>
+        try {
 
-                <td
-                    colspan="7"
-                    class="loading"
-                >
-                    Unable to load teachers.
-                </td>
+            const snapshot =
+                await getDocs(
+                    teachersCollection
+                );
 
-            </tr>
 
-        `;
+            teachers = [];
 
-        emptyTeachers.style.display =
-            "none";
+
+            snapshot.forEach(
+                documentSnapshot => {
+
+                    teachers.push({
+
+                        firestoreId:
+                            documentSnapshot.id,
+
+                        ...documentSnapshot.data()
+
+                    });
+
+                }
+            );
+
+
+            renderTeachers();
+
+        }
+
+        catch (secondError) {
+
+            console.error(
+                "Firestore loading error:",
+                secondError
+            );
+
+
+            alert(
+                "Unable to load teachers from Firestore."
+            );
+
+        }
 
     }
 
 }
 
 
-/* =========================================================
-   OPEN MODAL
-========================================================= */
+// ======================================================
+// OPEN TEACHER MODAL
+// ======================================================
 
 function openTeacherModal(
     teacher = null
 ) {
 
-    if (!teacherModal) {
-
-        console.error(
-            "teacherModal was not found."
-        );
-
+    if (!teacherModal)
         return;
-
-    }
 
 
     teacherModal.classList.add(
@@ -330,107 +319,114 @@ function openTeacherModal(
         ).value =
             "";
 
+        document.getElementById(
+            "teacherStatus"
+        ).value =
+            "Active";
+
     }
 
 }
 
 
-/* =========================================================
-   CLOSE MODAL
-========================================================= */
+// ======================================================
+// CLOSE MODAL
+// ======================================================
 
 function closeTeacherModalFunction() {
-
-    if (!teacherModal)
-        return;
-
 
     teacherModal.classList.remove(
         "show"
     );
-
 
     teacherForm.reset();
 
 }
 
 
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
+// ======================================================
+// MODAL EVENTS
+// ======================================================
 
-if (addTeacherBtn) {
+addTeacherBtn.addEventListener(
+    "click",
+    () => {
 
-    addTeacherBtn.addEventListener(
-        "click",
-        () => {
+        openTeacherModal();
 
-            openTeacherModal();
+    }
+);
+
+
+closeTeacherModal.addEventListener(
+    "click",
+    closeTeacherModalFunction
+);
+
+
+cancelTeacherBtn.addEventListener(
+    "click",
+    closeTeacherModalFunction
+);
+
+
+teacherModal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            teacherModal
+        ) {
+
+            closeTeacherModalFunction();
 
         }
-    );
 
-}
-
-
-if (closeTeacherModal) {
-
-    closeTeacherModal.addEventListener(
-        "click",
-        closeTeacherModalFunction
-    );
-
-}
+    }
+);
 
 
-if (cancelTeacherBtn) {
+// ======================================================
+// SAVE TEACHER
+// ======================================================
 
-    cancelTeacherBtn.addEventListener(
-        "click",
-        closeTeacherModalFunction
-    );
+teacherForm.addEventListener(
+    "submit",
+    async event => {
 
-}
+        event.preventDefault();
 
 
-if (teacherModal) {
+        const saveButton =
+            teacherForm.querySelector(
+                'button[type="submit"]'
+            );
 
-    teacherModal.addEventListener(
-        "click",
-        event => {
 
-            if (
-                event.target ===
-                teacherModal
-            ) {
+        const originalText =
+            saveButton
+                ? saveButton.textContent
+                : "";
 
-                closeTeacherModalFunction();
+
+        try {
+
+            if (saveButton) {
+
+                saveButton.disabled =
+                    true;
+
+                saveButton.textContent =
+                    "Saving...";
 
             }
 
-        }
-    );
 
-}
-
-
-/* =========================================================
-   SAVE TEACHER
-========================================================= */
-
-if (teacherForm) {
-
-    teacherForm.addEventListener(
-        "submit",
-        async function(event) {
-
-            event.preventDefault();
-
-
-            const editingFirestoreId =
+            const editingId =
                 document.getElementById(
                     "editingTeacherId"
-                ).value.trim();
+                ).value;
 
 
             const firstName =
@@ -493,9 +489,9 @@ if (teacherForm) {
                 ).value.trim();
 
 
-            /* =================================================
-               VALIDATION
-            ================================================= */
+            // ==========================================
+            // VALIDATION
+            // ==========================================
 
             if (
                 !firstName ||
@@ -517,179 +513,177 @@ if (teacherForm) {
             }
 
 
-            try {
+            // ==========================================
+            // TEACHER DATA
+            // ==========================================
 
-                /* =============================================
-                   EDIT EXISTING TEACHER
-                ============================================= */
+            const teacherData = {
 
-                if (
-                    editingFirestoreId
-                ) {
+                firstName,
 
-                    const existingTeacher =
-                        teachers.find(
-                            teacher =>
-                                teacher.firestoreId ===
-                                editingFirestoreId
-                        );
+                lastName,
 
+                gender,
 
-                    if (!existingTeacher) {
+                qualification,
 
-                        alert(
-                            "Teacher record not found."
-                        );
+                specialization,
 
-                        return;
+                phone,
 
-                    }
+                email,
 
+                employmentDate,
 
-                    const teacherData = {
+                status,
 
-                        id:
-                            existingTeacher.id,
+                address,
 
-                        firstName,
+                updatedAt:
+                    serverTimestamp()
 
-                        lastName,
-
-                        gender,
-
-                        qualification,
-
-                        specialization,
-
-                        phone,
-
-                        email,
-
-                        employmentDate,
-
-                        status,
-
-                        address,
-
-                        updatedAt:
-                            serverTimestamp()
-
-                    };
+            };
 
 
-                    await updateDoc(
+            // ==========================================
+            // EDIT
+            // ==========================================
 
-                        doc(
-                            db,
-                            "teachers",
-                            editingFirestoreId
-                        ),
+            if (editingId) {
 
-                        teacherData
-
+                const teacherRef =
+                    doc(
+                        db,
+                        "teachers",
+                        editingId
                     );
 
 
-                    alert(
-                        "Teacher updated successfully."
-                    );
-
-                }
-
-
-                /* =============================================
-                   ADD NEW TEACHER
-                ============================================= */
-
-                else {
-
-                    const teacherId =
-                        generateTeacherId();
-
-
-                    const teacherData = {
-
-                        id:
-                            teacherId,
-
-                        firstName,
-
-                        lastName,
-
-                        gender,
-
-                        qualification,
-
-                        specialization,
-
-                        phone,
-
-                        email,
-
-                        employmentDate,
-
-                        status,
-
-                        address,
-
-                        createdAt:
-                            serverTimestamp(),
-
-                        updatedAt:
-                            serverTimestamp()
-
-                    };
-
-
-                    await setDoc(
-
-                        doc(
-                            db,
-                            "teachers",
-                            teacherId
-                        ),
-
-                        teacherData
-
-                    );
-
-
-                    alert(
-                        "Teacher added successfully."
-                    );
-
-                }
-
-
-                await loadTeachers();
-
-                closeTeacherModalFunction();
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "Error saving teacher:",
-                    error
+                await updateDoc(
+                    teacherRef,
+                    teacherData
                 );
 
 
                 alert(
-                    "Unable to save teacher. Check your Firestore rules and Firebase configuration."
+                    "Teacher updated successfully."
+                );
+
+            }
+
+
+            // ==========================================
+            // ADD
+            // ==========================================
+
+            else {
+
+                const teacherId =
+                    generateTeacherId();
+
+
+                const newTeacher = {
+
+                    id:
+                        teacherId,
+
+                    ...teacherData,
+
+                    createdAt:
+                        serverTimestamp()
+
+                };
+
+
+                await addDoc(
+                    teachersCollection,
+                    newTeacher
+                );
+
+
+                alert(
+                    "Teacher added successfully."
+                );
+
+            }
+
+
+            // ==========================================
+            // REFRESH
+            // ==========================================
+
+            await loadTeachers();
+
+            closeTeacherModalFunction();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Teacher save error:",
+                error
+            );
+
+
+            console.error(
+                "Error code:",
+                error.code
+            );
+
+
+            console.error(
+                "Error message:",
+                error.message
+            );
+
+
+            if (
+                error.code ===
+                "permission-denied"
+            ) {
+
+                alert(
+                    "Firestore permission denied.\n\n" +
+                    "Open Firebase Console → Firestore Database → Rules " +
+                    "and check your security rules."
+                );
+
+            }
+
+            else {
+
+                alert(
+                    "Unable to save teacher.\n\n" +
+                    error.message
                 );
 
             }
 
         }
-    );
 
-}
+        finally {
+
+            if (saveButton) {
+
+                saveButton.disabled =
+                    false;
+
+                saveButton.textContent =
+                    originalText ||
+                    "Save Teacher";
+
+            }
+
+        }
+
+    }
+);
 
 
-/* =========================================================
-   RENDER TEACHERS
-========================================================= */
+// ======================================================
+// RENDER TEACHERS
+// ======================================================
 
 function renderTeachers() {
 
@@ -698,17 +692,13 @@ function renderTeachers() {
 
 
     const search =
-        teacherSearch
-            ? teacherSearch.value
-                .trim()
-                .toLowerCase()
-            : "";
+        teacherSearch.value
+            .trim()
+            .toLowerCase();
 
 
     const selectedStatus =
-        teacherStatusFilter
-            ? teacherStatusFilter.value
-            : "";
+        teacherStatusFilter.value;
 
 
     const filtered =
@@ -720,18 +710,16 @@ function renderTeachers() {
                         .toLowerCase();
 
 
-                const email =
-                    String(
-                        teacher.email || ""
-                    )
-                    .toLowerCase();
-
-
                 const teacherId =
                     String(
                         teacher.id || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
+
+
+                const email =
+                    String(
+                        teacher.email || ""
+                    ).toLowerCase();
 
 
                 const matchesSearch =
@@ -750,7 +738,7 @@ function renderTeachers() {
                 const matchesStatus =
                     !selectedStatus ||
                     teacher.status ===
-                        selectedStatus;
+                    selectedStatus;
 
 
                 return (
@@ -770,24 +758,16 @@ function renderTeachers() {
         filtered.length === 0
     ) {
 
-        if (emptyTeachers) {
-
-            emptyTeachers.style.display =
-                "block";
-
-        }
+        emptyTeachers.style.display =
+            "block";
 
         return;
 
     }
 
 
-    if (emptyTeachers) {
-
-        emptyTeachers.style.display =
-            "none";
-
-    }
+    emptyTeachers.style.display =
+        "none";
 
 
     filtered.forEach(
@@ -821,74 +801,53 @@ function renderTeachers() {
             row.innerHTML = `
 
                 <td>
-
                     <span class="student-id">
-
                         ${escapeHTML(
                             teacher.id
                         )}
-
                     </span>
-
                 </td>
-
 
                 <td>
 
                     <div class="student-name">
 
                         <div class="student-avatar">
-
                             ${escapeHTML(
                                 initials
                             )}
-
                         </div>
 
-
                         <strong>
-
                             ${escapeHTML(
                                 teacher.firstName || ""
                             )}
-
                             ${escapeHTML(
                                 teacher.lastName || ""
                             )}
-
                         </strong>
 
                     </div>
 
                 </td>
 
-
                 <td>
-
                     ${escapeHTML(
-                        teacher.gender || "-"
+                        teacher.gender || ""
                     )}
-
                 </td>
 
-
                 <td>
-
                     ${escapeHTML(
-                        teacher.qualification || "-"
+                        teacher.qualification || ""
                     )}
-
                 </td>
 
-
                 <td>
-
                     ${escapeHTML(
-                        teacher.phone || "-"
+                        teacher.phone || ""
                     )}
-
                 </td>
-
 
                 <td>
 
@@ -897,43 +856,37 @@ function renderTeachers() {
                         ${
                             teacher.status ===
                             "Active"
-
                                 ? "status-active"
-
                                 : "status-inactive"
                         }
                     ">
 
                         ${escapeHTML(
-                            teacher.status || "-"
+                            teacher.status || ""
                         )}
 
                     </span>
 
                 </td>
 
-
                 <td>
 
                     <div class="table-actions">
 
                         <button
-                            type="button"
                             class="table-action"
                             title="Edit"
-                            data-edit-teacher="${escapeHTML(
+                            data-edit="${escapeHTML(
                                 teacher.firestoreId
                             )}"
                         >
                             ✏️
                         </button>
 
-
                         <button
-                            type="button"
                             class="table-action"
                             title="Delete"
-                            data-delete-teacher="${escapeHTML(
+                            data-delete="${escapeHTML(
                                 teacher.firestoreId
                             )}"
                         >
@@ -947,50 +900,6 @@ function renderTeachers() {
             `;
 
 
-            /* =============================================
-               EDIT BUTTON
-            ============================================= */
-
-            const editButton =
-                row.querySelector(
-                    "[data-edit-teacher]"
-                );
-
-
-            editButton.addEventListener(
-                "click",
-                () => {
-
-                    editTeacher(
-                        teacher.firestoreId
-                    );
-
-                }
-            );
-
-
-            /* =============================================
-               DELETE BUTTON
-            ============================================= */
-
-            const deleteButton =
-                row.querySelector(
-                    "[data-delete-teacher]"
-                );
-
-
-            deleteButton.addEventListener(
-                "click",
-                () => {
-
-                    deleteTeacher(
-                        teacher.firestoreId
-                    );
-
-                }
-            );
-
-
             teachersTableBody.appendChild(
                 row
             );
@@ -998,46 +907,76 @@ function renderTeachers() {
         }
     );
 
-}
+
+    // ==========================================
+    // ACTION BUTTONS
+    // ==========================================
+
+    teachersTableBody
+        .querySelectorAll(
+            "[data-edit]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const id =
+                            button.dataset.edit;
 
 
-/* =========================================================
-   EDIT TEACHER
-========================================================= */
+                        const teacher =
+                            teachers.find(
+                                item =>
+                                    item.firestoreId ===
+                                    id
+                            );
 
-function editTeacher(
-    firestoreId
-) {
 
-    const teacher =
-        teachers.find(
-            item =>
-                item.firestoreId ===
-                firestoreId
+                        if (teacher) {
+
+                            openTeacherModal(
+                                teacher
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
         );
 
 
-    if (!teacher) {
+    teachersTableBody
+        .querySelectorAll(
+            "[data-delete]"
+        )
+        .forEach(
+            button => {
 
-        alert(
-            "Teacher record not found."
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        await deleteTeacher(
+                            button.dataset.delete
+                        );
+
+                    }
+                );
+
+            }
         );
-
-        return;
-
-    }
-
-
-    openTeacherModal(
-        teacher
-    );
 
 }
 
 
-/* =========================================================
-   DELETE TEACHER
-========================================================= */
+// ======================================================
+// DELETE TEACHER
+// ======================================================
 
 async function deleteTeacher(
     firestoreId
@@ -1057,7 +996,7 @@ async function deleteTeacher(
 
     const confirmed =
         confirm(
-            `Delete ${teacher.firstName} ${teacher.lastName}?\n\nThis action cannot be undone.`
+            `Delete ${teacher.firstName} ${teacher.lastName}?`
         );
 
 
@@ -1068,13 +1007,11 @@ async function deleteTeacher(
     try {
 
         await deleteDoc(
-
             doc(
                 db,
                 "teachers",
                 firestoreId
             )
-
         );
 
 
@@ -1090,13 +1027,14 @@ async function deleteTeacher(
     catch (error) {
 
         console.error(
-            "Error deleting teacher:",
+            "Delete teacher error:",
             error
         );
 
 
         alert(
-            "Unable to delete teacher. Please try again."
+            "Unable to delete teacher.\n\n" +
+            error.message
         );
 
     }
@@ -1104,37 +1042,31 @@ async function deleteTeacher(
 }
 
 
-/* =========================================================
-   SEARCH / FILTER
-========================================================= */
+// ======================================================
+// SEARCH
+// ======================================================
 
-if (teacherSearch) {
-
-    teacherSearch.addEventListener(
-        "input",
-        renderTeachers
-    );
-
-}
+teacherSearch.addEventListener(
+    "input",
+    renderTeachers
+);
 
 
-if (teacherStatusFilter) {
+// ======================================================
+// STATUS FILTER
+// ======================================================
 
-    teacherStatusFilter.addEventListener(
-        "change",
-        renderTeachers
-    );
-
-}
+teacherStatusFilter.addEventListener(
+    "change",
+    renderTeachers
+);
 
 
-/* =========================================================
-   HTML ESCAPE
-========================================================= */
+// ======================================================
+// ESCAPE HTML
+// ======================================================
 
-function escapeHTML(
-    value
-) {
+function escapeHTML(value) {
 
     return String(
         value ?? ""
@@ -1168,8 +1100,8 @@ function escapeHTML(
 }
 
 
-/* =========================================================
-   INITIAL LOAD
-========================================================= */
+// ======================================================
+// INITIALIZE
+// ======================================================
 
 loadTeachers();
