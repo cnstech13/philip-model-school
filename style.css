@@ -267,6 +267,7 @@ button {
     margin-bottom: 20px;
     font-size: 13px;
     top: 20px;
+    transform: translateY(-200px);
 }
 
 .hero h1 {
