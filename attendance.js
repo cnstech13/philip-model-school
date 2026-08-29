@@ -1,19 +1,32 @@
 /* =========================================================
    PHILIP MODEL SCHOOL
-   ATTENDANCE MANAGEMENT
+   ATTENDANCE.JS
    FIRESTORE VERSION
 ========================================================= */
 
 import {
     collection,
     getDocs,
-    doc,
-    setDoc,
-    query,
-    where
+    addDoc,
+    updateDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
+
+
+/* =========================================================
+   FIRESTORE COLLECTIONS
+========================================================= */
+
+const studentsCollection =
+    collection(db, "students");
+
+const classesCollection =
+    collection(db, "classes");
+
+const attendanceCollection =
+    collection(db, "attendance");
 
 
 /* =========================================================
@@ -21,6 +34,9 @@ import { db } from "./firebase-config.js";
 ========================================================= */
 
 let students = [];
+
+let classes = [];
+
 let attendanceRecords = [];
 
 
@@ -29,63 +45,213 @@ let attendanceRecords = [];
 ========================================================= */
 
 const attendanceSession =
-    document.getElementById("attendanceSession");
+    document.getElementById(
+        "attendanceSession"
+    );
 
 const attendanceTerm =
-    document.getElementById("attendanceTerm");
+    document.getElementById(
+        "attendanceTerm"
+    );
 
 const attendanceClass =
-    document.getElementById("attendanceClass");
+    document.getElementById(
+        "attendanceClass"
+    );
 
 const attendanceDate =
-    document.getElementById("attendanceDate");
+    document.getElementById(
+        "attendanceDate"
+    );
 
 const loadAttendanceBtn =
-    document.getElementById("loadAttendanceBtn");
+    document.getElementById(
+        "loadAttendanceBtn"
+    );
 
 const attendanceTableCard =
-    document.getElementById("attendanceTableCard");
-
-const attendanceSummaryCard =
-    document.getElementById("attendanceSummaryCard");
+    document.getElementById(
+        "attendanceTableCard"
+    );
 
 const attendanceTableBody =
-    document.getElementById("attendanceTableBody");
+    document.getElementById(
+        "attendanceTableBody"
+    );
+
+const attendanceSummaryCard =
+    document.getElementById(
+        "attendanceSummaryCard"
+    );
 
 const attendanceDateTitle =
-    document.getElementById("attendanceDateTitle");
+    document.getElementById(
+        "attendanceDateTitle"
+    );
 
 const markAllPresentBtn =
-    document.getElementById("markAllPresentBtn");
+    document.getElementById(
+        "markAllPresentBtn"
+    );
 
 const saveAttendanceBtn =
-    document.getElementById("saveAttendanceBtn");
+    document.getElementById(
+        "saveAttendanceBtn"
+    );
 
 const summaryStudents =
-    document.getElementById("summaryStudents");
+    document.getElementById(
+        "summaryStudents"
+    );
 
 const summaryPresent =
-    document.getElementById("summaryPresent");
+    document.getElementById(
+        "summaryPresent"
+    );
 
 const summaryAbsent =
-    document.getElementById("summaryAbsent");
+    document.getElementById(
+        "summaryAbsent"
+    );
 
 const summaryLate =
-    document.getElementById("summaryLate");
+    document.getElementById(
+        "summaryLate"
+    );
 
 
 /* =========================================================
    SET TODAY'S DATE
 ========================================================= */
 
-const today =
-    new Date().toISOString().split("T")[0];
+function setToday() {
 
-attendanceDate.value = today;
+    if (!attendanceDate) {
+        return;
+    }
+
+
+    const today =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+
+    attendanceDate.value =
+        today;
+
+}
 
 
 /* =========================================================
-   LOAD CLASSES FROM FIRESTORE
+   GET CLASS NAME
+   Supports:
+   name
+   className
+   class
+========================================================= */
+
+function getClassName(classItem) {
+
+    return String(
+
+        classItem.name ||
+
+        classItem.className ||
+
+        classItem.class ||
+
+        ""
+
+    ).trim();
+
+}
+
+
+/* =========================================================
+   GET STUDENT CLASS
+========================================================= */
+
+function getStudentClass(student) {
+
+    return String(
+
+        student.class ||
+
+        student.studentClass ||
+
+        student.className ||
+
+        ""
+
+    ).trim();
+
+}
+
+
+/* =========================================================
+   GET STUDENT NAME
+========================================================= */
+
+function getStudentName(student) {
+
+    const firstName =
+        student.firstName ||
+        student.firstname ||
+        "";
+
+    const lastName =
+        student.lastName ||
+        student.lastname ||
+        "";
+
+    const fullName =
+        student.name ||
+        student.studentName ||
+        "";
+
+    const combinedName =
+        `${firstName} ${lastName}`.trim();
+
+
+    return (
+
+        combinedName ||
+
+        fullName ||
+
+        "Unnamed Student"
+
+    );
+
+}
+
+
+/* =========================================================
+   GET ADMISSION NUMBER
+========================================================= */
+
+function getAdmissionNumber(student) {
+
+    return (
+
+        student.admissionNumber ||
+
+        student.admissionNo ||
+
+        student.studentId ||
+
+        student.id ||
+
+        "N/A"
+
+    );
+
+}
+
+
+/* =========================================================
+   LOAD CLASSES
 ========================================================= */
 
 async function loadClasses() {
@@ -94,68 +260,46 @@ async function loadClasses() {
 
         const snapshot =
             await getDocs(
-                collection(db, "classes")
+                classesCollection
             );
 
 
-        attendanceClass.innerHTML = `
-            <option value="">
-                Select Class
-            </option>
-        `;
-
-
-        const classes = [];
+        classes = [];
 
 
         snapshot.forEach(
             documentSnapshot => {
 
-                const data =
-                    documentSnapshot.data();
+                classes.push({
 
-                if (
-                    data.name &&
-                    !classes.includes(data.name)
-                ) {
+                    firestoreId:
+                        documentSnapshot.id,
 
-                    classes.push(data.name);
+                    ...documentSnapshot.data()
 
-                }
+                });
 
             }
         );
 
 
-        classes.sort();
-
-
-        classes.forEach(
-            className => {
-
-                const option =
-                    document.createElement("option");
-
-                option.value =
-                    className;
-
-                option.textContent =
-                    className;
-
-                attendanceClass.appendChild(
-                    option
-                );
-
-            }
+        console.log(
+            "Classes loaded:",
+            classes
         );
 
 
-    } catch (error) {
+        populateClassSelect();
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error loading classes:",
             error
         );
+
 
         alert(
             "Unable to load classes from Firebase."
@@ -167,107 +311,141 @@ async function loadClasses() {
 
 
 /* =========================================================
-   LOAD STUDENTS FOR SELECTED CLASS
+   POPULATE ATTENDANCE CLASS DROPDOWN
+========================================================= */
+
+function populateClassSelect() {
+
+    if (!attendanceClass) {
+        return;
+    }
+
+
+    attendanceClass.innerHTML = `
+
+        <option value="">
+            Select Class
+        </option>
+
+    `;
+
+
+    const classNames = [
+
+        ...new Set(
+
+            classes
+                .map(
+                    classItem =>
+                        getClassName(
+                            classItem
+                        )
+                )
+                .filter(Boolean)
+
+        )
+
+    ];
+
+
+    /*
+     * Sort classes alphabetically
+     */
+
+    classNames.sort(
+        (a, b) =>
+            a.localeCompare(b)
+    );
+
+
+    classNames.forEach(
+        className => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                className;
+
+
+            option.textContent =
+                className;
+
+
+            attendanceClass.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    console.log(
+        "Attendance classes:",
+        classNames
+    );
+
+}
+
+
+/* =========================================================
+   LOAD STUDENTS
 ========================================================= */
 
 async function loadStudents() {
 
-    const selectedClass =
-        attendanceClass.value;
-
-
-    if (!selectedClass) {
-
-        alert(
-            "Please select a class."
-        );
-
-        return false;
-
-    }
-
-
     try {
 
-        const studentsSnapshot =
+        const snapshot =
             await getDocs(
-                collection(db, "students")
+                studentsCollection
             );
 
 
         students = [];
 
 
-        studentsSnapshot.forEach(
+        snapshot.forEach(
             documentSnapshot => {
 
-                const student =
-                    documentSnapshot.data();
+                students.push({
 
+                    firestoreId:
+                        documentSnapshot.id,
 
-                if (
-                    student.class ===
-                    selectedClass
-                ) {
+                    ...documentSnapshot.data()
 
-                    students.push({
-
-                        firestoreId:
-                            documentSnapshot.id,
-
-                        ...student
-
-                    });
-
-                }
+                });
 
             }
         );
 
 
-        students.sort(
-            (a, b) => {
-
-                const nameA =
-                    `${a.firstName || ""} ${a.lastName || ""}`;
-
-                const nameB =
-                    `${b.firstName || ""} ${b.lastName || ""}`;
-
-                return nameA.localeCompare(
-                    nameB
-                );
-
-            }
+        console.log(
+            "Students loaded:",
+            students
         );
 
 
-        if (students.length === 0) {
+        console.log(
+            "Total students:",
+            students.length
+        );
 
-            alert(
-                "No students found in this class."
-            );
+    }
 
-            return false;
-
-        }
-
-
-        return true;
-
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error loading students:",
             error
         );
 
-        alert(
-            "Unable to load students from Firebase."
-        );
 
-        return false;
+        throw error;
 
     }
 
@@ -275,121 +453,16 @@ async function loadStudents() {
 
 
 /* =========================================================
-   GET TERM DATE RANGE
+   LOAD ATTENDANCE RECORDS
 ========================================================= */
 
-function getTermDateRange(
-    session,
-    term
-) {
-
-    const [startYear] =
-        session.split("/").map(Number);
-
-
-    let startMonth;
-    let endMonth;
-
-
-    /*
-       First Term:
-       September - December
-
-       Second Term:
-       January - April
-
-       Third Term:
-       May - July
-    */
-
-    if (term === "First Term") {
-
-        startMonth = 8;
-        endMonth = 11;
-
-        return {
-            start:
-                `${startYear}-09-01`,
-
-            end:
-                `${startYear}-12-31`
-        };
-
-    }
-
-
-    if (term === "Second Term") {
-
-        startMonth = 0;
-        endMonth = 3;
-
-        return {
-            start:
-                `${startYear + 1}-01-01`,
-
-            end:
-                `${startYear + 1}-04-30`
-        };
-
-    }
-
-
-    if (term === "Third Term") {
-
-        startMonth = 4;
-        endMonth = 6;
-
-        return {
-            start:
-                `${startYear + 1}-05-01`,
-
-            end:
-                `${startYear + 1}-07-31`
-        };
-
-    }
-
-
-    return null;
-
-}
-
-
-/* =========================================================
-   LOAD ATTENDANCE RECORDS FOR TERM
-========================================================= */
-
-async function loadTermAttendance() {
-
-    const session =
-        attendanceSession.value;
-
-    const term =
-        attendanceTerm.value;
-
-    const selectedClass =
-        attendanceClass.value;
-
-
-    if (
-        !session ||
-        !term ||
-        !selectedClass
-    ) {
-
-        return;
-
-    }
-
+async function loadAttendanceRecords() {
 
     try {
 
         const snapshot =
             await getDocs(
-                collection(
-                    db,
-                    "attendance"
-                )
+                attendanceCollection
             );
 
 
@@ -399,37 +472,35 @@ async function loadTermAttendance() {
         snapshot.forEach(
             documentSnapshot => {
 
-                const record =
-                    documentSnapshot.data();
+                attendanceRecords.push({
 
+                    firestoreId:
+                        documentSnapshot.id,
 
-                if (
-                    record.session === session &&
-                    record.term === term &&
-                    record.class === selectedClass
-                ) {
+                    ...documentSnapshot.data()
 
-                    attendanceRecords.push({
-
-                        firestoreId:
-                            documentSnapshot.id,
-
-                        ...record
-
-                    });
-
-                }
+                });
 
             }
         );
 
 
-    } catch (error) {
+        console.log(
+            "Attendance records loaded:",
+            attendanceRecords
+        );
+
+    }
+
+    catch (error) {
 
         console.error(
-            "Error loading attendance:",
+            "Error loading attendance records:",
             error
         );
+
+
+        attendanceRecords = [];
 
     }
 
@@ -437,215 +508,312 @@ async function loadTermAttendance() {
 
 
 /* =========================================================
-   CALCULATE STUDENT ATTENDANCE
+   LOAD STUDENTS BUTTON
 ========================================================= */
 
-function calculateAttendance(
-    studentId
-) {
+if (loadAttendanceBtn) {
 
-    const studentRecords =
-        attendanceRecords.filter(
-            record =>
-                record.studentId ===
-                studentId
-        );
+    loadAttendanceBtn.addEventListener(
+        "click",
+        async function () {
+
+            const session =
+                attendanceSession.value;
+
+            const term =
+                attendanceTerm.value;
+
+            const className =
+                attendanceClass.value;
+
+            const date =
+                attendanceDate.value;
 
 
-    let present = 0;
-    let absent = 0;
-    let late = 0;
-
-
-    studentRecords.forEach(
-        record => {
+            /* -----------------------------------------
+               VALIDATE
+            ----------------------------------------- */
 
             if (
-                record.status ===
-                "Present"
+                !session ||
+                !term ||
+                !className ||
+                !date
             ) {
 
-                present++;
+                alert(
+                    "Please select the academic session, term, class and date."
+                );
+
+                return;
 
             }
 
-            else if (
-                record.status ===
-                "Absent"
-            ) {
 
-                absent++;
+            /* -----------------------------------------
+               LOADING
+            ----------------------------------------- */
+
+            loadAttendanceBtn.disabled =
+                true;
+
+            loadAttendanceBtn.textContent =
+                "Loading...";
+
+
+            try {
+
+                /*
+                 * Reload students so newly added
+                 * students appear immediately.
+                 */
+
+                await loadStudents();
+
+
+                /*
+                 * Find students belonging
+                 * to selected class.
+                 */
+
+                const classStudents =
+                    students.filter(
+                        student => {
+
+                            const studentClass =
+                                getStudentClass(
+                                    student
+                                );
+
+
+                            return (
+
+                                studentClass
+                                    .toLowerCase() ===
+
+                                className
+                                    .trim()
+                                    .toLowerCase()
+
+                            );
+
+                        }
+                    );
+
+
+                console.log(
+                    "Selected class:",
+                    className
+                );
+
+
+                console.log(
+                    "Students found:",
+                    classStudents
+                );
+
+
+                /* -----------------------------------------
+                   NO STUDENTS
+                ----------------------------------------- */
+
+                if (
+                    classStudents.length === 0
+                ) {
+
+                    alert(
+
+                        `No students found in ${className}.\n\n` +
+
+                        `Check that the student's class is "${className}".`
+
+                    );
+
+
+                    attendanceTableCard.style.display =
+                        "none";
+
+
+                    attendanceSummaryCard.style.display =
+                        "none";
+
+
+                    return;
+
+                }
+
+
+                /* -----------------------------------------
+                   DATE TITLE
+                ----------------------------------------- */
+
+                if (
+                    attendanceDateTitle
+                ) {
+
+                    const displayDate =
+                        new Date(
+                            `${date}T00:00:00`
+                        );
+
+
+                    attendanceDateTitle.textContent =
+
+                        displayDate.toLocaleDateString(
+                            "en-NG",
+                            {
+                                weekday:
+                                    "long",
+
+                                day:
+                                    "numeric",
+
+                                month:
+                                    "long",
+
+                                year:
+                                    "numeric"
+                            }
+                        );
+
+                }
+
+
+                /* -----------------------------------------
+                   RENDER
+                ----------------------------------------- */
+
+                renderAttendanceStudents(
+
+                    classStudents,
+
+                    session,
+
+                    term,
+
+                    date
+
+                );
+
+
+                attendanceTableCard.style.display =
+                    "block";
+
+
+                attendanceSummaryCard.style.display =
+                    "block";
+
+
+                updateSummary();
 
             }
 
-            else if (
-                record.status ===
-                "Late"
-            ) {
+            catch (error) {
 
-                late++;
+                console.error(
+                    "Attendance loading error:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to load students. Check your Firebase configuration and Firestore permissions."
+                );
+
+            }
+
+            finally {
+
+                loadAttendanceBtn.disabled =
+                    false;
+
+                loadAttendanceBtn.textContent =
+                    "Load Students";
 
             }
 
         }
     );
 
-
-    const totalDays =
-        present +
-        absent +
-        late;
-
-
-    const attended =
-        present +
-        late;
-
-
-    const percentage =
-        totalDays > 0
-            ? (
-                attended /
-                totalDays
-            ) * 100
-            : 0;
-
-
-    return {
-
-        present,
-        absent,
-        late,
-        totalDays,
-        percentage:
-            percentage.toFixed(1)
-
-    };
-
 }
 
 
 /* =========================================================
-   LOAD ATTENDANCE TABLE
+   RENDER STUDENTS
 ========================================================= */
 
-async function loadAttendance() {
+function renderAttendanceStudents(
 
-    const session =
-        attendanceSession.value;
+    classStudents,
 
-    const term =
-        attendanceTerm.value;
+    session,
 
-    const selectedClass =
-        attendanceClass.value;
+    term,
 
-    const date =
-        attendanceDate.value;
+    date
 
-
-    if (
-        !session ||
-        !term ||
-        !selectedClass ||
-        !date
-    ) {
-
-        alert(
-            "Please select the academic session, term, class and date."
-        );
-
-        return;
-
-    }
-
-
-    const studentsLoaded =
-        await loadStudents();
-
-
-    if (!studentsLoaded) {
-
-        return;
-
-    }
-
-
-    await loadTermAttendance();
-
-
-    renderAttendanceTable();
-
-
-    attendanceTableCard.style.display =
-        "block";
-
-    attendanceSummaryCard.style.display =
-        "block";
-
-
-    attendanceDateTitle.textContent =
-        `${selectedClass} • ${formatDate(date)}`;
-
-
-    updateSummary();
-
-}
-
-
-/* =========================================================
-   RENDER ATTENDANCE TABLE
-========================================================= */
-
-function renderAttendanceTable() {
+) {
 
     attendanceTableBody.innerHTML =
         "";
 
 
-    students.forEach(
+    classStudents.forEach(
         (student, index) => {
 
-            const studentName =
-                `${student.firstName || ""} ${student.lastName || ""}`
-                    .trim();
-
-
-            const admissionNumber =
-                student.id ||
-                student.admissionNumber ||
-                "-";
-
-
-            const existingRecord =
-                attendanceRecords.find(
-                    record =>
-
-                        record.studentId ===
-                        (
-                            student.firestoreId ||
-                            student.id
-                        ) &&
-
-                        record.date ===
-                        attendanceDate.value
-
+            const row =
+                document.createElement(
+                    "tr"
                 );
 
 
-            const status =
-                existingRecord
-                    ?.status ||
-                "Present";
-
-
-            const row =
-                document.createElement("tr");
-
-
             row.dataset.studentId =
-                student.firestoreId ||
-                student.id;
+                student.firestoreId;
+
+
+            row.dataset.studentName =
+                getStudentName(
+                    student
+                );
+
+
+            row.dataset.admissionNumber =
+                getAdmissionNumber(
+                    student
+                );
+
+
+            /*
+             * Check for an existing
+             * attendance record.
+             */
+
+            const existing =
+                attendanceRecords.find(
+                    record => {
+
+                        return (
+
+                            record.studentId ===
+                            student.firestoreId &&
+
+                            record.session ===
+                            session &&
+
+                            record.term ===
+                            term &&
+
+                            record.date ===
+                            date
+
+                        );
+
+                    }
+                );
+
+
+            const existingStatus =
+                existing?.status || "";
 
 
             row.innerHTML = `
@@ -657,28 +825,15 @@ function renderAttendanceTable() {
 
                 <td>
 
-                    <div class="student-name">
+                    <strong>
 
-                        <div class="student-avatar">
+                        ${escapeHTML(
+                            getStudentName(
+                                student
+                            )
+                        )}
 
-                            ${escapeHTML(
-                                getInitials(
-                                    student.firstName,
-                                    student.lastName
-                                )
-                            )}
-
-                        </div>
-
-                        <strong>
-
-                            ${escapeHTML(
-                                studentName
-                            )}
-
-                        </strong>
-
-                    </div>
+                    </strong>
 
                 </td>
 
@@ -686,7 +841,9 @@ function renderAttendanceTable() {
                 <td>
 
                     ${escapeHTML(
-                        admissionNumber
+                        getAdmissionNumber(
+                            student
+                        )
                     )}
 
                 </td>
@@ -696,15 +853,22 @@ function renderAttendanceTable() {
 
                     <input
                         type="radio"
-                        name="attendance-${escapeHTML(
+
+                        name="attendance_${escapeAttribute(
                             student.firestoreId
                         )}"
-                        value="Present"
+
+                        value="present"
+
+                        class="attendance-radio"
+
                         ${
-                            status === "Present"
+                            existingStatus ===
+                            "present"
                                 ? "checked"
                                 : ""
                         }
+
                     >
 
                 </td>
@@ -714,15 +878,22 @@ function renderAttendanceTable() {
 
                     <input
                         type="radio"
-                        name="attendance-${escapeHTML(
+
+                        name="attendance_${escapeAttribute(
                             student.firestoreId
                         )}"
-                        value="Absent"
+
+                        value="absent"
+
+                        class="attendance-radio"
+
                         ${
-                            status === "Absent"
+                            existingStatus ===
+                            "absent"
                                 ? "checked"
                                 : ""
                         }
+
                     >
 
                 </td>
@@ -732,32 +903,36 @@ function renderAttendanceTable() {
 
                     <input
                         type="radio"
-                        name="attendance-${escapeHTML(
+
+                        name="attendance_${escapeAttribute(
                             student.firestoreId
                         )}"
-                        value="Late"
+
+                        value="late"
+
+                        class="attendance-radio"
+
                         ${
-                            status === "Late"
+                            existingStatus ===
+                            "late"
                                 ? "checked"
                                 : ""
                         }
+
                     >
 
                 </td>
 
 
-                <td>
+                <td class="attendance-status">
 
-                    <span
-                        class="attendance-status"
-                        data-status-for="${escapeHTML(
-                            student.firestoreId
-                        )}"
-                    >
-
-                        ${status}
-
-                    </span>
+                    ${
+                        existingStatus
+                            ? formatStatus(
+                                existingStatus
+                              )
+                            : "Not Marked"
+                    }
 
                 </td>
 
@@ -769,18 +944,27 @@ function renderAttendanceTable() {
             );
 
 
-            row.querySelectorAll(
-                'input[type="radio"]'
-            ).forEach(
+            const radios =
+                row.querySelectorAll(
+                    ".attendance-radio"
+                );
+
+
+            radios.forEach(
                 radio => {
 
                     radio.addEventListener(
                         "change",
-                        () => {
+                        function () {
 
                             updateRowStatus(
-                                row
+
+                                row,
+
+                                this.value
+
                             );
+
 
                             updateSummary();
 
@@ -800,29 +984,67 @@ function renderAttendanceTable() {
    UPDATE ROW STATUS
 ========================================================= */
 
-function updateRowStatus(row) {
+function updateRowStatus(
+    row,
+    status
+) {
 
-    const selected =
-        row.querySelector(
-            'input[type="radio"]:checked'
-        );
-
-
-    const statusElement =
+    const statusCell =
         row.querySelector(
             ".attendance-status"
         );
 
 
+    if (!statusCell) {
+        return;
+    }
+
+
+    statusCell.textContent =
+        formatStatus(
+            status
+        );
+
+}
+
+
+/* =========================================================
+   FORMAT STATUS
+========================================================= */
+
+function formatStatus(status) {
+
     if (
-        selected &&
-        statusElement
+        status ===
+        "present"
     ) {
 
-        statusElement.textContent =
-            selected.value;
+        return "Present";
 
     }
+
+
+    if (
+        status ===
+        "absent"
+    ) {
+
+        return "Absent";
+
+    }
+
+
+    if (
+        status ===
+        "late"
+    ) {
+
+        return "Late";
+
+    }
+
+
+    return "Not Marked";
 
 }
 
@@ -831,218 +1053,50 @@ function updateRowStatus(row) {
    MARK ALL PRESENT
 ========================================================= */
 
-markAllPresentBtn.addEventListener(
-    "click",
-    () => {
+if (markAllPresentBtn) {
 
-        const radios =
-            attendanceTableBody.querySelectorAll(
-                'input[value="Present"]'
-            );
+    markAllPresentBtn.addEventListener(
+        "click",
+        function () {
 
-
-        radios.forEach(
-            radio => {
-
-                radio.checked = true;
+            const rows =
+                attendanceTableBody
+                    .querySelectorAll("tr");
 
 
-                const row =
-                    radio.closest("tr");
+            rows.forEach(
+                row => {
+
+                    const presentRadio =
+                        row.querySelector(
+                            'input[value="present"]'
+                        );
 
 
-                updateRowStatus(
-                    row
-                );
+                    if (presentRadio) {
 
-            }
-        );
+                        presentRadio.checked =
+                            true;
 
 
-        updateSummary();
+                        updateRowStatus(
 
-    }
-);
+                            row,
 
+                            "present"
 
-/* =========================================================
-   SAVE ATTENDANCE
-========================================================= */
+                        );
 
-saveAttendanceBtn.addEventListener(
-    "click",
-    saveAttendance
-);
+                    }
 
-
-async function saveAttendance() {
-
-    const session =
-        attendanceSession.value;
-
-    const term =
-        attendanceTerm.value;
-
-    const selectedClass =
-        attendanceClass.value;
-
-    const date =
-        attendanceDate.value;
-
-
-    if (
-        !session ||
-        !term ||
-        !selectedClass ||
-        !date
-    ) {
-
-        alert(
-            "Please complete all attendance selections."
-        );
-
-        return;
-
-    }
-
-
-    if (students.length === 0) {
-
-        alert(
-            "There are no students to save."
-        );
-
-        return;
-
-    }
-
-
-    saveAttendanceBtn.disabled =
-        true;
-
-    saveAttendanceBtn.textContent =
-        "Saving...";
-
-
-    try {
-
-        for (
-            const student of students
-        ) {
-
-            const studentId =
-                student.firestoreId ||
-                student.id;
-
-
-            const row =
-                attendanceTableBody.querySelector(
-                    `tr[data-student-id="${CSS.escape(
-                        studentId
-                    )}"]`
-                );
-
-
-            if (!row)
-                continue;
-
-
-            const selected =
-                row.querySelector(
-                    'input[type="radio"]:checked'
-                );
-
-
-            const status =
-                selected
-                    ? selected.value
-                    : "Present";
-
-
-            const attendanceId =
-                `${session
-                    .replace("/", "-")}_${term
-                    .replace(/\s/g, "-")}_${studentId}_${date}`;
-
-
-            await setDoc(
-
-                doc(
-                    db,
-                    "attendance",
-                    attendanceId
-                ),
-
-                {
-
-                    id:
-                        attendanceId,
-
-                    session,
-
-                    term,
-
-                    class:
-                        selectedClass,
-
-                    date,
-
-                    studentId,
-
-                    studentName:
-                        `${student.firstName || ""} ${student.lastName || ""}`
-                            .trim(),
-
-                    status,
-
-                    updatedAt:
-                        new Date().toISOString()
-
-                },
-
-                {
-                    merge: true
                 }
-
             );
+
+
+            updateSummary();
 
         }
-
-
-        alert(
-            "Attendance saved successfully."
-        );
-
-
-        await loadTermAttendance();
-
-        updateSummary();
-
-
-    } catch (error) {
-
-        console.error(
-            "Error saving attendance:",
-            error
-        );
-
-
-        alert(
-            "Unable to save attendance. Check your Firestore rules and Firebase configuration."
-        );
-
-    }
-
-
-    finally {
-
-        saveAttendanceBtn.disabled =
-            false;
-
-        saveAttendanceBtn.textContent =
-            "Save Attendance";
-
-    }
+    );
 
 }
 
@@ -1053,15 +1107,16 @@ async function saveAttendance() {
 
 function updateSummary() {
 
-    let present = 0;
-    let absent = 0;
-    let late = 0;
-
-
     const rows =
-        attendanceTableBody.querySelectorAll(
-            "tr"
-        );
+        attendanceTableBody
+            .querySelectorAll("tr");
+
+
+    let present = 0;
+
+    let absent = 0;
+
+    let late = 0;
 
 
     rows.forEach(
@@ -1069,17 +1124,18 @@ function updateSummary() {
 
             const selected =
                 row.querySelector(
-                    'input[type="radio"]:checked'
+                    "input[type='radio']:checked"
                 );
 
 
-            if (!selected)
+            if (!selected) {
                 return;
+            }
 
 
             if (
                 selected.value ===
-                "Present"
+                "present"
             ) {
 
                 present++;
@@ -1088,7 +1144,7 @@ function updateSummary() {
 
             else if (
                 selected.value ===
-                "Absent"
+                "absent"
             ) {
 
                 absent++;
@@ -1097,7 +1153,7 @@ function updateSummary() {
 
             else if (
                 selected.value ===
-                "Late"
+                "late"
             ) {
 
                 late++;
@@ -1108,46 +1164,303 @@ function updateSummary() {
     );
 
 
-    summaryStudents.textContent =
-        students.length;
+    if (summaryStudents) {
+
+        summaryStudents.textContent =
+            rows.length;
+
+    }
 
 
-    summaryPresent.textContent =
-        present;
+    if (summaryPresent) {
+
+        summaryPresent.textContent =
+            present;
+
+    }
 
 
-    summaryAbsent.textContent =
-        absent;
+    if (summaryAbsent) {
+
+        summaryAbsent.textContent =
+            absent;
+
+    }
 
 
-    summaryLate.textContent =
-        late;
+    if (summaryLate) {
+
+        summaryLate.textContent =
+            late;
+
+    }
 
 }
 
 
 /* =========================================================
-   FORMAT DATE
+   SAVE ATTENDANCE
 ========================================================= */
 
-function formatDate(dateString) {
+if (saveAttendanceBtn) {
 
-    if (!dateString)
-        return "";
+    saveAttendanceBtn.addEventListener(
+        "click",
+        async function () {
+
+            const session =
+                attendanceSession.value;
+
+            const term =
+                attendanceTerm.value;
+
+            const className =
+                attendanceClass.value;
+
+            const date =
+                attendanceDate.value;
 
 
-    const date =
-        new Date(
-            `${dateString}T00:00:00`
-        );
+            if (
+                !session ||
+                !term ||
+                !className ||
+                !date
+            ) {
+
+                alert(
+                    "Please complete all attendance fields."
+                );
+
+                return;
+
+            }
 
 
-    return date.toLocaleDateString(
-        "en-NG",
-        {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
+            const rows =
+                [
+                    ...attendanceTableBody
+                        .querySelectorAll("tr")
+                ];
+
+
+            if (
+                rows.length === 0
+            ) {
+
+                alert(
+                    "Please load the students first."
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * Make sure every student
+             * has been marked.
+             */
+
+            const unmarked =
+                rows.filter(
+                    row =>
+
+                        !row.querySelector(
+                            "input[type='radio']:checked"
+                        )
+
+                );
+
+
+            if (
+                unmarked.length > 0
+            ) {
+
+                alert(
+
+                    `${unmarked.length} student(s) have not been marked.`
+
+                );
+
+                return;
+
+            }
+
+
+            saveAttendanceBtn.disabled =
+                true;
+
+
+            saveAttendanceBtn.textContent =
+                "Saving...";
+
+
+            try {
+
+                await loadAttendanceRecords();
+
+
+                for (
+                    const row of rows
+                ) {
+
+                    const studentId =
+                        row.dataset.studentId;
+
+
+                    const studentName =
+                        row.dataset.studentName;
+
+
+                    const admissionNumber =
+                        row.dataset.admissionNumber;
+
+
+                    const selected =
+                        row.querySelector(
+                            "input[type='radio']:checked"
+                        );
+
+
+                    if (!selected) {
+                        continue;
+                    }
+
+
+                    const status =
+                        selected.value;
+
+
+                    /*
+                     * Look for existing record.
+                     */
+
+                    const existing =
+                        attendanceRecords.find(
+                            record => {
+
+                                return (
+
+                                    record.studentId ===
+                                    studentId &&
+
+                                    record.session ===
+                                    session &&
+
+                                    record.term ===
+                                    term &&
+
+                                    record.date ===
+                                    date
+
+                                );
+
+                            }
+                        );
+
+
+                    const attendanceData = {
+
+                        studentId,
+
+                        studentName,
+
+                        admissionNumber,
+
+                        class:
+                            className,
+
+                        session,
+
+                        term,
+
+                        date,
+
+                        status,
+
+                        updatedAt:
+                            new Date()
+                                .toISOString()
+
+                    };
+
+
+                    if (existing) {
+
+                        await updateDoc(
+
+                            doc(
+                                db,
+                                "attendance",
+                                existing.firestoreId
+                            ),
+
+                            attendanceData
+
+                        );
+
+                    }
+
+                    else {
+
+                        await addDoc(
+
+                            attendanceCollection,
+
+                            {
+
+                                ...attendanceData,
+
+                                createdAt:
+                                    new Date()
+                                        .toISOString()
+
+                            }
+
+                        );
+
+                    }
+
+                }
+
+
+                alert(
+                    "Attendance saved successfully."
+                );
+
+
+                await loadAttendanceRecords();
+
+
+                updateSummary();
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Error saving attendance:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to save attendance. Check your Firestore rules."
+                );
+
+            }
+
+            finally {
+
+                saveAttendanceBtn.disabled =
+                    false;
+
+                saveAttendanceBtn.textContent =
+                    "Save Attendance";
+
+            }
+
         }
     );
 
@@ -1155,36 +1468,7 @@ function formatDate(dateString) {
 
 
 /* =========================================================
-   GET INITIALS
-========================================================= */
-
-function getInitials(
-    firstName,
-    lastName
-) {
-
-    const first =
-        firstName
-            ? firstName.charAt(0)
-            : "";
-
-
-    const last =
-        lastName
-            ? lastName.charAt(0)
-            : "";
-
-
-    return (
-        first +
-        last
-    ).toUpperCase();
-
-}
-
-
-/* =========================================================
-   HTML ESCAPE
+   ESCAPE HTML
 ========================================================= */
 
 function escapeHTML(value) {
@@ -1222,63 +1506,79 @@ function escapeHTML(value) {
 
 
 /* =========================================================
-   AUTOMATIC REFRESH
+   ESCAPE ATTRIBUTE
 ========================================================= */
 
-attendanceSession.addEventListener(
-    "change",
-    () => {
+function escapeAttribute(value) {
 
-        attendanceTableCard.style.display =
-            "none";
+    return String(
+        value ?? ""
+    )
 
-        attendanceSummaryCard.style.display =
-            "none";
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
 
-    }
-);
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
-attendanceTerm.addEventListener(
-    "change",
-    () => {
-
-        attendanceTableCard.style.display =
-            "none";
-
-        attendanceSummaryCard.style.display =
-            "none";
-
-    }
-);
-
-
-attendanceClass.addEventListener(
-    "change",
-    () => {
-
-        attendanceTableCard.style.display =
-            "none";
-
-        attendanceSummaryCard.style.display =
-            "none";
-
-    }
-);
-
-
-/* =========================================================
-   LOAD BUTTON
-========================================================= */
-
-loadAttendanceBtn.addEventListener(
-    "click",
-    loadAttendance
-);
+}
 
 
 /* =========================================================
    INITIALIZE
 ========================================================= */
 
-loadClasses();
+async function initializeAttendance() {
+
+    try {
+
+        setToday();
+
+
+        /*
+         * Load all required Firebase data.
+         */
+
+        await Promise.all([
+
+            loadClasses(),
+
+            loadStudents(),
+
+            loadAttendanceRecords()
+
+        ]);
+
+
+        console.log(
+            "Attendance system initialized successfully."
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Attendance initialization error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+initializeAttendance();

@@ -24,7 +24,9 @@
 <div class="admin-layout">
 
 
-    <!-- SIDEBAR -->
+    <!-- ======================================================
+         SIDEBAR
+    ======================================================= -->
 
     <aside class="admin-sidebar">
 
@@ -78,10 +80,10 @@
             <a href="results.html">
                 📊 Results
             </a>
-            
+
             <a href="report-cards.html">
-    📄 Report Cards
-</a>
+                📄 Report Cards
+            </a>
 
             <a href="attendance.html">
                 📅 Attendance
@@ -113,10 +115,14 @@
 
 
 
-    <!-- MAIN -->
+    <!-- ======================================================
+         MAIN CONTENT
+    ======================================================= -->
 
     <main class="admin-main">
 
+
+        <!-- HEADER -->
 
         <header class="admin-header">
 
@@ -132,6 +138,10 @@
 
 
 
+        <!-- ==================================================
+             PAGE CONTENT
+        =================================================== -->
+
         <section class="admin-content">
 
 
@@ -146,7 +156,8 @@
                     </h1>
 
                     <p>
-                        Manage all registered students.
+                        Manage all registered students and
+                        link parent portal accounts.
                     </p>
 
                 </div>
@@ -155,6 +166,7 @@
                 <button
                     class="btn btn-primary"
                     id="addStudentBtn"
+                    type="button"
                 >
                     + Add Student
                 </button>
@@ -163,7 +175,9 @@
 
 
 
-            <!-- SEARCH / FILTER -->
+            <!-- ==================================================
+                 SEARCH / FILTER
+            =================================================== -->
 
             <div class="student-toolbar">
 
@@ -180,20 +194,53 @@
                         All Classes
                     </option>
 
-                    <option>Primary 1</option>
-                    <option>Primary 2</option>
-                    <option>Primary 3</option>
-                    <option>Primary 4</option>
-                    <option>Primary 5</option>
-                    <option>Primary 6</option>
+                    <option value="Primary 1">
+                        Primary 1
+                    </option>
 
-                    <option>JSS 1</option>
-                    <option>JSS 2</option>
-                    <option>JSS 3</option>
+                    <option value="Primary 2">
+                        Primary 2
+                    </option>
 
-                    <option>SS 1</option>
-                    <option>SS 2</option>
-                    <option>SS 3</option>
+                    <option value="Primary 3">
+                        Primary 3
+                    </option>
+
+                    <option value="Primary 4">
+                        Primary 4
+                    </option>
+
+                    <option value="Primary 5">
+                        Primary 5
+                    </option>
+
+                    <option value="Primary 6">
+                        Primary 6
+                    </option>
+
+                    <option value="JSS 1">
+                        JSS 1
+                    </option>
+
+                    <option value="JSS 2">
+                        JSS 2
+                    </option>
+
+                    <option value="JSS 3">
+                        JSS 3
+                    </option>
+
+                    <option value="SS 1">
+                        SS 1
+                    </option>
+
+                    <option value="SS 2">
+                        SS 2
+                    </option>
+
+                    <option value="SS 3">
+                        SS 3
+                    </option>
 
                 </select>
 
@@ -201,7 +248,9 @@
 
 
 
-            <!-- TABLE -->
+            <!-- ==================================================
+                 STUDENTS TABLE
+            =================================================== -->
 
             <div class="admin-table-container">
 
@@ -229,6 +278,10 @@
 
                             <th>
                                 Parent Phone
+                            </th>
+
+                            <th>
+                                Parent Account
                             </th>
 
                             <th>
@@ -265,8 +318,8 @@
                     </h3>
 
                     <p>
-                        Add your first student to
-                        begin managing student records.
+                        Add your first student to begin
+                        managing student records.
                     </p>
 
                 </div>
@@ -282,7 +335,9 @@
 
 
 
-<!-- ADD / EDIT STUDENT MODAL -->
+<!-- =========================================================
+     ADD / EDIT STUDENT MODAL
+========================================================= -->
 
 <div
     class="modal"
@@ -292,6 +347,8 @@
 
     <div class="modal-content">
 
+
+        <!-- MODAL HEADER -->
 
         <div class="modal-header">
 
@@ -311,6 +368,7 @@
             <button
                 class="modal-close"
                 id="closeStudentModal"
+                type="button"
             >
                 ×
             </button>
@@ -319,8 +377,14 @@
 
 
 
+        <!-- ==================================================
+             STUDENT FORM
+        =================================================== -->
+
         <form id="studentForm">
 
+
+            <!-- FIRESTORE DOCUMENT ID -->
 
             <input
                 type="hidden"
@@ -328,12 +392,23 @@
             >
 
 
+            <!-- PARENT FIREBASE UID -->
+
+            <input
+                type="hidden"
+                id="parentUid"
+            >
+
+
+
             <div class="form-grid">
 
 
+                <!-- FIRST NAME -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="firstName">
                         First Name *
                     </label>
 
@@ -346,9 +421,12 @@
                 </div>
 
 
+
+                <!-- LAST NAME -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="lastName">
                         Last Name *
                     </label>
 
@@ -361,9 +439,12 @@
                 </div>
 
 
+
+                <!-- DATE OF BIRTH -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="dateOfBirth">
                         Date of Birth *
                     </label>
 
@@ -376,9 +457,12 @@
                 </div>
 
 
+
+                <!-- GENDER -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="gender">
                         Gender *
                     </label>
 
@@ -404,9 +488,12 @@
                 </div>
 
 
+
+                <!-- CLASS -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="studentClass">
                         Class *
                     </label>
 
@@ -419,29 +506,65 @@
                             Select Class
                         </option>
 
-                        <option>Primary 1</option>
-                        <option>Primary 2</option>
-                        <option>Primary 3</option>
-                        <option>Primary 4</option>
-                        <option>Primary 5</option>
-                        <option>Primary 6</option>
+                        <option value="Primary 1">
+                            Primary 1
+                        </option>
 
-                        <option>JSS 1</option>
-                        <option>JSS 2</option>
-                        <option>JSS 3</option>
+                        <option value="Primary 2">
+                            Primary 2
+                        </option>
 
-                        <option>SS 1</option>
-                        <option>SS 2</option>
-                        <option>SS 3</option>
+                        <option value="Primary 3">
+                            Primary 3
+                        </option>
+
+                        <option value="Primary 4">
+                            Primary 4
+                        </option>
+
+                        <option value="Primary 5">
+                            Primary 5
+                        </option>
+
+                        <option value="Primary 6">
+                            Primary 6
+                        </option>
+
+                        <option value="JSS 1">
+                            JSS 1
+                        </option>
+
+                        <option value="JSS 2">
+                            JSS 2
+                        </option>
+
+                        <option value="JSS 3">
+                            JSS 3
+                        </option>
+
+                        <option value="SS 1">
+                            SS 1
+                        </option>
+
+                        <option value="SS 2">
+                            SS 2
+                        </option>
+
+                        <option value="SS 3">
+                            SS 3
+                        </option>
 
                     </select>
 
                 </div>
 
 
+
+                <!-- ADMISSION DATE -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="admissionDate">
                         Admission Date *
                     </label>
 
@@ -454,9 +577,12 @@
                 </div>
 
 
+
+                <!-- PARENT NAME -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="parentName">
                         Parent / Guardian Name *
                     </label>
 
@@ -469,9 +595,12 @@
                 </div>
 
 
+
+                <!-- PARENT PHONE -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="parentPhone">
                         Parent Phone *
                     </label>
 
@@ -484,23 +613,37 @@
                 </div>
 
 
+
+                <!-- PARENT EMAIL -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="parentEmail">
                         Parent Email
                     </label>
 
                     <input
                         type="email"
                         id="parentEmail"
+                        placeholder="parent@example.com"
                     >
 
                 </div>
 
 
+
+                <!-- ==================================================
+                     PARENT ACCOUNT LINK
+                =================================================== -->
+
+                
+
+
+                <!-- STUDENT STATUS -->
+
                 <div class="form-group">
 
-                    <label>
+                    <label for="studentStatus">
                         Student Status
                     </label>
 
@@ -519,12 +662,15 @@
                 </div>
 
 
+
+                <!-- ADDRESS -->
+
                 <div
                     class="form-group"
-                    style="grid-column: 1 / -1;"
+                    style="grid-column:1 / -1;"
                 >
 
-                    <label>
+                    <label for="studentAddress">
                         Address
                     </label>
 
@@ -540,6 +686,10 @@
 
 
 
+            <!-- ==================================================
+                 MODAL ACTIONS
+            =================================================== -->
+
             <div class="modal-actions">
 
                 <button
@@ -549,6 +699,7 @@
                 >
                     Cancel
                 </button>
+
 
                 <button
                     type="submit"
@@ -568,11 +719,17 @@
 
 
 
+<!-- =========================================================
+     SCRIPTS
+========================================================= -->
+
 <script src="admin-login.js"></script>
+
 <script
     type="module"
     src="students.js"
 ></script>
+
 
 </body>
 

@@ -1,21 +1,50 @@
-import {
-    signInWithEmailAndPassword,
-    sendPasswordResetEmail,
-    setPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence
-}
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+// ============================================================
+// PARENT LOGIN
+// Philip Model School
+// Firebase Authentication + Firestore
+// ============================================================
+
 
 import {
-    auth
+
+    signInWithEmailAndPassword,
+
+    onAuthStateChanged,
+
+    sendPasswordResetEmail,
+
+    signOut
+
+}
+from
+"https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+
+import {
+
+    doc,
+
+    getDoc
+
+}
+from
+"https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+
+import {
+
+    auth,
+
+    db
+
 }
 from "./firebase-config.js";
 
 
-/* =========================
-   ELEMENTS
-========================= */
+
+// ============================================================
+// ELEMENTS
+// ============================================================
 
 const form =
     document.getElementById(
@@ -35,33 +64,21 @@ const passwordInput =
     );
 
 
-const rememberMe =
-    document.getElementById(
-        "rememberMe"
-    );
-
-
 const loginBtn =
     document.getElementById(
         "loginBtn"
     );
 
 
-const loginBtnText =
+const errorMessage =
     document.getElementById(
-        "loginBtnText"
+        "errorMessage"
     );
 
 
-const message =
+const successMessage =
     document.getElementById(
-        "loginMessage"
-    );
-
-
-const togglePassword =
-    document.getElementById(
-        "togglePassword"
+        "successMessage"
     );
 
 
@@ -71,63 +88,156 @@ const forgotPassword =
     );
 
 
-/* =========================
-   MESSAGE
-========================= */
 
-function showMessage(
-    text,
-    type = "error"
-) {
+// ============================================================
+// SHOW ERROR
+// ============================================================
 
-    message.textContent = text;
+function showError(message) {
 
-    message.className =
-        `login-message show ${type}`;
+    errorMessage.textContent =
+        message;
+
+    errorMessage.style.display =
+        "block";
+
+    successMessage.style.display =
+        "none";
 
 }
 
 
-/* =========================
-   PASSWORD VISIBILITY
-========================= */
 
-togglePassword.addEventListener(
-    "click",
-    function () {
+// ============================================================
+// SHOW SUCCESS
+// ============================================================
 
-        const isPassword =
-            passwordInput.type === "password";
+function showSuccess(message) {
+
+    successMessage.textContent =
+        message;
+
+    successMessage.style.display =
+        "block";
+
+    errorMessage.style.display =
+        "none";
+
+}
 
 
-        passwordInput.type =
-            isPassword
-                ? "text"
-                : "password";
 
+// ============================================================
+// GET FIREBASE ERROR
+// ============================================================
 
-        togglePassword.textContent =
-            isPassword
-                ? "🙈"
-                : "👁";
+function getLoginError(error) {
+
+    switch (error.code) {
+
+        case "auth/invalid-credential":
+
+            return "Incorrect email or password.";
+
+        case "auth/user-not-found":
+
+            return "No account exists with this email.";
+
+        case "auth/wrong-password":
+
+            return "Incorrect password.";
+
+        case "auth/too-many-requests":
+
+            return "Too many login attempts. Please try again later.";
+
+        case "auth/network-request-failed":
+
+            return "Network error. Check your internet connection.";
+
+        default:
+
+            return (
+                error.message ||
+                "Unable to login."
+            );
 
     }
-);
+
+}
 
 
-/* =========================
-   LOGIN
-========================= */
+
+// ============================================================
+// VERIFY PARENT ACCOUNT
+// ============================================================
+
+async function verifyParentAccount(user) {
+
+    const userRef =
+        doc(
+            db,
+            "users",
+            user.uid
+        );
+
+
+    const userSnapshot =
+        await getDoc(
+            userRef
+        );
+
+
+    if (!userSnapshot.exists()) {
+
+        await signOut(auth);
+
+        throw new Error(
+            "Your parent profile has not been created yet."
+        );
+
+    }
+
+
+    const userData =
+        userSnapshot.data();
+
+
+    if (
+        userData.role !==
+        "parent"
+    ) {
+
+        await signOut(auth);
+
+        throw new Error(
+            "This account is not registered as a parent account."
+        );
+
+    }
+
+
+    return userData;
+
+}
+
+
+
+// ============================================================
+// LOGIN
+// ============================================================
 
 form.addEventListener(
     "submit",
-    async function (event) {
+    async function(event) {
 
         event.preventDefault();
 
 
         const email =
-            emailInput.value.trim();
+            emailInput.value
+                .trim()
+                .toLowerCase();
 
 
         const password =
@@ -136,39 +246,25 @@ form.addEventListener(
 
         if (!email || !password) {
 
-            showMessage(
+            showError(
                 "Please enter your email and password."
             );
 
             return;
+
         }
 
 
-        loginBtn.disabled = true;
+        loginBtn.disabled =
+            true;
 
-        loginBtnText.textContent =
-            "Signing in...";
+        loginBtn.textContent =
+            "Logging in...";
 
 
         try {
 
-            /*
-             * Remember-me support
-             */
-
-            await setPersistence(
-                auth,
-                rememberMe.checked
-                    ? browserLocalPersistence
-                    : browserSessionPersistence
-            );
-
-
-            /*
-             * Firebase login
-             */
-
-            const userCredential =
+            const credential =
                 await signInWithEmailAndPassword(
                     auth,
                     email,
@@ -176,95 +272,49 @@ form.addEventListener(
                 );
 
 
-            const user =
-                userCredential.user;
-
-
-            console.log(
-                "Parent logged in:",
-                user.uid
+            await verifyParentAccount(
+                credential.user
             );
 
 
-            showMessage(
-                "Login successful. Redirecting...",
-                "success"
+            showSuccess(
+                "Login successful. Opening your portal..."
             );
 
 
             setTimeout(
-                function () {
+                function() {
 
                     window.location.href =
-                        "portal.html";
+                        "parent-dashboard.html";
 
                 },
-                800
+                700
+            );
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "Parent login error:",
+                error
             );
 
 
-        } catch (error) {
-
-            console.error(error);
-
-
-            let errorMessage =
-                "Unable to sign in. Please try again.";
-
-
-            switch (error.code) {
-
-                case "auth/invalid-credential":
-
-                    errorMessage =
-                        "Incorrect email or password.";
-
-                    break;
-
-
-                case "auth/user-not-found":
-
-                    errorMessage =
-                        "No parent account was found with this email.";
-
-                    break;
-
-
-                case "auth/wrong-password":
-
-                    errorMessage =
-                        "Incorrect password.";
-
-                    break;
-
-
-                case "auth/invalid-email":
-
-                    errorMessage =
-                        "Please enter a valid email address.";
-
-                    break;
-
-
-                case "auth/too-many-requests":
-
-                    errorMessage =
-                        "Too many login attempts. Please try again later.";
-
-                    break;
-
-            }
-
-
-            showMessage(
-                errorMessage
+            showError(
+                getLoginError(error)
             );
 
+        }
 
-            loginBtn.disabled = false;
+        finally {
 
-            loginBtnText.textContent =
-                "Sign In";
+            loginBtn.disabled =
+                false;
+
+            loginBtn.textContent =
+                "Login";
 
         }
 
@@ -272,30 +322,31 @@ form.addEventListener(
 );
 
 
-/* =========================
-   FORGOT PASSWORD
-========================= */
+
+// ============================================================
+// FORGOT PASSWORD
+// ============================================================
 
 forgotPassword.addEventListener(
     "click",
-    async function (event) {
-
-        event.preventDefault();
-
+    async function() {
 
         const email =
-            emailInput.value.trim();
+            emailInput.value
+                .trim()
+                .toLowerCase();
 
 
         if (!email) {
 
-            showMessage(
+            showError(
                 "Enter your email address first."
             );
 
             emailInput.focus();
 
             return;
+
         }
 
 
@@ -307,19 +358,61 @@ forgotPassword.addEventListener(
             );
 
 
-            showMessage(
-                "Password reset instructions have been sent to your email.",
-                "success"
+            showSuccess(
+                "Password reset instructions have been sent to your email."
+            );
+
+        }
+
+        catch(error) {
+
+            console.error(
+                error
             );
 
 
-        } catch (error) {
+            showError(
+                "Unable to send password reset email."
+            );
 
-            console.error(error);
+        }
+
+    }
+);
 
 
-            showMessage(
-                "Unable to send the password reset email."
+
+// ============================================================
+// CHECK EXISTING LOGIN
+// ============================================================
+
+onAuthStateChanged(
+    auth,
+    async function(user) {
+
+        if (!user) {
+
+            return;
+
+        }
+
+
+        try {
+
+            await verifyParentAccount(
+                user
+            );
+
+
+            window.location.href =
+                "parent-dashboard.html";
+
+        }
+
+        catch(error) {
+
+            console.error(
+                error
             );
 
         }

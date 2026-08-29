@@ -12,16 +12,29 @@
 
     <title>Results | Philip Model School</title>
 
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin-login.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+    
+    
+
+    <link
+        rel="stylesheet"
+        href="results.css"
+    >
 
 </head>
+
 
 <body>
 
 <div class="admin-layout">
 
-    <!-- SIDEBAR -->
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
     <aside class="admin-sidebar">
 
@@ -32,64 +45,26 @@
             </div>
 
             <div>
-                <strong>Philip Model School</strong>
-                <small>Admin Portal</small>
+
+                <strong>
+                    Philip Model School
+                </strong>
+
+                <small>
+                    Admin Portal
+                </small>
+
             </div>
 
         </div>
 
 
-        <nav class="admin-nav">
+        
 
-            <a href="dashboard.html">
-                📊 Dashboard
-            </a>
-
-            <a href="students.html">
-                👨‍🎓 Students
-            </a>
-
-            <a href="teachers.html">
-                👨‍🏫 Teachers
-            </a>
-
-            <a href="classes.html">
-                🏫 Classes
-            </a>
-
-            <a href="subjects.html">
-                📚 Subjects
-            </a>
-
-            <a href="admissions.html">
-                📝 Admissions
-            </a>
-
-            <a href="results.html" class="active">
-                📊 Results
-            </a>
-
-            <a href="attendance.html">
-                📅 Attendance
-            </a>
-
-            <a href="fees.html">
-                💰 Fees
-            </a>
-
-            <a href="news.html">
-                📰 News
-            </a>
-
-            <a href="messages.html">
-                💬 Messages
-            </a>
-
-            <a href="settings.html">
-                ⚙️ Settings
-            </a>
-
-            <a href="logout.html" id="logoutBtn">
+            <a
+                href="logout.html"
+                id="logoutBtn"
+            >
                 🚪 Logout
             </a>
 
@@ -98,9 +73,15 @@
     </aside>
 
 
-    <!-- MAIN -->
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
 
     <main class="admin-main">
+
+
+        <!-- HEADER -->
 
         <header class="admin-header">
 
@@ -115,10 +96,15 @@
         </header>
 
 
+
+        <!-- CONTENT -->
+
         <section class="admin-content">
 
 
-            <!-- PAGE HEADER -->
+            <!-- =================================================
+                 PAGE HEADER
+            ================================================== -->
 
             <div class="page-header-row">
 
@@ -135,31 +121,45 @@
                 </div>
 
 
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div
+                    style="
+                        display:flex;
+                        gap:10px;
+                        flex-wrap:wrap;
+                    "
+                >
 
-    <button
-        class="btn btn-primary"
-        id="addResultBtn"
-    >
-        + Enter Result
-    </button>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="addResultBtn"
+                    >
+                        + Enter Result
+                    </button>
 
-    <button
-        class="btn btn-outline"
-        id="bulkResultBtn"
-    >
-        📋 Class Result Entry
-    </button>
 
-</div>
+                    <button
+                        type="button"
+                        class="btn btn-outline"
+                        id="bulkResultBtn"
+                    >
+                        📋 Class Result Entry
+                    </button>
+
+                </div>
 
             </div>
 
 
-            <!-- FILTERS -->
+
+            <!-- =================================================
+                 FILTERS
+            ================================================== -->
 
             <div class="student-toolbar">
 
+
+                <!-- SESSION -->
 
                 <select id="resultSessionFilter">
 
@@ -177,6 +177,9 @@
 
                 </select>
 
+
+
+                <!-- TERM -->
 
                 <select id="resultTermFilter">
 
@@ -199,6 +202,9 @@
                 </select>
 
 
+
+                <!-- CLASS -->
+
                 <select id="resultClassFilter">
 
                     <option value="">
@@ -207,6 +213,9 @@
 
                 </select>
 
+
+
+                <!-- SEARCH -->
 
                 <input
                     type="search"
@@ -217,7 +226,10 @@
             </div>
 
 
-            <!-- RESULTS TABLE -->
+
+            <!-- =================================================
+                 RESULTS TABLE
+            ================================================== -->
 
             <div class="admin-table-container">
 
@@ -240,19 +252,43 @@
                             </th>
 
                             <th>
+                                CW 1
+                                <small>/5</small>
+                            </th>
+
+                            <th>
+                                CW 2
+                                <small>/5</small>
+                            </th>
+
+                            <th>
+                                Assignment 1
+                                <small>/5</small>
+                            </th>
+
+                            <th>
+                                Assignment 2
+                                <small>/5</small>
+                            </th>
+
+                            <th>
                                 CA 1
+                                <small>/10</small>
                             </th>
 
                             <th>
                                 CA 2
+                                <small>/10</small>
                             </th>
 
                             <th>
                                 Exam
+                                <small>/60</small>
                             </th>
 
                             <th>
                                 Total
+                                <small>/100</small>
                             </th>
 
                             <th>
@@ -272,11 +308,16 @@
                     </thead>
 
 
-                    <tbody id="resultsTableBody">
+                    <tbody
+                        id="resultsTableBody"
+                    >
                     </tbody>
 
                 </table>
 
+
+
+                <!-- EMPTY STATE -->
 
                 <div
                     id="emptyResults"
@@ -306,7 +347,10 @@
 </div>
 
 
-<!-- RESULT MODAL -->
+
+<!-- =========================================================
+     INDIVIDUAL RESULT MODAL
+========================================================== -->
 
 <div
     class="modal"
@@ -315,6 +359,8 @@
 
     <div class="modal-content">
 
+
+        <!-- MODAL HEADER -->
 
         <div class="modal-header">
 
@@ -332,6 +378,7 @@
 
 
             <button
+                type="button"
                 class="modal-close"
                 id="closeResultModal"
             >
@@ -341,7 +388,11 @@
         </div>
 
 
+
+        <!-- FORM -->
+
         <form id="resultForm">
+
 
             <input
                 type="hidden"
@@ -349,10 +400,13 @@
             >
 
 
+
             <div class="form-grid">
 
 
-                <!-- SESSION -->
+                <!-- =================================================
+                     SESSION
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -382,7 +436,10 @@
                 </div>
 
 
-                <!-- TERM -->
+
+                <!-- =================================================
+                     TERM
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -416,7 +473,10 @@
                 </div>
 
 
-                <!-- CLASS -->
+
+                <!-- =================================================
+                     CLASS
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -438,7 +498,10 @@
                 </div>
 
 
-                <!-- STUDENT -->
+
+                <!-- =================================================
+                     STUDENT
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -460,7 +523,10 @@
                 </div>
 
 
-                <!-- SUBJECT -->
+
+                <!-- =================================================
+                     SUBJECT
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -482,7 +548,106 @@
                 </div>
 
 
-                <!-- CA 1 -->
+
+                <!-- =================================================
+                     CLASS WORK 1
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Class Work 1 (5)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="classWork1"
+                        min="0"
+                        max="5"
+                        value="0"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     CLASS WORK 2
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Class Work 2 (5)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="classWork2"
+                        min="0"
+                        max="5"
+                        value="0"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     ASSIGNMENT 1
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Assignment 1 (5)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="assignment1"
+                        min="0"
+                        max="5"
+                        value="0"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     ASSIGNMENT 2
+                ================================================== -->
+
+                <div class="form-group">
+
+                    <label>
+                        Assignment 2 (5)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="assignment2"
+                        min="0"
+                        max="5"
+                        value="0"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- =================================================
+                     CA 1
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -496,13 +661,17 @@
                         min="0"
                         max="10"
                         value="0"
+                        step="0.01"
                         required
                     >
 
                 </div>
 
 
-                <!-- CA 2 -->
+
+                <!-- =================================================
+                     CA 2
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -516,38 +685,46 @@
                         min="0"
                         max="10"
                         value="0"
+                        step="0.01"
                         required
                     >
 
                 </div>
 
 
-                <!-- EXAM -->
+
+                <!-- =================================================
+                     EXAM
+                ================================================== -->
 
                 <div class="form-group">
 
                     <label>
-                        Examination (80)
+                        Examination (60)
                     </label>
 
                     <input
                         type="number"
                         id="exam"
                         min="0"
-                        max="80"
+                        max="60"
                         value="0"
+                        step="0.01"
                         required
                     >
 
                 </div>
 
 
-                <!-- TOTAL -->
+
+                <!-- =================================================
+                     TOTAL
+                ================================================== -->
 
                 <div class="form-group">
 
                     <label>
-                        Total
+                        Total / 100
                     </label>
 
                     <input
@@ -559,7 +736,10 @@
                 </div>
 
 
-                <!-- GRADE -->
+
+                <!-- =================================================
+                     GRADE
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -576,7 +756,10 @@
                 </div>
 
 
-                <!-- REMARK -->
+
+                <!-- =================================================
+                     REMARK
+                ================================================== -->
 
                 <div class="form-group">
 
@@ -595,7 +778,8 @@
             </div>
 
 
-            <!-- ACTIONS -->
+
+            <!-- MODAL ACTIONS -->
 
             <div class="modal-actions">
 
@@ -623,9 +807,11 @@
 
 </div>
 
-<!-- =========================
+
+
+<!-- =========================================================
      BULK RESULT MODAL
-========================= -->
+========================================================== -->
 
 <div
     class="modal"
@@ -634,8 +820,11 @@
 
     <div
         class="modal-content"
-        style="max-width:1100px;"
+        style="max-width:1200px;"
     >
+
+
+        <!-- HEADER -->
 
         <div class="modal-header">
 
@@ -651,7 +840,9 @@
 
             </div>
 
+
             <button
+                type="button"
                 class="modal-close"
                 id="closeBulkResultModal"
             >
@@ -661,17 +852,26 @@
         </div>
 
 
-        <!-- SELECTION -->
+
+        <!-- =================================================
+             BULK SELECTION
+        ================================================== -->
 
         <div class="form-grid">
+
+
+            <!-- SESSION -->
 
             <div class="form-group">
 
                 <label>
-                    Academic Session
+                    Academic Session *
                 </label>
 
-                <select id="bulkSession">
+                <select
+                    id="bulkSession"
+                    required
+                >
 
                     <option value="">
                         Select Session
@@ -690,13 +890,19 @@
             </div>
 
 
+
+            <!-- TERM -->
+
             <div class="form-group">
 
                 <label>
-                    Term
+                    Term *
                 </label>
 
-                <select id="bulkTerm">
+                <select
+                    id="bulkTerm"
+                    required
+                >
 
                     <option value="">
                         Select Term
@@ -719,13 +925,19 @@
             </div>
 
 
+
+            <!-- CLASS -->
+
             <div class="form-group">
 
                 <label>
-                    Class
+                    Class *
                 </label>
 
-                <select id="bulkClass">
+                <select
+                    id="bulkClass"
+                    required
+                >
 
                     <option value="">
                         Select Class
@@ -736,13 +948,19 @@
             </div>
 
 
+
+            <!-- SUBJECT -->
+
             <div class="form-group">
 
                 <label>
-                    Subject
+                    Subject *
                 </label>
 
-                <select id="bulkSubject">
+                <select
+                    id="bulkSubject"
+                    required
+                >
 
                     <option value="">
                         Select Subject
@@ -755,7 +973,10 @@
         </div>
 
 
-        <!-- LOAD STUDENTS -->
+
+        <!-- =================================================
+             LOAD STUDENTS
+        ================================================== -->
 
         <div
             style="
@@ -765,6 +986,7 @@
         >
 
             <button
+                type="button"
                 class="btn btn-primary"
                 id="loadClassStudentsBtn"
             >
@@ -774,7 +996,10 @@
         </div>
 
 
-        <!-- RESULT TABLE -->
+
+        <!-- =================================================
+             BULK RESULT TABLE
+        ================================================== -->
 
         <div
             class="admin-table-container"
@@ -797,19 +1022,43 @@
                         </th>
 
                         <th>
-                            CA 1 / 10
+                            CW 1
+                            <small>/5</small>
                         </th>
 
                         <th>
-                            CA 2 / 10
+                            CW 2
+                            <small>/5</small>
                         </th>
 
                         <th>
-                            Exam / 80
+                            Assignment 1
+                            <small>/5</small>
+                        </th>
+
+                        <th>
+                            Assignment 2
+                            <small>/5</small>
+                        </th>
+
+                        <th>
+                            CA 1
+                            <small>/10</small>
+                        </th>
+
+                        <th>
+                            CA 2
+                            <small>/10</small>
+                        </th>
+
+                        <th>
+                            Exam
+                            <small>/60</small>
                         </th>
 
                         <th>
                             Total
+                            <small>/100</small>
                         </th>
 
                         <th>
@@ -835,7 +1084,10 @@
         </div>
 
 
-        <!-- ACTIONS -->
+
+        <!-- =================================================
+             BULK ACTIONS
+        ================================================== -->
 
         <div
             class="modal-actions"
@@ -866,8 +1118,19 @@
 
 </div>
 
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================== -->
+
 <script src="admin-login.js"></script>
-<script type="module" src="results.js"></script>
+
+<script
+    type="module"
+    src="results.js"
+></script>
+
 
 </body>
 

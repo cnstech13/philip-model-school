@@ -1,81 +1,81 @@
+// ============================================================
+// PARENT DASHBOARD
+// Philip Model School
+// ============================================================
+
+
 import {
+
     onAuthStateChanged,
+
     signOut
+
 }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+from
+"https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 
 import {
+
     collection,
+
     query,
+
     where,
-    getDocs
+
+    getDocs,
+
+    doc,
+
+    getDoc
+
 }
-from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+from
+"https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 
 import {
+
     auth,
+
     db
+
 }
 from "./firebase-config.js";
 
 
-/* =========================
-   ELEMENTS
-========================= */
 
-const childrenGrid =
+// ============================================================
+// ELEMENTS
+// ============================================================
+
+const welcomeText =
     document.getElementById(
-        "childrenGrid"
+        "welcomeText"
     );
 
 
-const parentName =
+const parentEmail =
     document.getElementById(
-        "parentName"
+        "parentEmail"
     );
 
 
-const welcomeName =
+const childrenContainer =
     document.getElementById(
-        "welcomeName"
+        "childrenContainer"
     );
 
 
-const parentAvatar =
+const childrenCount =
     document.getElementById(
-        "parentAvatar"
+        "childrenCount"
     );
 
 
-const overallAverage =
+const errorMessage =
     document.getElementById(
-        "overallAverage"
-    );
-
-
-const performanceStatus =
-    document.getElementById(
-        "performanceStatus"
-    );
-
-
-const attendanceRate =
-    document.getElementById(
-        "attendanceRate"
-    );
-
-
-const outstandingFees =
-    document.getElementById(
-        "outstandingFees"
-    );
-
-
-const recentResultsBody =
-    document.getElementById(
-        "recentResultsBody"
+        "errorMessage"
     );
 
 
@@ -85,133 +85,147 @@ const logoutBtn =
     );
 
 
-const menuToggle =
-    document.getElementById(
-        "menuToggle"
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+
+function escapeHTML(value) {
+
+    return String(
+        value ?? ""
+    )
+
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+
+    .replace(
+        /</g,
+        "&lt;"
+    )
+
+    .replace(
+        />/g,
+        "&gt;"
+    )
+
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+
+    .replace(
+        /'/g,
+        "&#039;"
     );
-
-
-const sidebar =
-    document.getElementById(
-        "sidebar"
-    );
-
-
-/* =========================
-   MOBILE MENU
-========================= */
-
-menuToggle.addEventListener(
-    "click",
-    function () {
-
-        sidebar.classList.toggle(
-            "open"
-        );
-
-    }
-);
-
-
-/* =========================
-   AUTH STATE
-========================= */
-
-onAuthStateChanged(
-    auth,
-    async function (user) {
-
-        if (!user) {
-
-            window.location.href =
-                "parent-login.html";
-
-            return;
-        }
-
-
-        console.log(
-            "Authenticated parent:",
-            user.uid
-        );
-
-
-        /*
-         * Display basic Firebase
-         * account information.
-         */
-
-        const email =
-            user.email || "Parent";
-
-
-        const name =
-            user.displayName ||
-            email.split("@")[0];
-
-
-        setParentName(name);
-
-
-        /*
-         * Load children linked
-         * to this parent's UID.
-         */
-
-        await loadChildren(
-            user.uid
-        );
-
-    }
-);
-
-
-/* =========================
-   PARENT NAME
-========================= */
-
-function setParentName(name) {
-
-    const formattedName =
-        formatName(name);
-
-
-    parentName.textContent =
-        formattedName;
-
-
-    welcomeName.textContent =
-        formattedName;
-
-
-    parentAvatar.textContent =
-        getInitials(formattedName);
 
 }
 
 
-/* =========================
-   LOAD CHILDREN
-========================= */
 
-async function loadChildren(
-    parentUid
-) {
+// ============================================================
+// SHOW ERROR
+// ============================================================
 
-    childrenGrid.innerHTML = `
+function showError(message) {
 
-        <div class="loading-card">
+    errorMessage.textContent =
+        message;
 
-            <div class="loader"></div>
+    errorMessage.style.display =
+        "block";
 
-            <p>
-                Loading your children...
-            </p>
+}
 
-        </div>
 
-    `;
 
+// ============================================================
+// LOAD PARENT PROFILE
+// ============================================================
+
+async function loadParentProfile(user) {
+
+    const userRef =
+        doc(
+            db,
+            "users",
+            user.uid
+        );
+
+
+    const snapshot =
+        await getDoc(
+            userRef
+        );
+
+
+    if (!snapshot.exists()) {
+
+        await signOut(auth);
+
+        window.location.href =
+            "parent-login.html";
+
+        return;
+
+    }
+
+
+    const parent =
+        snapshot.data();
+
+
+    if (
+        parent.role !==
+        "parent"
+    ) {
+
+        await signOut(auth);
+
+        window.location.href =
+            "parent-login.html";
+
+        return;
+
+    }
+
+
+    const name =
+        parent.name ||
+        parent.fullName ||
+        parent.displayName ||
+        "Parent";
+
+
+    const email =
+        parent.email ||
+        user.email ||
+        "";
+
+
+    welcomeText.textContent =
+        `Welcome, ${name}`;
+
+
+    parentEmail.textContent =
+        email;
+
+
+    await loadChildren(
+        user.uid
+    );
+
+}
+
+
+
+// ============================================================
+// LOAD CHILDREN
+// ============================================================
+
+async function loadChildren(parentUid) {
 
     try {
 
@@ -222,11 +236,12 @@ async function loadChildren(
             );
 
 
-        const studentsQuery =
+        const childrenQuery =
             query(
                 studentsRef,
+
                 where(
-                    "parentId",
+                    "parentUid",
                     "==",
                     parentUid
                 )
@@ -235,23 +250,31 @@ async function loadChildren(
 
         const snapshot =
             await getDocs(
-                studentsQuery
+                childrenQuery
             );
+
+
+        childrenContainer.innerHTML =
+            "";
+
+
+        childrenCount.textContent =
+            snapshot.size;
 
 
         if (snapshot.empty) {
 
-            childrenGrid.innerHTML = `
+            childrenContainer.innerHTML = `
 
-                <div class="empty-card">
+                <div class="empty-children">
 
                     <h3>
-                        No children found
+                        No children linked
                     </h3>
 
                     <p>
-                        No student has been linked
-                        to this parent account yet.
+                        Your account has not yet
+                        been linked to a student.
                     </p>
 
                 </div>
@@ -259,64 +282,27 @@ async function loadChildren(
             `;
 
             return;
+
         }
 
 
-        childrenGrid.innerHTML = "";
-
-
-        let students = [];
-
-
         snapshot.forEach(
-            function (doc) {
+            documentSnapshot => {
 
-                students.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
+                const student =
+                    documentSnapshot.data();
+
+
+                createChildCard(
+                    student
+                );
 
             }
         );
 
-
-        /*
-         * Display each child.
-         */
-
-       students.forEach(
-    function (student) {
-
-        createChildCard(
-            student
-        );
-
     }
-);
 
-
-// Load results for the first child
-
-if (students.length > 0) {
-
-    await loadStudentResults(
-        students[0].id
-    );
-
-}
-
-
-        /*
-         * Calculate dashboard
-         * overview.
-         */
-
-        calculateOverview(
-            students
-        );
-
-
-    } catch (error) {
+    catch(error) {
 
         console.error(
             "Error loading children:",
@@ -324,138 +310,52 @@ if (students.length > 0) {
         );
 
 
-        childrenGrid.innerHTML = `
-
-            <div class="empty-card">
-
-                <h3>
-                    Unable to load children
-                </h3>
-
-                <p>
-                    Please check your internet
-                    connection and try again.
-                </p>
-
-            </div>
-
-        `;
-
-    }
-
-}
+        childrenContainer.innerHTML =
+            "";
 
 
-async function loadStudentResults(studentId) {
-
-    try {
-
-        const resultsRef =
-            collection(db, "results");
-
-        const resultsQuery =
-            query(
-                resultsRef,
-                where(
-                    "studentId",
-                    "==",
-                    studentId
-                )
-            );
-
-        const snapshot =
-            await getDocs(resultsQuery);
-
-        recentResultsBody.innerHTML = "";
-
-        if (snapshot.empty) {
-
-            recentResultsBody.innerHTML = `
-                <tr>
-                    <td colspan="5"
-                        class="table-loading">
-                        No results available yet.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-        snapshot.forEach(doc => {
-
-            const result = doc.data();
-
-            const row =
-                document.createElement("tr");
-
-            row.innerHTML = `
-
-                <td>
-                    ${escapeHTML(
-                        result.subject || "-"
-                    )}
-                </td>
-
-                <td>
-                    ${
-                        Number(result.ca1 || 0) +
-                        Number(result.ca2 || 0)
-                    }
-                </td>
-
-                <td>
-                    ${Number(result.exam || 0)}
-                </td>
-
-                <td>
-                    ${Number(result.total || 0)}
-                </td>
-
-                <td>
-                    <strong>
-                        ${escapeHTML(
-                            result.grade || "-"
-                        )}
-                    </strong>
-                </td>
-
-            `;
-
-            recentResultsBody.appendChild(row);
-
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Error loading results:",
-            error
+        showError(
+            "Unable to load your children's records."
         );
 
-        recentResultsBody.innerHTML = `
-            <tr>
-                <td colspan="5"
-                    class="table-loading">
-                    Unable to load results.
-                </td>
-            </tr>
-        `;
-
     }
 
 }
-/* =========================
-   CREATE CHILD CARD
-========================= */
 
-function createChildCard(
-    student
-) {
+
+
+// ============================================================
+// CREATE CHILD CARD
+// ============================================================
+
+function createChildCard(student) {
+
+    const firstName =
+        student.firstName ||
+        "";
+
+
+    const lastName =
+        student.lastName ||
+        "";
+
+
+    const fullName =
+        `${firstName} ${lastName}`
+            .trim();
+
+
+    const initials =
+        (
+            firstName.charAt(0) +
+            lastName.charAt(0)
+        )
+        .toUpperCase();
+
 
     const card =
         document.createElement(
-            "div"
+            "article"
         );
 
 
@@ -463,243 +363,288 @@ function createChildCard(
         "child-card";
 
 
-    const name =
-        student.name ||
-        "Unnamed Student";
-
-
-    const className =
-        student.className ||
-        "Class not assigned";
-
-
-    const average =
-        student.average !== undefined
-            ? student.average + "%"
-            : "--";
-
-
-    const position =
-        student.position ||
-        "--";
-
-
-    const attendance =
-        student.attendance !== undefined
-            ? student.attendance + "%"
-            : "--";
-
-
     card.innerHTML = `
 
-        <div class="child-header">
+        <div class="child-avatar">
 
-            <div class="child-avatar">
-
-                ${getInitials(name)}
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    ${escapeHTML(name)}
-                </h3>
-
-                <p>
-                    ${escapeHTML(className)}
-                </p>
-
-            </div>
+            ${escapeHTML(
+                initials
+            )}
 
         </div>
 
 
-        <div class="child-stats">
+        <h3>
 
-            <div class="child-stat">
+            ${escapeHTML(
+                fullName
+            )}
 
-                <strong>
-                    ${average}
-                </strong>
-
-                <span>
-                    Average
-                </span>
-
-            </div>
+        </h3>
 
 
-            <div class="child-stat">
+        <div class="child-info">
 
-                <strong>
-                    ${escapeHTML(
-                        String(position)
-                    )}
-                </strong>
+            <span>
+                Student ID
+            </span>
 
-                <span>
-                    Position
-                </span>
-
-            </div>
-
-
-            <div class="child-stat">
-
-                <strong>
-                    ${attendance}
-                </strong>
-
-                <span>
-                    Attendance
-                </span>
-
-            </div>
+            <span>
+                ${escapeHTML(
+                    student.id ||
+                    "N/A"
+                )}
+            </span>
 
         </div>
+
+
+        <div class="child-info">
+
+            <span>
+                Class
+            </span>
+
+            <span>
+                ${escapeHTML(
+                    student.studentClass ||
+                    "N/A"
+                )}
+            </span>
+
+        </div>
+
+
+        <div class="child-info">
+
+            <span>
+                Gender
+            </span>
+
+            <span>
+                ${escapeHTML(
+                    student.gender ||
+                    "N/A"
+                )}
+            </span>
+
+        </div>
+
+
+        <div class="child-info">
+
+            <span>
+                Admission Date
+            </span>
+
+            <span>
+                ${escapeHTML(
+                    student.admissionDate ||
+                    "N/A"
+                )}
+            </span>
+
+        </div>
+
+
+        <span class="child-status">
+
+            ${escapeHTML(
+                student.status ||
+                "Active"
+            )}
+
+        </span>
 
     `;
 
 
-    childrenGrid.appendChild(
+    childrenContainer.appendChild(
         card
     );
 
 }
 
 
-/* =========================
-   OVERVIEW
-========================= */
 
-function calculateOverview(
-    students
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+
+onAuthStateChanged(
+    auth,
+    async function(user) {
+
+        if (!user) {
+
+            window.location.href =
+                "parent-login.html";
+
+            return;
+
+        }
+
+
+        try {
+
+            await loadParentProfile(
+                user
+            );
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "Dashboard error:",
+                error
+            );
+
+
+            showError(
+                "Unable to load your parent dashboard."
+            );
+
+        }
+
+    }
+);
+
+// ============================================================
+// PARENT SERVICE BUTTONS
+// ============================================================
+
+const serviceButtons =
+    document.querySelectorAll(
+        ".service-card"
+    );
+
+
+serviceButtons.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const service =
+                    button.dataset.service;
+
+
+                switch (service) {
+
+                    case "results":
+
+                        openParentService(
+                            "results"
+                        );
+
+                        break;
+
+
+                    case "attendance":
+
+                        openParentService(
+                            "attendance"
+                        );
+
+                        break;
+
+
+                    case "fees":
+
+                        openParentService(
+                            "fees"
+                        );
+
+                        break;
+
+
+                    case "reportCards":
+
+                        openParentService(
+                            "reportCards"
+                        );
+
+                        break;
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+
+// ============================================================
+// OPEN PARENT SERVICE
+// ============================================================
+
+function openParentService(
+    service
 ) {
 
-    if (!students.length) {
-        return;
-    }
+    switch (service) {
+
+        case "results":
+
+            window.location.href =
+                "parent-results.html";
+
+            break;
 
 
-    const averages =
-        students
-            .map(
-                student =>
-                    Number(
-                        student.average
-                    )
-            )
-            .filter(
-                value =>
-                    !isNaN(value)
-            );
+        case "attendance":
+
+            window.location.href =
+                "parent-attendance.html";
+
+            break;
 
 
-    const attendances =
-        students
-            .map(
-                student =>
-                    Number(
-                        student.attendance
-                    )
-            )
-            .filter(
-                value =>
-                    !isNaN(value)
-            );
+        case "fees":
+
+            window.location.href =
+                "parent-fees.html";
+
+            break;
 
 
-    if (averages.length) {
+        case "reportCards":
 
-        const average =
-            averages.reduce(
-                (sum, value) =>
-                    sum + value,
-                0
-            ) / averages.length;
+            window.location.href =
+                "parent-report-cards.html";
+
+            break;
 
 
-        overallAverage.textContent =
-            average.toFixed(1) + "%";
+        default:
 
-
-        performanceStatus.textContent =
-            getPerformanceStatus(
-                average
+            console.error(
+                "Unknown parent service:",
+                service
             );
 
     }
-
-
-    if (attendances.length) {
-
-        const attendance =
-            attendances.reduce(
-                (sum, value) =>
-                    sum + value,
-                0
-            ) / attendances.length;
-
-
-        attendanceRate.textContent =
-            attendance.toFixed(1) + "%";
-
-    }
-
-
-    /*
-     * Fees will later be calculated
-     * from the fees collection.
-     */
-
-    outstandingFees.textContent =
-        "--";
 
 }
 
-
-/* =========================
-   PERFORMANCE
-========================= */
-
-function getPerformanceStatus(
-    average
-) {
-
-    if (average >= 80) {
-        return "Excellent";
-    }
-
-
-    if (average >= 70) {
-        return "Very Good";
-    }
-
-
-    if (average >= 60) {
-        return "Good";
-    }
-
-
-    if (average >= 50) {
-        return "Fair";
-    }
-
-
-    return "Needs Improvement";
-
-}
-
-
-/* =========================
-   LOGOUT
-========================= */
+// ============================================================
+// LOGOUT
+// ============================================================
 
 logoutBtn.addEventListener(
     "click",
-    async function () {
+    async function() {
+
+        logoutBtn.disabled =
+            true;
+
+        logoutBtn.textContent =
+            "Logging out...";
+
 
         try {
 
@@ -711,106 +656,23 @@ logoutBtn.addEventListener(
             window.location.href =
                 "parent-login.html";
 
+        }
 
-        } catch (error) {
+        catch(error) {
 
             console.error(
                 "Logout error:",
                 error
             );
 
+
+            logoutBtn.disabled =
+                false;
+
+            logoutBtn.textContent =
+                "Logout";
+
         }
 
     }
 );
-
-
-/* =========================
-   INITIALS
-========================= */
-
-function getInitials(
-    name
-) {
-
-    if (!name) {
-        return "P";
-    }
-
-
-    const parts =
-        name
-            .trim()
-            .split(/\s+/);
-
-
-    if (parts.length === 1) {
-
-        return parts[0]
-            .substring(0, 2)
-            .toUpperCase();
-
-    }
-
-
-    return (
-        parts[0][0] +
-        parts[parts.length - 1][0]
-    ).toUpperCase();
-
-}
-
-
-/* =========================
-   FORMAT NAME
-========================= */
-
-function formatName(
-    name
-) {
-
-    return name
-        .replace(
-            /[._-]/g,
-            " "
-        )
-        .replace(
-            /\b\w/g,
-            letter =>
-                letter.toUpperCase()
-        );
-
-}
-
-
-/* =========================
-   SECURITY
-========================= */
-
-function escapeHTML(
-    value
-) {
-
-    return String(value)
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}

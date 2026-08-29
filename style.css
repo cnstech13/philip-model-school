@@ -948,3 +948,1310 @@ body.dark .theme-btn {
     }
 
 }
+
+
+/* =========================================================
+   DASHBOARD STATISTICS LOADING
+========================================================= */
+
+#totalStudents,
+#totalTeachers,
+#totalClasses,
+#totalSubjects {
+
+    min-width: 40px;
+
+}
+
+
+/* Loading dots */
+
+.dashboard-loading {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+}
+
+
+.dashboard-loading span {
+
+    width: 6px;
+
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    animation:
+        dashboardLoading
+        1.2s
+        infinite ease-in-out;
+
+}
+
+
+.dashboard-loading span:nth-child(2) {
+
+    animation-delay: 0.15s;
+
+}
+
+
+.dashboard-loading span:nth-child(3) {
+
+    animation-delay: 0.3s;
+
+}
+
+
+@keyframes dashboardLoading {
+
+    0%,
+    60%,
+    100% {
+
+        transform: translateY(0);
+
+        opacity: 0.35;
+
+    }
+
+    30% {
+
+        transform: translateY(-4px);
+
+        opacity: 1;
+
+    }
+
+}
+
+/* =========================================================
+   PHILIP MODEL SCHOOL
+   ADMIN PORTAL — DATA ENTRY UI
+   PROFESSIONAL FORM DESIGN
+========================================================= */
+
+
+/* =========================================================
+   GENERAL FORM CARD
+========================================================= */
+
+.admin-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 25px;
+
+    box-shadow:
+        0 8px 25px rgba(15, 23, 42, 0.06);
+}
+
+
+/* =========================================================
+   FORM GRID
+========================================================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #344054;
+}
+
+
+/* =========================================================
+   INPUTS / SELECTS / TEXTAREA
+========================================================= */
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="password"],
+select,
+textarea {
+
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px 14px;
+
+    border: 1px solid #d8dee8;
+
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #1f2937;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+/* =========================================================
+   PLACEHOLDER
+========================================================= */
+
+input::placeholder,
+textarea::placeholder {
+    color: #98a2b3;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+input:focus,
+select:focus,
+textarea:focus {
+
+    border-color: #2563eb;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
+textarea {
+
+    min-height: 110px;
+
+    resize: vertical;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   FULL WIDTH FORM FIELD
+========================================================= */
+
+.form-group.full-width {
+
+    grid-column: 1 / -1;
+
+}
+
+
+/* =========================================================
+   FORM ACTIONS
+========================================================= */
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 25px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #eaecf0;
+}
+
+
+/* =========================================================
+   BUTTON BASE
+========================================================= */
+
+.btn {
+
+    border: none;
+
+    border-radius: 9px;
+
+    padding: 11px 18px;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+
+.btn:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+.btn:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+}
+
+
+/* =========================================================
+   PRIMARY BUTTON
+========================================================= */
+
+.btn-primary {
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 4px 10px rgba(37, 99, 235, 0.15);
+}
+
+
+.btn-primary:hover {
+
+    box-shadow:
+        0 7px 16px rgba(37, 99, 235, 0.22);
+
+}
+
+
+/* =========================================================
+   SECONDARY BUTTON
+========================================================= */
+
+.btn-secondary {
+
+    background: #f1f5f9;
+
+    color: #334155;
+
+    border: 1px solid #e2e8f0;
+}
+
+
+.btn-secondary:hover {
+
+    background: #e8edf3;
+
+}
+
+
+/* =========================================================
+   DANGER BUTTON
+========================================================= */
+
+.btn-danger {
+
+    background: #dc2626;
+
+    color: #ffffff;
+}
+
+
+.btn-danger:hover {
+
+    box-shadow:
+        0 6px 14px rgba(220, 38, 38, 0.20);
+
+}
+
+
+/* =========================================================
+   SUCCESS BUTTON
+========================================================= */
+
+.btn-success {
+
+    background: #16a34a;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.55);
+
+    z-index: 9999;
+
+    backdrop-filter: blur(3px);
+}
+
+
+.modal.show {
+
+    display: flex;
+
+}
+
+
+/* =========================================================
+   MODAL CONTENT
+========================================================= */
+
+.modal-content {
+
+    width: 100%;
+
+    max-width: 700px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 25px 60px rgba(15, 23, 42, 0.20);
+
+    animation:
+        modalAppear 0.2s ease;
+}
+
+
+@keyframes modalAppear {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(10px)
+            scale(0.98);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.modal-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 22px;
+
+    padding-bottom: 15px;
+
+    border-bottom: 1px solid #eaecf0;
+}
+
+
+.modal-header h2,
+.modal-header h3 {
+
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   MODAL CLOSE
+========================================================= */
+
+.modal-close,
+#closeStudentModal,
+#closeClassModal {
+
+    width: 34px;
+
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #f1f5f9;
+
+    color: #475467;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+.modal-close:hover,
+#closeStudentModal:hover,
+#closeClassModal:hover {
+
+    background: #e2e8f0;
+
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.modal-footer {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid #eaecf0;
+}
+
+
+/* =========================================================
+   SEARCH BAR
+========================================================= */
+
+.search-box {
+
+    position: relative;
+
+    width: 100%;
+
+    max-width: 350px;
+}
+
+
+.search-box input {
+
+    padding-left: 40px;
+
+}
+
+
+.search-box::before {
+
+    content: "🔍";
+
+    position: absolute;
+
+    left: 13px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    font-size: 14px;
+
+    z-index: 2;
+
+}
+
+
+/* =========================================================
+   FILTER AREA
+========================================================= */
+
+.filters {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+
+.filters select,
+.filters input {
+
+    width: auto;
+
+    min-width: 180px;
+}
+
+
+/* =========================================================
+   DATA TABLE CARD
+========================================================= */
+
+.table-card {
+
+    background: rgba(255, 255, 255, 0.96);
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 15px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 8px 25px rgba(15, 23, 42, 0.05);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.table-wrapper {
+
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+
+table thead th {
+
+    background: #f8fafc;
+
+    color: #475467;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    text-align: left;
+
+    padding: 13px 15px;
+
+    border-bottom: 1px solid #e4e7ec;
+
+    white-space: nowrap;
+}
+
+
+table tbody td {
+
+    padding: 13px 15px;
+
+    color: #344054;
+
+    font-size: 13px;
+
+    border-bottom: 1px solid #eef2f6;
+}
+
+
+table tbody tr {
+
+    transition:
+        background 0.15s ease;
+}
+
+
+table tbody tr:hover {
+
+    background: #f8fafc;
+}
+
+
+table tbody tr:last-child td {
+
+    border-bottom: none;
+
+}
+
+
+/* =========================================================
+   TABLE ACTIONS
+========================================================= */
+
+.table-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+
+.table-action {
+
+    width: 32px;
+
+    height: 32px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 1px solid #e4e7ec;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+.table-action:hover {
+
+    background: #f1f5f9;
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+.status-active {
+
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+
+.status-inactive {
+
+    background: #fee2e2;
+
+    color: #b91c1c;
+}
+
+
+/* =========================================================
+   REQUIRED FIELD
+========================================================= */
+
+.required::after {
+
+    content: " *";
+
+    color: #dc2626;
+
+}
+
+
+/* =========================================================
+   HELP TEXT
+========================================================= */
+
+.form-help {
+
+    margin-top: 4px;
+
+    font-size: 11px;
+
+    color: #98a2b3;
+}
+
+
+/* =========================================================
+   CHECKBOX / RADIO
+========================================================= */
+
+.checkbox-group,
+.radio-group {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+}
+
+
+.checkbox-group label,
+.radio-group label {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    cursor: pointer;
+
+    font-size: 13px;
+
+    color: #475467;
+}
+
+
+input[type="checkbox"],
+input[type="radio"] {
+
+    width: auto;
+
+    accent-color: #2563eb;
+}
+
+
+/* =========================================================
+   FILE INPUT
+========================================================= */
+
+input[type="file"] {
+
+    padding: 9px;
+
+    cursor: pointer;
+
+    background: #f8fafc;
+
+}
+
+
+/* =========================================================
+   SELECT ARROW
+========================================================= */
+
+select {
+
+    cursor: pointer;
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+
+    padding: 45px 20px;
+
+    text-align: center;
+
+    color: #667085;
+}
+
+
+.empty-state h3 {
+
+    margin: 0 0 7px;
+
+    color: #344054;
+
+}
+
+
+.empty-state p {
+
+    margin: 0;
+
+    font-size: 13px;
+
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.pagination {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    padding: 18px;
+}
+
+
+.pagination button {
+
+    min-width: 34px;
+
+    height: 34px;
+
+    border: 1px solid #e4e7ec;
+
+    background: #ffffff;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    color: #475467;
+
+}
+
+
+.pagination button.active {
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    border-color: #2563eb;
+
+}
+
+
+/* =========================================================
+   ALERT / MESSAGE
+========================================================= */
+
+.alert {
+
+    padding: 12px 15px;
+
+    border-radius: 9px;
+
+    margin-bottom: 18px;
+
+    font-size: 13px;
+
+}
+
+
+.alert-success {
+
+    background: #ecfdf3;
+
+    color: #027a48;
+
+    border: 1px solid #abefc6;
+
+}
+
+
+.alert-error {
+
+    background: #fef3f2;
+
+    color: #b42318;
+
+    border: 1px solid #fecdca;
+
+}
+
+
+.alert-warning {
+
+    background: #fffaeb;
+
+    color: #b54708;
+
+    border: 1px solid #fedf89;
+
+}
+
+
+/* =========================================================
+   DATA ENTRY HEADER
+========================================================= */
+
+.page-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+
+    margin-bottom: 20px;
+}
+
+
+.page-toolbar h2 {
+
+    margin: 0;
+
+    color: #172033;
+
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   DASHBOARD STAT CARDS
+========================================================= */
+
+.stat-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 25px;
+}
+
+
+.stat-card {
+
+    background: rgba(255,255,255,0.96);
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 6px 20px rgba(15,23,42,0.05);
+}
+
+
+.stat-card small {
+
+    display: block;
+
+    color: #667085;
+
+    font-size: 12px;
+
+    margin-bottom: 8px;
+
+}
+
+
+.stat-card strong {
+
+    font-size: 25px;
+
+    color: #172033;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .form-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .stat-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .modal-content {
+
+        max-width: 650px;
+
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .admin-card {
+
+        padding: 17px;
+
+        border-radius: 12px;
+
+    }
+
+
+    .form-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+
+    }
+
+
+    .form-actions {
+
+        flex-direction: column;
+
+    }
+
+
+    .form-actions .btn {
+
+        width: 100%;
+
+    }
+
+
+    .modal {
+
+        padding: 10px;
+
+        align-items: flex-start;
+
+        padding-top: 30px;
+
+    }
+
+
+    .modal-content {
+
+        max-height: 92vh;
+
+        padding: 18px;
+
+        border-radius: 13px;
+
+    }
+
+
+    .modal-footer {
+
+        flex-direction: column;
+
+    }
+
+
+    .modal-footer .btn {
+
+        width: 100%;
+
+    }
+
+
+    .filters {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .filters input,
+    .filters select {
+
+        width: 100%;
+
+        min-width: 0;
+
+    }
+
+
+    .page-toolbar {
+
+        align-items: stretch;
+
+        flex-direction: column;
+
+    }
+
+
+    .page-toolbar .btn {
+
+        width: 100%;
+
+    }
+
+
+    .stat-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    table {
+
+        min-width: 700px;
+
+    }
+
+}
+
+
+/* =========================================================
+   DARKER TEXT FOR DATA ENTRY
+========================================================= */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+
+    color: #172033;
+
+}
+
+
+/* =========================================================
+   SMOOTH SCROLLBAR FOR MODALS
+========================================================= */
+
+.modal-content::-webkit-scrollbar {
+
+    width: 6px;
+
+}
+
+
+.modal-content::-webkit-scrollbar-track {
+
+    background: #f1f5f9;
+
+}
+
+
+.modal-content::-webkit-scrollbar-thumb {
+
+    background: #cbd5e1;
+
+    border-radius: 10px;
+
+}

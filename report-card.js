@@ -1,36 +1,66 @@
 /* =========================================================
    PHILIP MODEL SCHOOL
    REPORT CARD SYSTEM
-   FULL FIRESTORE VERSION
+   COMPLETE CORRECTED FIRESTORE VERSION
+
+   Works with:
+   - students
+   - classes
+   - subjects
+   - results
+   - attendanceRecords
+   - reportCards
+
+   SCORE STRUCTURE:
+
+   CW1           = 5
+   CW2           = 5
+   Assignment1  = 5
+   Assignment2  = 5
+   CA1           = 10
+   CA2           = 10
+   Exam          = 60
+   ------------------
+   TOTAL         = 100
 ========================================================= */
+
 
 import { db } from "./firebase-config.js";
 
 import {
     collection,
-    query,
-    where,
     getDocs,
     doc,
     getDoc,
     setDoc
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 
 /* =========================================================
-   FIRESTORE COLLECTIONS
+   FIRESTORE COLLECTION NAMES
 ========================================================= */
 
-const STUDENTS_COLLECTION = "students";
-const CLASSES_COLLECTION = "classes";
-const SUBJECTS_COLLECTION = "subjects";
-const RESULTS_COLLECTION = "results";
-const ATTENDANCE_COLLECTION = "attendanceRecords";
-const REPORTS_COLLECTION = "reportCards";
+const STUDENTS_COLLECTION =
+    "students";
+
+const CLASSES_COLLECTION =
+    "classes";
+
+const SUBJECTS_COLLECTION =
+    "subjects";
+
+const RESULTS_COLLECTION =
+    "results";
+
+const ATTENDANCE_COLLECTION =
+    "attendanceRecords";
+
+const REPORTS_COLLECTION =
+    "reportCards";
 
 
 /* =========================================================
-   FIRESTORE DATA
+   DATA
 ========================================================= */
 
 let reportStudents = [];
@@ -41,27 +71,40 @@ let reportSubjects = [];
 
 
 /* =========================================================
-   PSYCHOMOTOR / CONDUCT TRAITS
+   CONDUCT / PSYCHOMOTOR TRAITS
 ========================================================= */
 
 const conductTraits = [
+
     "Punctuality",
+
     "Neatness",
+
     "Attentiveness",
+
     "Class Participation",
+
     "Leadership",
+
     "Teamwork",
+
     "Responsibility",
+
     "Creativity",
+
     "Self Confidence",
+
     "Self Control",
+
     "Relationship With Others",
+
     "Sports"
+
 ];
 
 
 /* =========================================================
-   ELEMENTS
+   HTML ELEMENTS
 ========================================================= */
 
 const reportSession =
@@ -69,149 +112,703 @@ const reportSession =
         "reportSession"
     );
 
+
 const reportTerm =
     document.getElementById(
         "reportTerm"
     );
+
 
 const reportClass =
     document.getElementById(
         "reportClass"
     );
 
+
 const reportStudent =
     document.getElementById(
         "reportStudent"
     );
+
 
 const generateReportBtn =
     document.getElementById(
         "generateReportBtn"
     );
 
+
 const reportCard =
     document.getElementById(
         "reportCard"
     );
+
 
 const printReportBtn =
     document.getElementById(
         "printReportBtn"
     );
 
+
 const saveReportBtn =
     document.getElementById(
-        "saveReportBtn"
+        "saveReportCardBtn"
     );
 
 
 /* =========================================================
-   LOAD ALL STUDENTS
+   UTILITY
 ========================================================= */
 
-async function loadReportStudentsFromFirestore() {
+function cleanValue(value) {
 
-    try {
+    if (
+        value === undefined ||
+        value === null
+    ) {
 
-        const studentsRef =
-            collection(
-                db,
-                STUDENTS_COLLECTION
-            );
-
-
-        const snapshot =
-            await getDocs(
-                studentsRef
-            );
-
-
-        reportStudents = [];
-
-
-        snapshot.forEach(
-            document => {
-
-                reportStudents.push({
-
-                    id:
-                        document.id,
-
-                    ...document.data()
-
-                });
-
-            }
-        );
-
-
-        return reportStudents;
-
-
-    } catch (error) {
-
-        console.error(
-            "Error loading students:",
-            error
-        );
-
-
-        alert(
-            "Unable to load students from Firebase."
-        );
-
-
-        return [];
+        return "";
 
     }
+
+    return String(value)
+        .trim();
 
 }
 
 
 /* =========================================================
-   LOAD ALL CLASSES
+   NORMALIZE TEXT
+========================================================= */
+
+function normalizeText(value) {
+
+    return cleanValue(value)
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
+
+
+/* =========================================================
+   SAFE NUMBER
+========================================================= */
+
+function numberValue(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+
+        return 0;
+
+    }
+
+
+    const number =
+        Number(value);
+
+
+    return Number.isFinite(number)
+        ? number
+        : 0;
+
+}
+
+
+/* =========================================================
+   GET FIRST AVAILABLE FIELD
+========================================================= */
+
+function getFirstValue(
+    object,
+    fields
+) {
+
+    if (!object)
+        return "";
+
+
+    for (
+        const field of fields
+    ) {
+
+        if (
+            object[field] !== undefined &&
+            object[field] !== null &&
+            object[field] !== ""
+        ) {
+
+            return object[field];
+
+        }
+
+    }
+
+
+    return "";
+
+}
+
+
+/* =========================================================
+   GET STUDENT NAME
+========================================================= */
+
+function getStudentName(
+    student
+) {
+
+    if (!student)
+        return "";
+
+
+    const fullName =
+        getFirstValue(
+            student,
+            [
+                "studentName",
+                "fullName",
+                "name"
+            ]
+        );
+
+
+    if (fullName) {
+
+        return cleanValue(
+            fullName
+        );
+
+    }
+
+
+    return (
+
+        `${student.firstName || ""} ` +
+
+        `${student.middleName || ""} ` +
+
+        `${student.lastName || ""}`
+
+    )
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
+
+
+/* =========================================================
+   GET RESULT STUDENT ID
+========================================================= */
+
+function getResultStudentId(
+    result
+) {
+
+    return cleanValue(
+        getFirstValue(
+            result,
+            [
+                "studentId",
+                "studentID",
+                "student_id",
+                "studentDocId",
+                "studentFirestoreId"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET RESULT CLASS
+========================================================= */
+
+function getResultClass(
+    result
+) {
+
+    return cleanValue(
+        getFirstValue(
+            result,
+            [
+                "className",
+                "studentClass",
+                "class",
+                "classNameValue"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET RESULT SESSION
+========================================================= */
+
+function getResultSession(
+    result
+) {
+
+    return cleanValue(
+        getFirstValue(
+            result,
+            [
+                "session",
+                "academicSession",
+                "schoolSession",
+                "academic_year"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET RESULT TERM
+========================================================= */
+
+function getResultTerm(
+    result
+) {
+
+    return cleanValue(
+        getFirstValue(
+            result,
+            [
+                "term",
+                "schoolTerm",
+                "academicTerm"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET RESULT SUBJECT
+========================================================= */
+
+function getResultSubject(
+    result
+) {
+
+    return cleanValue(
+        getFirstValue(
+            result,
+            [
+                "subjectName",
+                "subject",
+                "subjectTitle",
+                "title"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   GET SCORE VALUE
+========================================================= */
+
+function getResultValue(
+    result,
+    possibleFields
+) {
+
+    for (
+        const field of possibleFields
+    ) {
+
+        if (
+            result[field] !== undefined &&
+            result[field] !== null &&
+            result[field] !== ""
+        ) {
+
+            return numberValue(
+                result[field]
+            );
+
+        }
+
+    }
+
+
+    return 0;
+
+}
+
+
+/* =========================================================
+   CLASS WORK 1
+========================================================= */
+
+function getClassWork1(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "classWork1",
+            "classwork1",
+            "classWork_1",
+            "cw1",
+            "cw01",
+            "class_work_1"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   CLASS WORK 2
+========================================================= */
+
+function getClassWork2(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "classWork2",
+            "classwork2",
+            "classWork_2",
+            "cw2",
+            "cw02",
+            "class_work_2"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   ASSIGNMENT 1
+========================================================= */
+
+function getAssignment1(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "assignment1",
+            "assignment_1",
+            "ass1",
+            "assignment01",
+            "assignmentOne"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   ASSIGNMENT 2
+========================================================= */
+
+function getAssignment2(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "assignment2",
+            "assignment_2",
+            "ass2",
+            "assignment02",
+            "assignmentTwo"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   CA 1
+========================================================= */
+
+function getCA1(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "ca1",
+            "CA1",
+            "ca01",
+            "continuousAssessment1",
+            "continuousAssessment01"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   CA 2
+========================================================= */
+
+function getCA2(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "ca2",
+            "CA2",
+            "ca02",
+            "continuousAssessment2",
+            "continuousAssessment02"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   EXAM
+========================================================= */
+
+function getExam(
+    result
+) {
+
+    return getResultValue(
+        result,
+        [
+            "exam",
+            "examScore",
+            "examMark",
+            "examination"
+        ]
+    );
+
+}
+
+
+/* =========================================================
+   CALCULATE TOTAL
+========================================================= */
+
+function calculateResultTotal(
+    result
+) {
+
+    return (
+
+        getClassWork1(result) +
+
+        getClassWork2(result) +
+
+        getAssignment1(result) +
+
+        getAssignment2(result) +
+
+        getCA1(result) +
+
+        getCA2(result) +
+
+        getExam(result)
+
+    );
+
+}
+
+
+/* =========================================================
+   GET TOTAL
+========================================================= */
+
+function getTotal(
+    result
+) {
+
+    if (
+        result.total !== undefined &&
+        result.total !== null &&
+        result.total !== ""
+    ) {
+
+        return numberValue(
+            result.total
+        );
+
+    }
+
+
+    return calculateResultTotal(
+        result
+    );
+
+}
+
+
+/* =========================================================
+   CALCULATE GRADE
+========================================================= */
+
+function calculateGrade(
+    score
+) {
+
+    score =
+        numberValue(score);
+
+
+    if (score >= 70)
+        return "A";
+
+
+    if (score >= 60)
+        return "B";
+
+
+    if (score >= 50)
+        return "C";
+
+
+    if (score >= 45)
+        return "D";
+
+
+    if (score >= 40)
+        return "E";
+
+
+    return "F";
+
+}
+
+
+/* =========================================================
+   CALCULATE REMARK
+========================================================= */
+
+function calculateRemark(
+    score
+) {
+
+    score =
+        numberValue(score);
+
+
+    if (score >= 70)
+        return "Excellent";
+
+
+    if (score >= 60)
+        return "Very Good";
+
+
+    if (score >= 50)
+        return "Good";
+
+
+    if (score >= 45)
+        return "Fair";
+
+
+    if (score >= 40)
+        return "Pass";
+
+
+    return "Fail";
+
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeReportHTML(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   LOAD CLASSES FROM FIRESTORE
 ========================================================= */
 
 async function loadReportClassesFromFirestore() {
 
     try {
 
-        const classesRef =
-            collection(
-                db,
-                CLASSES_COLLECTION
-            );
-
-
         const snapshot =
             await getDocs(
-                classesRef
+                collection(
+                    db,
+                    CLASSES_COLLECTION
+                )
             );
 
 
-        reportClasses = [];
-
-
-        snapshot.forEach(
-            document => {
-
-                reportClasses.push({
+        reportClasses =
+            snapshot.docs.map(
+                classDocument => ({
 
                     id:
-                        document.id,
+                        classDocument.id,
 
-                    ...document.data()
+                    ...classDocument.data()
 
-                });
-
-            }
-        );
+                })
+            );
 
 
         return reportClasses;
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error loading classes:",
@@ -219,12 +816,7 @@ async function loadReportClassesFromFirestore() {
         );
 
 
-        alert(
-            "Unable to load classes from Firebase."
-        );
-
-
-        return [];
+        throw error;
 
     }
 
@@ -232,49 +824,89 @@ async function loadReportClassesFromFirestore() {
 
 
 /* =========================================================
-   LOAD ALL SUBJECTS
+   LOAD ALL STUDENTS FROM FIRESTORE
+========================================================= */
+
+async function loadReportStudentsFromFirestore() {
+
+    try {
+
+        const snapshot =
+            await getDocs(
+                collection(
+                    db,
+                    STUDENTS_COLLECTION
+                )
+            );
+
+
+        reportStudents =
+            snapshot.docs.map(
+                studentDocument => ({
+
+                    id:
+                        studentDocument.id,
+
+                    ...studentDocument.data()
+
+                })
+            );
+
+
+        return reportStudents;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading students:",
+            error
+        );
+
+
+        throw error;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD SUBJECTS FROM FIRESTORE
 ========================================================= */
 
 async function loadReportSubjectsFromFirestore() {
 
     try {
 
-        const subjectsRef =
-            collection(
-                db,
-                SUBJECTS_COLLECTION
-            );
-
-
         const snapshot =
             await getDocs(
-                subjectsRef
+                collection(
+                    db,
+                    SUBJECTS_COLLECTION
+                )
             );
 
 
-        reportSubjects = [];
-
-
-        snapshot.forEach(
-            document => {
-
-                reportSubjects.push({
+        reportSubjects =
+            snapshot.docs.map(
+                subjectDocument => ({
 
                     id:
-                        document.id,
+                        subjectDocument.id,
 
-                    ...document.data()
+                    ...subjectDocument.data()
 
-                });
-
-            }
-        );
+                })
+            );
 
 
         return reportSubjects;
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error loading subjects:",
@@ -282,12 +914,7 @@ async function loadReportSubjectsFromFirestore() {
         );
 
 
-        alert(
-            "Unable to load subjects from Firebase."
-        );
-
-
-        return [];
+        throw error;
 
     }
 
@@ -295,10 +922,36 @@ async function loadReportSubjectsFromFirestore() {
 
 
 /* =========================================================
-   LOAD CLASSES INTO SELECT
+   GET CLASS NAME
+========================================================= */
+
+function getClassName(
+    classData
+) {
+
+    return cleanValue(
+        getFirstValue(
+            classData,
+            [
+                "name",
+                "className",
+                "title"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   LOAD CLASSES INTO DROPDOWN
 ========================================================= */
 
 async function loadReportClasses() {
+
+    if (!reportClass)
+        return;
+
 
     reportClass.innerHTML = `
 
@@ -309,58 +962,180 @@ async function loadReportClasses() {
     `;
 
 
-    await loadReportClassesFromFirestore();
+    try {
+
+        await loadReportClassesFromFirestore();
 
 
-    reportClass.innerHTML = `
+        reportClass.innerHTML = `
 
-        <option value="">
-            Select Class
-        </option>
+            <option value="">
+                Select Class
+            </option>
 
-    `;
+        `;
 
 
-    reportClasses
-        .filter(
-            item =>
-                item.status === "Active"
-        )
-        .forEach(
-            item => {
+        const classNames =
+            new Set();
 
-                const option =
-                    document.createElement(
-                        "option"
+
+        reportClasses
+
+            .slice()
+
+            .sort(
+                (a, b) =>
+                    getClassName(a)
+                        .localeCompare(
+                            getClassName(b)
+                        )
+            )
+
+            .forEach(
+                classData => {
+
+                    const className =
+                        getClassName(
+                            classData
+                        );
+
+
+                    if (!className)
+                        return;
+
+
+                    if (
+                        classNames.has(
+                            normalizeText(
+                                className
+                            )
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    /*
+                       Ignore inactive classes if
+                       a status field exists.
+                    */
+
+                    if (
+                        classData.status &&
+                        normalizeText(
+                            classData.status
+                        ) !== "active"
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    classNames.add(
+                        normalizeText(
+                            className
+                        )
                     );
 
 
-                option.value =
-                    item.name;
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
 
 
-                option.textContent =
-                    item.name;
+                    /*
+                       IMPORTANT:
+                       We use the class NAME because
+                       the results.js saves className
+                       as the selected class name.
+                    */
+
+                    option.value =
+                        className;
 
 
-                reportClass.appendChild(
-                    option
-                );
+                    option.textContent =
+                        className;
 
-            }
+
+                    reportClass.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Unable to load classes:",
+            error
         );
+
+
+        reportClass.innerHTML = `
+
+            <option value="">
+                Unable to load classes
+            </option>
+
+        `;
+
+
+        alert(
+            "Unable to load classes from Firebase.\n\n" +
+            (error.message || "")
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   LOAD STUDENTS FOR SELECTED CLASS
+   GET STUDENT CLASS
+========================================================= */
+
+function getStudentClass(
+    student
+) {
+
+    return cleanValue(
+        getFirstValue(
+            student,
+            [
+                "studentClass",
+                "className",
+                "class",
+                "class_name"
+            ]
+        )
+    );
+
+}
+
+
+/* =========================================================
+   LOAD STUDENTS FOR CLASS
 ========================================================= */
 
 async function loadReportStudents() {
 
+    if (!reportStudent)
+        return;
+
+
     const selectedClass =
-        reportClass.value;
+        cleanValue(
+            reportClass?.value
+        );
 
 
     reportStudent.innerHTML = `
@@ -382,6 +1157,8 @@ async function loadReportStudents() {
 
         `;
 
+        reportStudents = [];
+
         return;
 
     }
@@ -389,34 +1166,51 @@ async function loadReportStudents() {
 
     try {
 
-        const studentsRef =
-            collection(
-                db,
-                STUDENTS_COLLECTION
+        /*
+           Load ALL students instead of using a strict
+           Firestore "where" query.
+
+           This allows the system to work whether the
+           student's class is stored as:
+
+           studentClass
+           className
+           class
+        */
+
+        await loadReportStudentsFromFirestore();
+
+
+        const selectedClassNormalized =
+            normalizeText(
+                selectedClass
             );
 
 
-        const studentsQuery =
-            query(
+        const classStudents =
+            reportStudents.filter(
+                student => {
 
-                studentsRef,
+                    return (
+                        normalizeText(
+                            getStudentClass(
+                                student
+                            )
+                        ) ===
+                        selectedClassNormalized
+                    );
 
-                where(
-                    "class",
-                    "==",
-                    selectedClass
-                )
-
+                }
             );
 
 
-        const snapshot =
-            await getDocs(
-                studentsQuery
-            );
-
-
-        reportStudents = [];
+        classStudents.sort(
+            (a, b) =>
+                getStudentName(a)
+                    .localeCompare(
+                        getStudentName(b)
+                    )
+        );
 
 
         reportStudent.innerHTML = `
@@ -428,23 +1222,8 @@ async function loadReportStudents() {
         `;
 
 
-        snapshot.forEach(
-            document => {
-
-                const student = {
-
-                    id:
-                        document.id,
-
-                    ...document.data()
-
-                };
-
-
-                reportStudents.push(
-                    student
-                );
-
+        classStudents.forEach(
+            student => {
 
                 const option =
                     document.createElement(
@@ -457,7 +1236,10 @@ async function loadReportStudents() {
 
 
                 option.textContent =
-                    `${student.firstName || ""} ${student.lastName || ""}`;
+                    getStudentName(
+                        student
+                    ) ||
+                    "Unnamed Student";
 
 
                 reportStudent.appendChild(
@@ -468,7 +1250,23 @@ async function loadReportStudents() {
         );
 
 
-    } catch (error) {
+        if (
+            classStudents.length === 0
+        ) {
+
+            reportStudent.innerHTML = `
+
+                <option value="">
+                    No students in this class
+                </option>
+
+            `;
+
+        }
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error loading students:",
@@ -486,7 +1284,8 @@ async function loadReportStudents() {
 
 
         alert(
-            "Unable to load students from Firebase."
+            "Unable to load students from Firebase.\n\n" +
+            (error.message || "")
         );
 
     }
@@ -495,102 +1294,58 @@ async function loadReportStudents() {
 
 
 /* =========================================================
-   CLASS CHANGE
+   CLASS CHANGE EVENT
 ========================================================= */
 
-reportClass.addEventListener(
-    "change",
-    loadReportStudents
-);
+if (reportClass) {
+
+    reportClass.addEventListener(
+        "change",
+        loadReportStudents
+    );
+
+}
 
 
 /* =========================================================
-   LOAD RESULTS FROM FIRESTORE
+   LOAD ALL RESULTS
 ========================================================= */
 
-async function loadStudentResultsFromFirestore(
-    studentId,
-    session,
-    term
-) {
+async function loadAllResultsFromFirestore() {
 
     try {
 
-        const resultsRef =
-            collection(
-                db,
-                RESULTS_COLLECTION
-            );
-
-
-        const resultsQuery =
-            query(
-
-                resultsRef,
-
-                where(
-                    "studentId",
-                    "==",
-                    studentId
-                ),
-
-                where(
-                    "session",
-                    "==",
-                    session
-                ),
-
-                where(
-                    "term",
-                    "==",
-                    term
-                )
-
-            );
-
-
         const snapshot =
             await getDocs(
-                resultsQuery
+                collection(
+                    db,
+                    RESULTS_COLLECTION
+                )
             );
 
 
-        const results = [];
+        return snapshot.docs.map(
+            resultDocument => ({
 
+                id:
+                    resultDocument.id,
 
-        snapshot.forEach(
-            document => {
+                ...resultDocument.data()
 
-                results.push({
-
-                    id:
-                        document.id,
-
-                    ...document.data()
-
-                });
-
-            }
+            })
         );
 
+    }
 
-        return results;
-
-
-    } catch (error) {
+    catch (error) {
 
         console.error(
-            "Error loading Firestore results:",
+            "Error loading all results:",
             error
         );
 
 
-        alert(
-            "Unable to load results from Firebase."
-        );
-
-
-        return [];
+        throw error;
 
     }
 
@@ -598,11 +1353,219 @@ async function loadStudentResultsFromFirestore(
 
 
 /* =========================================================
-   LOAD ATTENDANCE FROM FIRESTORE
+   CHECK IF RESULT BELONGS TO STUDENT
 ========================================================= */
 
-async function loadAttendanceFromFirestore(
+function resultBelongsToStudent(
+    result,
     studentId,
+    student
+) {
+
+    const resultStudentId =
+        getResultStudentId(
+            result
+        );
+
+
+    /*
+       Primary and most reliable match:
+       Firestore student ID.
+    */
+
+    if (
+        resultStudentId &&
+        resultStudentId ===
+        studentId
+    ) {
+
+        return true;
+
+    }
+
+
+    /*
+       Fallback:
+       Compare student names if an old result
+       doesn't have studentId.
+    */
+
+    const resultName =
+        normalizeText(
+            getFirstValue(
+                result,
+                [
+                    "studentName",
+                    "name"
+                ]
+            )
+        );
+
+
+    const studentName =
+        normalizeText(
+            getStudentName(
+                student
+            )
+        );
+
+
+    if (
+        resultName &&
+        studentName &&
+        resultName ===
+        studentName
+    ) {
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+/* =========================================================
+   RESULT MATCHING
+========================================================= */
+
+function resultMatchesReport(
+    result,
+    studentId,
+    student,
+    className,
+    session,
+    term
+) {
+
+    if (
+        !resultBelongsToStudent(
+            result,
+            studentId,
+            student
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    const resultSession =
+        normalizeText(
+            getResultSession(
+                result
+            )
+        );
+
+
+    const selectedSession =
+        normalizeText(
+            session
+        );
+
+
+    const resultTerm =
+        normalizeText(
+            getResultTerm(
+                result
+            )
+        );
+
+
+    const selectedTerm =
+        normalizeText(
+            term
+        );
+
+
+    const resultClass =
+        normalizeText(
+            getResultClass(
+                result
+            )
+        );
+
+
+    const selectedClass =
+        normalizeText(
+            className
+        );
+
+
+    /*
+       SESSION
+
+       Accept:
+       session
+       academicSession
+       schoolSession
+    */
+
+    if (
+        resultSession &&
+        selectedSession &&
+        resultSession !==
+        selectedSession
+    ) {
+
+        return false;
+
+    }
+
+
+    /*
+       TERM
+    */
+
+    if (
+        resultTerm &&
+        selectedTerm &&
+        resultTerm !==
+        selectedTerm
+    ) {
+
+        return false;
+
+    }
+
+
+    /*
+       CLASS
+
+       If the result contains a class,
+       make sure it matches.
+
+       If an old result doesn't contain
+       a class field, don't reject it.
+    */
+
+    if (
+        resultClass &&
+        selectedClass &&
+        resultClass !==
+        selectedClass
+    ) {
+
+        return false;
+
+    }
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   LOAD STUDENT RESULTS
+========================================================= */
+
+async function loadStudentResultsFromFirestore(
+    studentId,
+    student,
     className,
     session,
     term
@@ -610,74 +1573,318 @@ async function loadAttendanceFromFirestore(
 
     try {
 
-        const attendanceRef =
-            collection(
-                db,
-                ATTENDANCE_COLLECTION
+        /*
+           IMPORTANT FIX:
+
+           We no longer query Firestore using:
+
+           where("studentId", ...)
+           where("session", ...)
+           where("term", ...)
+
+           because old/new result documents may
+           use different field names.
+
+           Instead, we load results and match them
+           safely in JavaScript.
+        */
+
+        const allResults =
+            await loadAllResultsFromFirestore();
+
+
+        const matchingResults =
+            allResults.filter(
+                result =>
+
+                    resultMatchesReport(
+
+                        result,
+
+                        studentId,
+
+                        student,
+
+                        className,
+
+                        session,
+
+                        term
+
+                    )
             );
 
 
-        const attendanceQuery =
-            query(
+        /*
+           Sort subjects alphabetically.
+        */
 
-                attendanceRef,
+        matchingResults.sort(
+            (a, b) => {
 
-                where(
-                    "studentId",
-                    "==",
-                    studentId
-                ),
-
-                where(
-                    "className",
-                    "==",
-                    className
-                ),
-
-                where(
-                    "session",
-                    "==",
-                    session
-                ),
-
-                where(
-                    "term",
-                    "==",
-                    term
-                )
-
-            );
+                const subjectA =
+                    normalizeText(
+                        getResultSubject(a)
+                    );
 
 
-        const snapshot =
-            await getDocs(
-                attendanceQuery
-            );
+                const subjectB =
+                    normalizeText(
+                        getResultSubject(b)
+                    );
 
 
-        const attendanceRecords = [];
-
-
-        snapshot.forEach(
-            document => {
-
-                attendanceRecords.push({
-
-                    id:
-                        document.id,
-
-                    ...document.data()
-
-                });
+                return subjectA.localeCompare(
+                    subjectB
+                );
 
             }
         );
 
 
-        return attendanceRecords;
+        return matchingResults;
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading student results:",
+            error
+        );
 
 
-    } catch (error) {
+        throw error;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOAD ATTENDANCE
+========================================================= */
+
+async function loadAttendanceFromFirestore(
+    studentId,
+    student,
+    className,
+    session,
+    term
+) {
+
+    try {
+
+        const snapshot =
+            await getDocs(
+                collection(
+                    db,
+                    ATTENDANCE_COLLECTION
+                )
+            );
+
+
+        const allAttendance =
+            snapshot.docs.map(
+                attendanceDocument => ({
+
+                    id:
+                        attendanceDocument.id,
+
+                    ...attendanceDocument.data()
+
+                })
+            );
+
+
+        const matching =
+            allAttendance.filter(
+                record => {
+
+                    const attendanceStudentId =
+                        cleanValue(
+                            getFirstValue(
+                                record,
+                                [
+                                    "studentId",
+                                    "studentID",
+                                    "student_id"
+                                ]
+                            )
+                        );
+
+
+                    const attendanceClass =
+                        normalizeText(
+                            getFirstValue(
+                                record,
+                                [
+                                    "className",
+                                    "studentClass",
+                                    "class"
+                                ]
+                            )
+                        );
+
+
+                    const attendanceSession =
+                        normalizeText(
+                            getFirstValue(
+                                record,
+                                [
+                                    "session",
+                                    "academicSession"
+                                ]
+                            )
+                        );
+
+
+                    const attendanceTerm =
+                        normalizeText(
+                            getFirstValue(
+                                record,
+                                [
+                                    "term",
+                                    "schoolTerm",
+                                    "academicTerm"
+                                ]
+                            )
+                        );
+
+
+                    let studentMatch =
+                        false;
+
+
+                    if (
+                        attendanceStudentId &&
+                        attendanceStudentId ===
+                        studentId
+                    ) {
+
+                        studentMatch =
+                            true;
+
+                    }
+
+
+                    /*
+                       Fallback to student name.
+                    */
+
+                    if (
+                        !studentMatch
+                    ) {
+
+                        const attendanceName =
+                            normalizeText(
+                                getFirstValue(
+                                    record,
+                                    [
+                                        "studentName",
+                                        "name"
+                                    ]
+                                )
+                            );
+
+
+                        const currentName =
+                            normalizeText(
+                                getStudentName(
+                                    student
+                                )
+                            );
+
+
+                        if (
+                            attendanceName &&
+                            currentName &&
+                            attendanceName ===
+                            currentName
+                        ) {
+
+                            studentMatch =
+                                true;
+
+                        }
+
+                    }
+
+
+                    if (
+                        !studentMatch
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    /*
+                       Class
+                    */
+
+                    if (
+                        attendanceClass &&
+                        normalizeText(
+                            className
+                        ) &&
+                        attendanceClass !==
+                        normalizeText(
+                            className
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    /*
+                       Session
+                    */
+
+                    if (
+                        attendanceSession &&
+                        attendanceSession !==
+                        normalizeText(
+                            session
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    /*
+                       Term
+                    */
+
+                    if (
+                        attendanceTerm &&
+                        attendanceTerm !==
+                        normalizeText(
+                            term
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    return true;
+
+                }
+            );
+
+
+        return matching;
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error loading attendance:",
@@ -685,10 +1892,10 @@ async function loadAttendanceFromFirestore(
         );
 
 
-        alert(
-            "Unable to load attendance from Firebase."
-        );
-
+        /*
+           Attendance should not stop the report
+           from generating.
+        */
 
         return [];
 
@@ -703,15 +1910,18 @@ async function loadAttendanceFromFirestore(
 
 async function loadAttendance(
     studentId,
+    student,
     className,
     session,
     term
 ) {
 
-    const studentAttendance =
+    const records =
         await loadAttendanceFromFirestore(
 
             studentId,
+
+            student,
 
             className,
 
@@ -722,24 +1932,90 @@ async function loadAttendance(
         );
 
 
-    const schoolDays =
-        studentAttendance.length;
+    let schoolDays = 0;
+
+    let daysPresent = 0;
+
+    let daysAbsent = 0;
 
 
-    const daysPresent =
-        studentAttendance.filter(
-            record =>
-                record.status ===
+    /*
+       Different attendance systems may save
+       one record per day OR summary fields.
+
+       First try summary records.
+    */
+
+    records.forEach(
+        record => {
+
+            const status =
+                normalizeText(
+                    record.status
+                );
+
+
+            if (
+                status ===
                 "present"
-        ).length;
+            ) {
+
+                daysPresent++;
+
+            }
 
 
-    const daysAbsent =
-        studentAttendance.filter(
-            record =>
-                record.status ===
+            if (
+                status ===
                 "absent"
-        ).length;
+            ) {
+
+                daysAbsent++;
+
+            }
+
+        }
+    );
+
+
+    schoolDays =
+        daysPresent +
+        daysAbsent;
+
+
+    /*
+       If records contain explicit schoolDays,
+       use the highest/available value.
+    */
+
+    records.forEach(
+        record => {
+
+            const possibleSchoolDays =
+                numberValue(
+                    getFirstValue(
+                        record,
+                        [
+                            "schoolDays",
+                            "totalSchoolDays",
+                            "totalDays"
+                        ]
+                    )
+                );
+
+
+            if (
+                possibleSchoolDays >
+                schoolDays
+            ) {
+
+                schoolDays =
+                    possibleSchoolDays;
+
+            }
+
+        }
+    );
 
 
     const schoolDaysElement =
@@ -798,7 +2074,7 @@ async function loadAttendance(
 
 
 /* =========================================================
-   REPORT DOCUMENT ID
+   REPORT ID
 ========================================================= */
 
 function getReportId(
@@ -807,27 +2083,53 @@ function getReportId(
     term
 ) {
 
+    const cleanStudent =
+        cleanValue(
+            studentId
+        )
+        .replace(
+            /[\/\\?#%]/g,
+            "-"
+        );
+
+
     const cleanSession =
-        String(session)
-            .replaceAll(
-                "/",
-                "-"
-            )
-            .replaceAll(
-                " ",
-                "-"
-            );
+        cleanValue(
+            session
+        )
+        .replace(
+            /[\/\\?#%]/g,
+            "-"
+        )
+        .replace(
+            /\s+/g,
+            "-"
+        );
 
 
     const cleanTerm =
-        String(term)
-            .replaceAll(
-                " ",
-                "-"
-            );
+        cleanValue(
+            term
+        )
+        .replace(
+            /[\/\\?#%]/g,
+            "-"
+        )
+        .replace(
+            /\s+/g,
+            "-"
+        );
 
 
-    return `${studentId}_${cleanSession}_${cleanTerm}`;
+    return (
+
+        `${cleanStudent}_` +
+
+        `${cleanSession}_` +
+
+        `${cleanTerm}`
+
+    );
 
 }
 
@@ -860,14 +2162,14 @@ async function loadExistingReport(
             );
 
 
-        const reportSnapshot =
+        const snapshot =
             await getDoc(
                 reportRef
             );
 
 
         if (
-            !reportSnapshot.exists()
+            !snapshot.exists()
         ) {
 
             return null;
@@ -875,10 +2177,18 @@ async function loadExistingReport(
         }
 
 
-        return reportSnapshot.data();
+        return {
 
+            id:
+                snapshot.id,
 
-    } catch (error) {
+            ...snapshot.data()
+
+        };
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error loading existing report:",
@@ -894,430 +2204,74 @@ async function loadExistingReport(
 
 
 /* =========================================================
-   GENERATE REPORT
+   GET SUBJECT NAME FROM RESULT
 ========================================================= */
 
-generateReportBtn.addEventListener(
-    "click",
-    generateReport
-);
+function getSubjectNameFromResult(
+    result
+) {
 
+    /*
+       First check subjectName / subject.
+    */
 
-async function generateReport() {
-
-    const session =
-        reportSession.value;
-
-    const term =
-        reportTerm.value;
-
-    const className =
-        reportClass.value;
-
-    const studentId =
-        reportStudent.value;
-
-
-    if (
-        !session ||
-        !term ||
-        !className ||
-        !studentId
-    ) {
-
-        alert(
-            "Please select the session, term, class and student."
+    const directSubject =
+        getResultSubject(
+            result
         );
 
-        return;
+
+    if (directSubject) {
+
+        return directSubject;
 
     }
 
 
-    const student =
-        reportStudents.find(
-            item =>
-                item.id ===
-                studentId
+    /*
+       Then check subjectId against
+       the subjects collection.
+    */
+
+    const subjectId =
+        cleanValue(
+            getFirstValue(
+                result,
+                [
+                    "subjectId",
+                    "subjectID"
+                ]
+            )
         );
 
 
-    if (!student) {
+    if (subjectId) {
 
-        alert(
-            "Student not found."
-        );
+        const subject =
+            reportSubjects.find(
+                item =>
+                    item.id ===
+                    subjectId
+            );
 
-        return;
+
+        if (subject) {
+
+            return getFirstValue(
+                subject,
+                [
+                    "name",
+                    "subjectName",
+                    "title"
+                ]
+            );
+
+        }
 
     }
 
 
-    if (generateReportBtn) {
-
-        generateReportBtn.disabled =
-            true;
-
-        generateReportBtn.textContent =
-            "Generating...";
-
-    }
-
-
-    try {
-
-        /* =================================================
-           LOAD RESULTS
-        ================================================= */
-
-        const studentResults =
-            await loadStudentResultsFromFirestore(
-
-                studentId,
-
-                session,
-
-                term
-
-            );
-
-
-        if (
-            studentResults.length === 0
-        ) {
-
-            alert(
-                "No results have been entered for this student."
-            );
-
-            return;
-
-        }
-
-
-        /* =================================================
-           LOAD SUBJECTS
-        ================================================= */
-
-        if (
-            reportSubjects.length === 0
-        ) {
-
-            await loadReportSubjectsFromFirestore();
-
-        }
-
-
-        /* =================================================
-           STUDENT INFORMATION
-        ================================================= */
-
-        document.getElementById(
-            "reportStudentName"
-        ).textContent =
-            `${student.firstName || ""} ${student.lastName || ""}`;
-
-
-        document.getElementById(
-            "reportAdmissionNo"
-        ).textContent =
-            student.admissionNo ||
-            student.id;
-
-
-        document.getElementById(
-            "reportClassName"
-        ).textContent =
-            className;
-
-
-        document.getElementById(
-            "reportSessionName"
-        ).textContent =
-            session;
-
-
-        document.getElementById(
-            "reportTermTitle"
-        ).textContent =
-            `${term} • ${session}`;
-
-
-        /* =================================================
-           RESULT TABLE
-        ================================================= */
-
-        const body =
-            document.getElementById(
-                "reportResultsBody"
-            );
-
-
-        body.innerHTML =
-            "";
-
-
-        let totalScore = 0;
-
-
-        studentResults.forEach(
-            (result, index) => {
-
-                const subject =
-                    reportSubjects.find(
-                        item =>
-                            item.id ===
-                            result.subjectId
-                    );
-
-
-                const subjectName =
-                    subject
-                        ? subject.name
-                        : (
-                            result.subjectName ||
-                            "Unknown Subject"
-                        );
-
-
-                const row =
-                    document.createElement(
-                        "tr"
-                    );
-
-
-                row.innerHTML = `
-
-                    <td>
-                        ${index + 1}
-                    </td>
-
-                    <td>
-                        ${escapeReportHTML(
-                            subjectName
-                        )}
-                    </td>
-
-                    <td>
-                        ${result.classWork1 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.classWork2 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.assignment1 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.assignment2 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.ca1 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.ca2 ?? 0}
-                    </td>
-
-                    <td>
-                        ${result.exam ?? 0}
-                    </td>
-
-                    <td>
-                        <strong>
-                            ${result.total ?? 0}
-                        </strong>
-                    </td>
-
-                    <td>
-                        <strong>
-                            ${escapeReportHTML(
-                                result.grade || "-"
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeReportHTML(
-                            result.remark || "-"
-                        )}
-                    </td>
-
-                `;
-
-
-                body.appendChild(
-                    row
-                );
-
-
-                totalScore +=
-                    Number(
-                        result.total ||
-                        0
-                    );
-
-            }
-        );
-
-
-        /* =================================================
-           SUMMARY
-        ================================================= */
-
-        const subjectCount =
-            studentResults.length;
-
-
-        const average =
-            subjectCount > 0
-
-                ? (
-                    totalScore /
-                    subjectCount
-                ).toFixed(2)
-
-                : "0.00";
-
-
-        document.getElementById(
-            "subjectsOffered"
-        ).textContent =
-            subjectCount;
-
-
-        document.getElementById(
-            "totalScore"
-        ).textContent =
-            totalScore;
-
-
-        document.getElementById(
-            "averageScore"
-        ).textContent =
-            `${average}%`;
-
-
-        /* =================================================
-           POSITION
-        ================================================= */
-
-        const position =
-            await calculatePosition(
-
-                studentId,
-
-                className,
-
-                session,
-
-                term
-
-            );
-
-
-        document.getElementById(
-            "studentPosition"
-        ).textContent =
-            position;
-
-
-        /* =================================================
-           PSYCHOMOTOR
-        ================================================= */
-
-        createConductTable();
-
-
-        /* =================================================
-           ATTENDANCE
-        ================================================= */
-
-        await loadAttendance(
-
-            studentId,
-
-            className,
-
-            session,
-
-            term
-
-        );
-
-
-        /* =================================================
-           EXISTING REPORT
-        ================================================= */
-
-        const existingReport =
-            await loadExistingReport(
-
-                studentId,
-
-                session,
-
-                term
-
-            );
-
-
-        if (existingReport) {
-
-            loadExistingReportData(
-                existingReport
-            );
-
-        }
-
-
-        /* =================================================
-           SHOW REPORT
-        ================================================= */
-
-        reportCard.style.display =
-            "block";
-
-
-        reportCard.scrollIntoView({
-
-            behavior:
-                "smooth",
-
-            block:
-                "start"
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Error generating report:",
-            error
-        );
-
-
-        alert(
-            "Unable to generate report card."
-        );
-
-    } finally {
-
-        if (generateReportBtn) {
-
-            generateReportBtn.disabled =
-                false;
-
-            generateReportBtn.textContent =
-                "Generate Report";
-
-        }
-
-    }
+    return "Unknown Subject";
 
 }
 
@@ -1410,8 +2364,12 @@ function loadExistingReportData(
     report
 ) {
 
+    if (!report)
+        return;
+
+
     /* =====================================================
-       COMMENTS
+       TEACHER COMMENT
     ===================================================== */
 
     const teacherComment =
@@ -1429,6 +2387,10 @@ function loadExistingReportData(
     }
 
 
+    /* =====================================================
+       PRINCIPAL COMMENT
+    ===================================================== */
+
     const principalComment =
         document.getElementById(
             "principalComment"
@@ -1445,7 +2407,7 @@ function loadExistingReportData(
 
 
     /* =====================================================
-       PROMOTION
+       PROMOTION STATUS
     ===================================================== */
 
     const promotionStatus =
@@ -1480,11 +2442,30 @@ function loadExistingReportData(
             .forEach(
                 row => {
 
+                    const traitCell =
+                        row.querySelector(
+                            "td"
+                        );
+
+
+                    const select =
+                        row.querySelector(
+                            ".conduct-rating"
+                        );
+
+
+                    if (
+                        !traitCell ||
+                        !select
+                    ) {
+
+                        return;
+
+                    }
+
+
                     const trait =
-                        row
-                            .querySelector(
-                                "td"
-                            )
+                        traitCell
                             .textContent
                             .trim();
 
@@ -1500,18 +2481,8 @@ function loadExistingReportData(
                         savedRating
                     ) {
 
-                        const select =
-                            row.querySelector(
-                                ".conduct-rating"
-                            );
-
-
-                        if (select) {
-
-                            select.value =
-                                savedRating;
-
-                        }
+                        select.value =
+                            savedRating;
 
                     }
 
@@ -1595,42 +2566,103 @@ async function calculatePosition(
 
     try {
 
-        const resultsRef =
-            collection(
-                db,
-                RESULTS_COLLECTION
-            );
+        /*
+           Load ALL results.
+
+           We don't use a strict Firestore query because
+           your result documents may contain:
+
+           className / studentClass / class
+           session / academicSession
+           term
+        */
+
+        const allResults =
+            await loadAllResultsFromFirestore();
 
 
-        const resultsQuery =
-            query(
+        const relevantResults =
+            allResults.filter(
+                result => {
 
-                resultsRef,
-
-                where(
-                    "className",
-                    "==",
-                    className
-                ),
-
-                where(
-                    "session",
-                    "==",
-                    session
-                ),
-
-                where(
-                    "term",
-                    "==",
-                    term
-                )
-
-            );
+                    const resultClass =
+                        normalizeText(
+                            getResultClass(
+                                result
+                            )
+                        );
 
 
-        const snapshot =
-            await getDocs(
-                resultsQuery
+                    const resultSession =
+                        normalizeText(
+                            getResultSession(
+                                result
+                            )
+                        );
+
+
+                    const resultTerm =
+                        normalizeText(
+                            getResultTerm(
+                                result
+                            )
+                        );
+
+
+                    /*
+                       Class must match if present.
+                    */
+
+                    if (
+                        resultClass &&
+                        resultClass !==
+                        normalizeText(
+                            className
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    /*
+                       Session must match if present.
+                    */
+
+                    if (
+                        resultSession &&
+                        resultSession !==
+                        normalizeText(
+                            session
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    /*
+                       Term must match if present.
+                    */
+
+                    if (
+                        resultTerm &&
+                        resultTerm !==
+                        normalizeText(
+                            term
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    return true;
+
+                }
             );
 
 
@@ -1638,27 +2670,27 @@ async function calculatePosition(
             {};
 
 
-        snapshot.forEach(
-            document => {
+        relevantResults.forEach(
+            result => {
 
-                const result =
-                    document.data();
+                const resultStudentId =
+                    getResultStudentId(
+                        result
+                    );
 
 
-                if (
-                    !result.studentId
-                )
+                if (!resultStudentId)
                     return;
 
 
                 if (
                     !studentTotals[
-                        result.studentId
+                        resultStudentId
                     ]
                 ) {
 
                     studentTotals[
-                        result.studentId
+                        resultStudentId
                     ] = {
 
                         total: 0,
@@ -1671,16 +2703,15 @@ async function calculatePosition(
 
 
                 studentTotals[
-                    result.studentId
+                    resultStudentId
                 ].total +=
-                    Number(
-                        result.total ||
-                        0
+                    getTotal(
+                        result
                     );
 
 
                 studentTotals[
-                    result.studentId
+                    resultStudentId
                 ].subjects++;
 
             }
@@ -1701,10 +2732,14 @@ async function calculatePosition(
                     average:
                         data.subjects > 0
 
-                            ? data.total /
-                              data.subjects
+                            ?
 
-                            : 0
+                            data.total /
+                            data.subjects
+
+                            :
+
+                            0
 
                 })
             )
@@ -1737,8 +2772,9 @@ async function calculatePosition(
             studentIndex + 1
         );
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error calculating position:",
@@ -1754,7 +2790,7 @@ async function calculatePosition(
 
 
 /* =========================================================
-   ORDINAL
+   ORDINAL POSITION
 ========================================================= */
 
 function ordinal(
@@ -1797,23 +2833,799 @@ function ordinal(
 
 
 /* =========================================================
+   GENERATE REPORT
+========================================================= */
+
+async function generateReport() {
+
+    const session =
+        cleanValue(
+            reportSession?.value
+        );
+
+
+    const term =
+        cleanValue(
+            reportTerm?.value
+        );
+
+
+    const className =
+        cleanValue(
+            reportClass?.value
+        );
+
+
+    const studentId =
+        cleanValue(
+            reportStudent?.value
+        );
+
+
+    /* =====================================================
+       VALIDATION
+    ===================================================== */
+
+    if (
+        !session ||
+        !term ||
+        !className ||
+        !studentId
+    ) {
+
+        alert(
+            "Please select the session, term, class and student."
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       FIND STUDENT
+    ===================================================== */
+
+    let student =
+        reportStudents.find(
+            item =>
+                item.id ===
+                studentId
+        );
+
+
+    /*
+       If student isn't already in memory,
+       retrieve directly from Firestore.
+    */
+
+    if (!student) {
+
+        try {
+
+            const studentRef =
+                doc(
+                    db,
+                    STUDENTS_COLLECTION,
+                    studentId
+                );
+
+
+            const studentSnapshot =
+                await getDoc(
+                    studentRef
+                );
+
+
+            if (
+                studentSnapshot.exists()
+            ) {
+
+                student = {
+
+                    id:
+                        studentSnapshot.id,
+
+                    ...studentSnapshot.data()
+
+                };
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Error retrieving student:",
+                error
+            );
+
+        }
+
+    }
+
+
+    if (!student) {
+
+        alert(
+            "Student could not be found."
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       DISABLE BUTTON
+    ===================================================== */
+
+    if (generateReportBtn) {
+
+        generateReportBtn.disabled =
+            true;
+
+
+        generateReportBtn.textContent =
+            "Generating...";
+
+    }
+
+
+    try {
+
+        /* =================================================
+           LOAD SUBJECTS
+        ================================================= */
+
+        if (
+            reportSubjects.length === 0
+        ) {
+
+            await loadReportSubjectsFromFirestore();
+
+        }
+
+
+        /* =================================================
+           LOAD RESULTS
+        ================================================= */
+
+        const studentResults =
+            await loadStudentResultsFromFirestore(
+
+                studentId,
+
+                student,
+
+                className,
+
+                session,
+
+                term
+
+            );
+
+
+        /*
+           IMPORTANT:
+
+           This is the main fix for the error shown
+           in your screenshot.
+        */
+
+        if (
+            studentResults.length === 0
+        ) {
+
+            /*
+               Debug information is shown in the console
+               so you can see exactly what the report
+               system was searching for.
+            */
+
+            console.log(
+                "REPORT SEARCH INFORMATION",
+                {
+
+                    studentId,
+
+                    studentName:
+                        getStudentName(
+                            student
+                        ),
+
+                    className,
+
+                    session,
+
+                    term
+
+                }
+            );
+
+
+            alert(
+
+                "No result was found for this student.\n\n" +
+
+                "Please check that the result was entered for:\n" +
+
+                `Student: ${getStudentName(student)}\n` +
+
+                `Class: ${className}\n` +
+
+                `Session: ${session}\n` +
+
+                `Term: ${term}`
+
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           STUDENT INFORMATION
+        ================================================= */
+
+        const studentName =
+            getStudentName(
+                student
+            );
+
+
+        const studentNameElement =
+            document.getElementById(
+                "reportStudentName"
+            );
+
+
+        if (studentNameElement) {
+
+            studentNameElement.textContent =
+                studentName;
+
+        }
+
+
+        const admissionElement =
+            document.getElementById(
+                "reportAdmissionNo"
+            );
+
+
+        if (admissionElement) {
+
+            admissionElement.textContent =
+
+                getFirstValue(
+                    student,
+                    [
+                        "admissionNo",
+                        "admissionNumber",
+                        "registrationNo",
+                        "regNo"
+                    ]
+                ) ||
+
+                student.id;
+
+        }
+
+
+        const classElement =
+            document.getElementById(
+                "reportClassName"
+            );
+
+
+        if (classElement) {
+
+            classElement.textContent =
+                className;
+
+        }
+
+
+        const sessionElement =
+            document.getElementById(
+                "reportSessionName"
+            );
+
+
+        if (sessionElement) {
+
+            sessionElement.textContent =
+                session;
+
+        }
+
+
+        const termTitle =
+            document.getElementById(
+                "reportTermTitle"
+            );
+
+
+        if (termTitle) {
+
+            termTitle.textContent =
+                `${term} • ${session}`;
+
+        }
+
+
+        /* =================================================
+           RESULTS TABLE
+        ================================================= */
+
+        const body =
+            document.getElementById(
+                "reportResultsBody"
+            );
+
+
+        if (!body) {
+
+            throw new Error(
+                "reportResultsBody was not found in report-card HTML."
+            );
+
+        }
+
+
+        body.innerHTML =
+            "";
+
+
+        let totalScore = 0;
+
+
+        studentResults.forEach(
+            (result, index) => {
+
+                /* -----------------------------------------
+                   SUBJECT
+                ----------------------------------------- */
+
+                const subjectName =
+                    getSubjectNameFromResult(
+                        result
+                    );
+
+
+                /* -----------------------------------------
+                   SCORES
+                ----------------------------------------- */
+
+                const classWork1 =
+                    getClassWork1(
+                        result
+                    );
+
+
+                const classWork2 =
+                    getClassWork2(
+                        result
+                    );
+
+
+                const assignment1 =
+                    getAssignment1(
+                        result
+                    );
+
+
+                const assignment2 =
+                    getAssignment2(
+                        result
+                    );
+
+
+                const ca1 =
+                    getCA1(
+                        result
+                    );
+
+
+                const ca2 =
+                    getCA2(
+                        result
+                    );
+
+
+                const exam =
+                    getExam(
+                        result
+                    );
+
+
+                /* -----------------------------------------
+                   TOTAL
+                ----------------------------------------- */
+
+                const total =
+                    getTotal(
+                        result
+                    );
+
+
+                /* -----------------------------------------
+                   GRADE
+                ----------------------------------------- */
+
+                const grade =
+                    result.grade ||
+                    calculateGrade(
+                        total
+                    );
+
+
+                /* -----------------------------------------
+                   REMARK
+                ----------------------------------------- */
+
+                const remark =
+                    result.remark ||
+                    calculateRemark(
+                        total
+                    );
+
+
+                /* -----------------------------------------
+                   CREATE ROW
+                ----------------------------------------- */
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+                        ${index + 1}
+                    </td>
+
+                    <td>
+                        ${escapeReportHTML(
+                            subjectName
+                        )}
+                    </td>
+
+                    <td>
+                        ${classWork1}
+                    </td>
+
+                    <td>
+                        ${classWork2}
+                    </td>
+
+                    <td>
+                        ${assignment1}
+                    </td>
+
+                    <td>
+                        ${assignment2}
+                    </td>
+
+                    <td>
+                        ${ca1}
+                    </td>
+
+                    <td>
+                        ${ca2}
+                    </td>
+
+                    <td>
+                        ${exam}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${total}
+                        </strong>
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${escapeReportHTML(
+                                grade
+                            )}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ${escapeReportHTML(
+                            remark
+                        )}
+                    </td>
+
+                `;
+
+
+                body.appendChild(
+                    row
+                );
+
+
+                totalScore +=
+                    total;
+
+            }
+        );
+
+
+        /* =================================================
+           SUMMARY
+        ================================================= */
+
+        const subjectCount =
+            studentResults.length;
+
+
+        const average =
+            subjectCount > 0
+
+                ?
+
+                (
+                    totalScore /
+                    subjectCount
+                ).toFixed(2)
+
+                :
+
+                "0.00";
+
+
+        const subjectsElement =
+            document.getElementById(
+                "subjectsOffered"
+            );
+
+
+        if (subjectsElement) {
+
+            subjectsElement.textContent =
+                subjectCount;
+
+        }
+
+
+        const totalElement =
+            document.getElementById(
+                "totalScore"
+            );
+
+
+        if (totalElement) {
+
+            totalElement.textContent =
+                totalScore;
+
+        }
+
+
+        const averageElement =
+            document.getElementById(
+                "averageScore"
+            );
+
+
+        if (averageElement) {
+
+            averageElement.textContent =
+                `${average}%`;
+
+        }
+
+
+        /* =================================================
+           POSITION
+        ================================================= */
+
+        const position =
+            await calculatePosition(
+
+                studentId,
+
+                className,
+
+                session,
+
+                term
+
+            );
+
+
+        const positionElement =
+            document.getElementById(
+                "studentPosition"
+            );
+
+
+        if (positionElement) {
+
+            positionElement.textContent =
+                position;
+
+        }
+
+
+        /* =================================================
+           CONDUCT TABLE
+        ================================================= */
+
+        createConductTable();
+
+
+        /* =================================================
+           ATTENDANCE
+        ================================================= */
+
+        const attendance =
+            await loadAttendance(
+
+                studentId,
+
+                student,
+
+                className,
+
+                session,
+
+                term
+
+            );
+
+
+        console.log(
+            "Report attendance:",
+            attendance
+        );
+
+
+        /* =================================================
+           EXISTING REPORT
+        ================================================= */
+
+        const existingReport =
+            await loadExistingReport(
+
+                studentId,
+
+                session,
+
+                term
+
+            );
+
+
+        if (existingReport) {
+
+            loadExistingReportData(
+                existingReport
+            );
+
+        }
+
+
+        /* =================================================
+           SHOW REPORT CARD
+        ================================================= */
+
+        if (reportCard) {
+
+            reportCard.style.display =
+                "block";
+
+
+            reportCard.scrollIntoView({
+
+                behavior:
+                    "smooth",
+
+                block:
+                    "start"
+
+            });
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "ERROR GENERATING REPORT:",
+            error
+        );
+
+
+        alert(
+
+            "Unable to generate report card.\n\n" +
+
+            (
+                error.message ||
+                "An unexpected error occurred."
+            )
+
+        );
+
+    }
+
+    finally {
+
+        if (generateReportBtn) {
+
+            generateReportBtn.disabled =
+                false;
+
+
+            generateReportBtn.textContent =
+                "Generate Report Card";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   GENERATE BUTTON EVENT
+========================================================= */
+
+if (generateReportBtn) {
+
+    generateReportBtn.addEventListener(
+        "click",
+        generateReport
+    );
+
+}
+
+
+/* =========================================================
    SAVE REPORT CARD
 ========================================================= */
 
 async function saveReportCard() {
 
     const studentId =
-        reportStudent.value;
+        cleanValue(
+            reportStudent?.value
+        );
+
 
     const session =
-        reportSession.value;
+        cleanValue(
+            reportSession?.value
+        );
+
 
     const term =
-        reportTerm.value;
+        cleanValue(
+            reportTerm?.value
+        );
+
 
     const className =
-        reportClass.value;
+        cleanValue(
+            reportClass?.value
+        );
 
+
+    /* =====================================================
+       VALIDATION
+    ===================================================== */
 
     if (
         !studentId ||
@@ -1835,12 +3647,59 @@ async function saveReportCard() {
        FIND STUDENT
     ===================================================== */
 
-    const student =
+    let student =
         reportStudents.find(
             item =>
                 item.id ===
                 studentId
         );
+
+
+    if (!student) {
+
+        try {
+
+            const studentRef =
+                doc(
+                    db,
+                    STUDENTS_COLLECTION,
+                    studentId
+                );
+
+
+            const snapshot =
+                await getDoc(
+                    studentRef
+                );
+
+
+            if (
+                snapshot.exists()
+            ) {
+
+                student = {
+
+                    id:
+                        snapshot.id,
+
+                    ...snapshot.data()
+
+                };
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Error loading student:",
+                error
+            );
+
+        }
+
+    }
 
 
     if (!student) {
@@ -1869,13 +3728,10 @@ async function saveReportCard() {
         .forEach(
             row => {
 
-                const trait =
-                    row
-                        .querySelector(
-                            "td"
-                        )
-                        .textContent
-                        .trim();
+                const traitCell =
+                    row.querySelector(
+                        "td"
+                    );
 
 
                 const select =
@@ -1884,14 +3740,26 @@ async function saveReportCard() {
                     );
 
 
-                if (select) {
+                if (
+                    !traitCell ||
+                    !select
+                ) {
 
-                    psychomotor[
-                        trait
-                    ] =
-                        select.value;
+                    return;
 
                 }
+
+
+                const trait =
+                    traitCell
+                        .textContent
+                        .trim();
+
+
+                psychomotor[
+                    trait
+                ] =
+                    select.value;
 
             }
         );
@@ -1902,27 +3770,27 @@ async function saveReportCard() {
     ===================================================== */
 
     const schoolDays =
-        Number(
+        numberValue(
             document.getElementById(
                 "schoolDays"
             )?.textContent
-        ) || 0;
+        );
 
 
     const daysPresent =
-        Number(
+        numberValue(
             document.getElementById(
                 "daysPresent"
             )?.textContent
-        ) || 0;
+        );
 
 
     const daysAbsent =
-        Number(
+        numberValue(
             document.getElementById(
                 "daysAbsent"
             )?.textContent
-        ) || 0;
+        );
 
 
     /* =====================================================
@@ -1932,13 +3800,15 @@ async function saveReportCard() {
     const teacherComment =
         document.getElementById(
             "teacherComment"
-        )?.value.trim() || "";
+        )?.value.trim() ||
+        "";
 
 
     const principalComment =
         document.getElementById(
             "principalComment"
-        )?.value.trim() || "";
+        )?.value.trim() ||
+        "";
 
 
     /* =====================================================
@@ -1968,10 +3838,6 @@ async function saveReportCard() {
         );
 
 
-    /* =====================================================
-       SAVE
-    ===================================================== */
-
     try {
 
         if (saveReportBtn) {
@@ -1979,49 +3845,102 @@ async function saveReportCard() {
             saveReportBtn.disabled =
                 true;
 
+
             saveReportBtn.textContent =
                 "Saving...";
 
         }
 
 
+        /* =================================================
+           SAVE REPORT
+        ================================================= */
+
         const reportData = {
 
-            studentId,
+            studentId:
+
+                studentId,
+
 
             studentName:
-                `${student.firstName || ""} ${student.lastName || ""}`,
+
+                getStudentName(
+                    student
+                ),
+
 
             admissionNo:
-                student.admissionNo ||
+
+                getFirstValue(
+                    student,
+                    [
+                        "admissionNo",
+                        "admissionNumber",
+                        "registrationNo",
+                        "regNo"
+                    ]
+                ) ||
+
                 student.id,
 
-            className,
 
-            session,
+            className:
 
-            term,
+                className,
+
+
+            session:
+
+                session,
+
+
+            term:
+
+                term,
+
 
             attendance: {
 
-                schoolDays,
+                schoolDays:
 
-                daysPresent,
+                    schoolDays,
 
-                daysAbsent
+                daysPresent:
+
+                    daysPresent,
+
+                daysAbsent:
+
+                    daysAbsent
 
             },
 
-            psychomotor,
 
-            teacherComment,
+            psychomotor:
 
-            principalComment,
+                psychomotor,
 
-            promotionStatus,
+
+            teacherComment:
+
+                teacherComment,
+
+
+            principalComment:
+
+                principalComment,
+
+
+            promotionStatus:
+
+                promotionStatus,
+
 
             updatedAt:
+
                 new Date()
+                    .toISOString()
 
         };
 
@@ -2047,8 +3966,9 @@ async function saveReportCard() {
             "Report card saved successfully."
         );
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "Error saving report card:",
@@ -2057,19 +3977,28 @@ async function saveReportCard() {
 
 
         alert(
-            "Unable to save report card. Check your Firebase configuration and Firestore rules."
+
+            "Unable to save report card.\n\n" +
+
+            (
+                error.message ||
+                ""
+            )
+
         );
 
+    }
 
-    } finally {
+    finally {
 
         if (saveReportBtn) {
 
             saveReportBtn.disabled =
                 false;
 
+
             saveReportBtn.textContent =
-                "💾 Save Report";
+                "💾 Save Report Card";
 
         }
 
@@ -2079,41 +4008,15 @@ async function saveReportCard() {
 
 
 /* =========================================================
-   HTML ESCAPE
+   SAVE BUTTON EVENT
 ========================================================= */
 
-function escapeReportHTML(
-    value
-) {
+if (saveReportBtn) {
 
-    return String(
-        value ?? ""
-    )
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+    saveReportBtn.addEventListener(
+        "click",
+        saveReportCard
+    );
 
 }
 
@@ -2137,49 +4040,205 @@ if (printReportBtn) {
 
 
 /* =========================================================
-   SAVE BUTTON
-========================================================= */
-
-if (saveReportBtn) {
-
-    saveReportBtn.addEventListener(
-        "click",
-        saveReportCard
-    );
-
-}
-
-
-/* =========================================================
-   INITIALIZE
+   INITIALIZE REPORT CARD
 ========================================================= */
 
 async function initializeReportCard() {
 
     try {
 
+        /*
+           Load everything from Firestore.
+        */
+
         await Promise.all([
 
             loadReportClassesFromFirestore(),
+
+            loadReportStudentsFromFirestore(),
 
             loadReportSubjectsFromFirestore()
 
         ]);
 
 
-        await loadReportClasses();
+        /* =================================================
+           POPULATE CLASS DROPDOWN
+        ================================================= */
+
+        if (reportClass) {
+
+            reportClass.innerHTML = `
+
+                <option value="">
+                    Select Class
+                </option>
+
+            `;
 
 
-    } catch (error) {
+            const classNames =
+                new Set();
+
+
+            reportClasses
+
+                .slice()
+
+                .sort(
+                    (a, b) =>
+                        getClassName(a)
+                            .localeCompare(
+                                getClassName(b)
+                            )
+                )
+
+                .forEach(
+                    classData => {
+
+                        const className =
+                            getClassName(
+                                classData
+                            );
+
+
+                        if (!className)
+                            return;
+
+
+                        if (
+                            classData.status &&
+                            normalizeText(
+                                classData.status
+                            ) !== "active"
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const key =
+                            normalizeText(
+                                className
+                            );
+
+
+                        if (
+                            classNames.has(
+                                key
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        classNames.add(
+                            key
+                        );
+
+
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+
+                        option.value =
+                            className;
+
+
+                        option.textContent =
+                            className;
+
+
+                        reportClass.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
+        }
+
+
+        /*
+           Make sure student dropdown starts
+           in the correct state.
+        */
+
+        if (reportStudent) {
+
+            reportStudent.innerHTML = `
+
+                <option value="">
+                    Select Student
+                </option>
+
+            `;
+
+        }
+
+
+        console.log(
+            "Report card system initialized.",
+            {
+
+                classes:
+                    reportClasses.length,
+
+                students:
+                    reportStudents.length,
+
+                subjects:
+                    reportSubjects.length
+
+            }
+        );
+
+    }
+
+    catch (error) {
 
         console.error(
             "Error initializing report card:",
             error
         );
 
+
+        if (reportClass) {
+
+            reportClass.innerHTML = `
+
+                <option value="">
+                    Unable to load classes
+                </option>
+
+            `;
+
+        }
+
+
+        alert(
+
+            "Unable to initialize the report card system.\n\n" +
+
+            (
+                error.message ||
+                ""
+            )
+
+        );
+
     }
 
 }
 
+
+/* =========================================================
+   START SYSTEM
+========================================================= */
 
 initializeReportCard();

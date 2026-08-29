@@ -1,27 +1,38 @@
-/* =========================================================
-   PHILIP MODEL SCHOOL
-   RESULTS MANAGEMENT
-   FIRESTORE VERSION
-========================================================= */
+// ============================================================
+// PHILIP MODEL SCHOOL
+// RESULTS MANAGEMENT
+// FIREBASE 12 MODULAR FIRESTORE
+//
+// SCORE STRUCTURE
+//
+// Class Work 1  = 5
+// Class Work 2  = 5
+// Assignment 1 = 5
+// Assignment 2 = 5
+// CA 1          = 10
+// CA 2          = 10
+// Examination   = 60
+//
+// TOTAL         = 100
+// ============================================================
+
 
 import {
     collection,
     getDocs,
-    doc,
     addDoc,
-    setDoc,
     updateDoc,
     deleteDoc,
-    query,
-    orderBy
+    doc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
 
 
-/* =========================================================
-   DATABASE COLLECTIONS
-========================================================= */
+// ============================================================
+// FIRESTORE COLLECTIONS
+// ============================================================
 
 const resultsCollection =
     collection(db, "results");
@@ -29,26 +40,30 @@ const resultsCollection =
 const studentsCollection =
     collection(db, "students");
 
-const subjectsCollection =
-    collection(db, "subjects");
-
 const classesCollection =
     collection(db, "classes");
 
+const subjectsCollection =
+    collection(db, "subjects");
 
-/* =========================================================
-   LOCAL DATA
-========================================================= */
+
+// ============================================================
+// DATA
+// ============================================================
 
 let results = [];
 let students = [];
-let subjects = [];
 let classes = [];
+let subjects = [];
 
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
+// ============================================================
+// ELEMENTS
+// ============================================================
+
+// ------------------------------------------------------------
+// RESULT MODAL
+// ------------------------------------------------------------
 
 const resultModal =
     document.getElementById("resultModal");
@@ -56,14 +71,8 @@ const resultModal =
 const resultForm =
     document.getElementById("resultForm");
 
-const resultsTableBody =
-    document.getElementById("resultsTableBody");
-
-const emptyResults =
-    document.getElementById("emptyResults");
-
-const addResultBtn =
-    document.getElementById("addResultBtn");
+const resultModalTitle =
+    document.getElementById("resultModalTitle");
 
 const closeResultModal =
     document.getElementById("closeResultModal");
@@ -71,17 +80,16 @@ const closeResultModal =
 const cancelResultBtn =
     document.getElementById("cancelResultBtn");
 
-const resultSessionFilter =
-    document.getElementById("resultSessionFilter");
+const addResultBtn =
+    document.getElementById("addResultBtn");
 
-const resultTermFilter =
-    document.getElementById("resultTermFilter");
+const editingResultId =
+    document.getElementById("editingResultId");
 
-const resultClassFilter =
-    document.getElementById("resultClassFilter");
 
-const resultSearch =
-    document.getElementById("resultSearch");
+// ------------------------------------------------------------
+// RESULT INFORMATION
+// ------------------------------------------------------------
 
 const resultSession =
     document.getElementById("resultSession");
@@ -98,6 +106,23 @@ const resultStudent =
 const resultSubject =
     document.getElementById("resultSubject");
 
+
+// ------------------------------------------------------------
+// SCORE INPUTS
+// ------------------------------------------------------------
+
+const classWork1 =
+    document.getElementById("classWork1");
+
+const classWork2 =
+    document.getElementById("classWork2");
+
+const assignment1 =
+    document.getElementById("assignment1");
+
+const assignment2 =
+    document.getElementById("assignment2");
+
 const ca1 =
     document.getElementById("ca1");
 
@@ -106,6 +131,11 @@ const ca2 =
 
 const exam =
     document.getElementById("exam");
+
+
+// ------------------------------------------------------------
+// CALCULATED FIELDS
+// ------------------------------------------------------------
 
 const resultTotal =
     document.getElementById("resultTotal");
@@ -116,37 +146,86 @@ const resultGrade =
 const resultRemark =
     document.getElementById("resultRemark");
 
-const editingResultId =
-    document.getElementById("editingResultId");
+
+// ------------------------------------------------------------
+// RESULT TABLE
+// ------------------------------------------------------------
+
+const resultsTableBody =
+    document.getElementById("resultsTableBody");
+
+const emptyResults =
+    document.getElementById("emptyResults");
 
 
-/* =========================================================
-   BULK RESULT ELEMENTS
-========================================================= */
+// ------------------------------------------------------------
+// FILTERS
+// ------------------------------------------------------------
+
+const resultSessionFilter =
+    document.getElementById(
+        "resultSessionFilter"
+    );
+
+const resultTermFilter =
+    document.getElementById(
+        "resultTermFilter"
+    );
+
+const resultClassFilter =
+    document.getElementById(
+        "resultClassFilter"
+    );
+
+const resultSearch =
+    document.getElementById(
+        "resultSearch"
+    );
+
+
+// ============================================================
+// BULK RESULT ELEMENTS
+// ============================================================
 
 const bulkResultBtn =
-    document.getElementById("bulkResultBtn");
+    document.getElementById(
+        "bulkResultBtn"
+    );
 
 const bulkResultModal =
-    document.getElementById("bulkResultModal");
+    document.getElementById(
+        "bulkResultModal"
+    );
 
 const closeBulkResultModal =
-    document.getElementById("closeBulkResultModal");
+    document.getElementById(
+        "closeBulkResultModal"
+    );
 
 const cancelBulkResultBtn =
-    document.getElementById("cancelBulkResultBtn");
+    document.getElementById(
+        "cancelBulkResultBtn"
+    );
 
 const bulkSession =
-    document.getElementById("bulkSession");
+    document.getElementById(
+        "bulkSession"
+    );
 
 const bulkTerm =
-    document.getElementById("bulkTerm");
+    document.getElementById(
+        "bulkTerm"
+    );
 
 const bulkClass =
-    document.getElementById("bulkClass");
+    document.getElementById(
+        "bulkClass"
+    );
 
 const bulkSubject =
-    document.getElementById("bulkSubject");
+    document.getElementById(
+        "bulkSubject"
+    );
 
 const loadClassStudentsBtn =
     document.getElementById(
@@ -169,669 +248,243 @@ const saveBulkResultsBtn =
     );
 
 
-/* =========================================================
-   LOAD ALL DATA
-========================================================= */
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 
-async function loadAllData() {
+function getValue(element) {
 
-    try {
+    if (!element) {
+        return "";
+    }
 
-        await Promise.all([
-            loadStudents(),
-            loadSubjects(),
-            loadClasses(),
-            loadResults()
-        ]);
+    return String(
+        element.value ?? ""
+    ).trim();
 
-        populateClassFilters();
+}
+
+
+// ============================================================
+// FIREBASE ERROR MESSAGE
+// ============================================================
+
+function getFirebaseErrorMessage(error) {
+
+    if (!error) {
+        return "Unknown error.";
+    }
+
+    if (error.code) {
+
+        switch (error.code) {
+
+            case "permission-denied":
+                return "Firestore permission denied. Check your Firestore security rules.";
+
+            case "not-found":
+                return "The requested Firestore document was not found.";
+
+            case "unavailable":
+                return "Firebase is temporarily unavailable. Check your internet connection.";
+
+            case "failed-precondition":
+                return "Firebase could not complete the operation because a required condition was not met.";
+
+            default:
+                return error.message || error.code;
+
+        }
 
     }
 
-    catch (error) {
-
-        console.error(
-            "Error loading result data:",
-            error
-        );
-
-        alert(
-            "Unable to load result data from Firebase."
-        );
-
-    }
+    return error.message ||
+        "An unexpected error occurred.";
 
 }
 
 
-/* =========================================================
-   LOAD STUDENTS
-========================================================= */
+// ============================================================
+// HTML ESCAPE
+// ============================================================
 
-async function loadStudents() {
+function escapeHTML(value) {
 
-    const snapshot =
-        await getDocs(
-            studentsCollection
-        );
-
-    students = [];
-
-    snapshot.forEach(
-        documentSnapshot => {
-
-            students.push({
-
-                firestoreId:
-                    documentSnapshot.id,
-
-                ...documentSnapshot.data()
-
-            });
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   LOAD SUBJECTS
-========================================================= */
-
-async function loadSubjects() {
-
-    const snapshot =
-        await getDocs(
-            subjectsCollection
-        );
-
-    subjects = [];
-
-    snapshot.forEach(
-        documentSnapshot => {
-
-            subjects.push({
-
-                firestoreId:
-                    documentSnapshot.id,
-
-                ...documentSnapshot.data()
-
-            });
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   LOAD CLASSES
-========================================================= */
-
-async function loadClasses() {
-
-    const snapshot =
-        await getDocs(
-            classesCollection
-        );
-
-    classes = [];
-
-    snapshot.forEach(
-        documentSnapshot => {
-
-            classes.push({
-
-                firestoreId:
-                    documentSnapshot.id,
-
-                ...documentSnapshot.data()
-
-            });
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   LOAD RESULTS
-========================================================= */
-
-async function loadResults() {
-
-    const snapshot =
-        await getDocs(
-            resultsCollection
-        );
-
-    results = [];
-
-    snapshot.forEach(
-        documentSnapshot => {
-
-            results.push({
-
-                firestoreId:
-                    documentSnapshot.id,
-
-                ...documentSnapshot.data()
-
-            });
-
-        }
-    );
-
-    renderResults();
-
-}
-
-
-/* =========================================================
-   POPULATE CLASS FILTERS
-========================================================= */
-
-function populateClassFilters() {
-
-    const classNames = [
-        ...new Set(
-
-            classes
-                .map(item =>
-                    item.name ||
-                    item.className
-                )
-                .filter(Boolean)
-
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
         )
-    ];
-
-
-    populateSelect(
-        resultClassFilter,
-        classNames,
-        "All Classes"
-    );
-
-
-    populateSelect(
-        resultClass,
-        classNames,
-        "Select Class"
-    );
-
-
-    populateSelect(
-        bulkClass,
-        classNames,
-        "Select Class"
-    );
-
-}
-
-
-/* =========================================================
-   POPULATE SUBJECT SELECT
-========================================================= */
-
-function populateSubjectSelect() {
-
-    resultSubject.innerHTML = `
-        <option value="">
-            Select Subject
-        </option>
-    `;
-
-
-    subjects
-        .filter(subject =>
-            subject.status !== "Inactive"
+        .replace(
+            /</g,
+            "&lt;"
         )
-        .forEach(subject => {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                subject.firestoreId;
-
-            option.textContent =
-                `${subject.name} (${subject.code || ""})`;
-
-            resultSubject.appendChild(
-                option
-            );
-
-        });
-
-}
-
-
-/* =========================================================
-   BULK SUBJECT SELECT
-========================================================= */
-
-function populateBulkSubjectSelect() {
-
-    bulkSubject.innerHTML = `
-        <option value="">
-            Select Subject
-        </option>
-    `;
-
-
-    subjects
-        .filter(subject =>
-            subject.status !== "Inactive"
+        .replace(
+            />/g,
+            "&gt;"
         )
-        .forEach(subject => {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                subject.firestoreId;
-
-            option.textContent =
-                `${subject.name} (${subject.code || ""})`;
-
-            bulkSubject.appendChild(
-                option
-            );
-
-        });
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
-/* =========================================================
-   GENERIC SELECT POPULATOR
-========================================================= */
+// ============================================================
+// ATTRIBUTE ESCAPE
+// ============================================================
 
-function populateSelect(
-    select,
-    values,
-    defaultText
+function escapeAttribute(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        );
+
+}
+
+
+// ============================================================
+// NUMBER WITHIN RANGE
+// ============================================================
+
+function numberWithinRange(
+    value,
+    min,
+    max
 ) {
 
-    select.innerHTML = `
-        <option value="">
-            ${defaultText}
-        </option>
-    `;
+    const number =
+        Number(value);
 
+    if (
+        Number.isNaN(number)
+    ) {
 
-    values.forEach(value => {
+        return 0;
 
-        const option =
-            document.createElement("option");
+    }
 
-        option.value =
-            value;
-
-        option.textContent =
-            value;
-
-        select.appendChild(
-            option
-        );
-
-    });
+    return Math.min(
+        max,
+        Math.max(
+            min,
+            number
+        )
+    );
 
 }
 
 
-/* =========================================================
-   LOAD STUDENTS FOR SELECTED CLASS
-========================================================= */
+// ============================================================
+// CALCULATE TOTAL
+// ============================================================
 
-function populateStudentsForClass(
-    className
+function calculateTotal(
+    cw1,
+    cw2,
+    ass1,
+    ass2,
+    caOne,
+    caTwo,
+    examScore
 ) {
 
-    resultStudent.innerHTML = `
-        <option value="">
-            Select Student
-        </option>
-    `;
+    return (
 
+        numberWithinRange(
+            cw1,
+            0,
+            5
+        )
 
-    if (!className)
-        return;
+        +
 
+        numberWithinRange(
+            cw2,
+            0,
+            5
+        )
 
-    const classStudents =
-        students.filter(
-            student =>
-                student.class ===
-                className
-        );
+        +
 
+        numberWithinRange(
+            ass1,
+            0,
+            5
+        )
 
-    classStudents.forEach(
-        student => {
+        +
 
-            const option =
-                document.createElement("option");
+        numberWithinRange(
+            ass2,
+            0,
+            5
+        )
 
-            option.value =
-                student.firestoreId;
+        +
 
-            option.textContent =
-                `${student.firstName || ""} ${student.lastName || ""}`
-                    .trim();
+        numberWithinRange(
+            caOne,
+            0,
+            10
+        )
 
-            resultStudent.appendChild(
-                option
-            );
+        +
 
-        }
+        numberWithinRange(
+            caTwo,
+            0,
+            10
+        )
+
+        +
+
+        numberWithinRange(
+            examScore,
+            0,
+            60
+        )
+
     );
 
 }
 
 
-/* =========================================================
-   OPEN RESULT MODAL
-========================================================= */
+// ============================================================
+// GRADE
+// ============================================================
 
-function openResultModal(
-    result = null
-) {
+function getGrade(total) {
 
-    resultModal.classList.add(
-        "show"
-    );
-
-
-    populateSubjectSelect();
-
-
-    if (result) {
-
-        document.getElementById(
-            "resultModalTitle"
-        ).textContent =
-            "Edit Result";
-
-
-        editingResultId.value =
-            result.firestoreId;
-
-
-        resultSession.value =
-            result.session || "";
-
-
-        resultTerm.value =
-            result.term || "";
-
-
-        resultClass.value =
-            result.class || "";
-
-
-        populateStudentsForClass(
-            result.class
-        );
-
-
-        resultStudent.value =
-            result.studentId || "";
-
-
-        resultSubject.value =
-            result.subjectId || "";
-
-
-        ca1.value =
-            result.ca1 ?? 0;
-
-
-        ca2.value =
-            result.ca2 ?? 0;
-
-
-        exam.value =
-            result.exam ?? 0;
-
-
-        calculateResult();
-
-    }
-
-    else {
-
-        resultForm.reset();
-
-
-        editingResultId.value =
-            "";
-
-
-        document.getElementById(
-            "resultModalTitle"
-        ).textContent =
-            "Enter Result";
-
-
-        resultTotal.value =
-            "0";
-
-
-        resultGrade.value =
-            "";
-
-
-        resultRemark.value =
-            "";
-
-    }
-
-}
-
-
-/* =========================================================
-   CLOSE RESULT MODAL
-========================================================= */
-
-function closeResultModalFunction() {
-
-    resultModal.classList.remove(
-        "show"
-    );
-
-    resultForm.reset();
-
-    editingResultId.value =
-        "";
-
-}
-
-
-/* =========================================================
-   OPEN BULK MODAL
-========================================================= */
-
-function openBulkModal() {
-
-    bulkResultModal.classList.add(
-        "show"
-    );
-
-
-    populateBulkSubjectSelect();
-
-
-    bulkResultTableBody.innerHTML =
-        "";
-
-
-    bulkResultTableContainer.style.display =
-        "none";
-
-
-    saveBulkResultsBtn.style.display =
-        "none";
-
-}
-
-
-/* =========================================================
-   CLOSE BULK MODAL
-========================================================= */
-
-function closeBulkModal() {
-
-    bulkResultModal.classList.remove(
-        "show"
-    );
-
-}
-
-
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
-
-addResultBtn.addEventListener(
-    "click",
-    () => openResultModal()
-);
-
-
-closeResultModal.addEventListener(
-    "click",
-    closeResultModalFunction
-);
-
-
-cancelResultBtn.addEventListener(
-    "click",
-    closeResultModalFunction
-);
-
-
-bulkResultBtn.addEventListener(
-    "click",
-    openBulkModal
-);
-
-
-closeBulkResultModal.addEventListener(
-    "click",
-    closeBulkModal
-);
-
-
-cancelBulkResultBtn.addEventListener(
-    "click",
-    closeBulkModal
-);
-
-
-/* =========================================================
-   CLOSE MODALS OUTSIDE
-========================================================= */
-
-resultModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            resultModal
-        ) {
-
-            closeResultModalFunction();
-
-        }
-
-    }
-);
-
-
-bulkResultModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            bulkResultModal
-        ) {
-
-            closeBulkModal();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   CLASS CHANGE
-========================================================= */
-
-resultClass.addEventListener(
-    "change",
-    () => {
-
-        populateStudentsForClass(
-            resultClass.value
-        );
-
-    }
-);
-
-
-/* =========================================================
-   SCORE CALCULATION
-========================================================= */
-
-function calculateResult() {
-
-    const score1 =
-        Number(ca1.value) || 0;
-
-    const score2 =
-        Number(ca2.value) || 0;
-
-    const examination =
-        Number(exam.value) || 0;
-
-
-    const total =
-        score1 +
-        score2 +
-        examination;
-
-
-    resultTotal.value =
-        total;
-
-
-    const grade =
-        getGrade(total);
-
-
-    resultGrade.value =
-        grade;
-
-
-    resultRemark.value =
-        getRemark(total);
-
-}
-
-
-/* =========================================================
-   GRADE
-========================================================= */
-
-function getGrade(score) {
+    const score =
+        Number(total) || 0;
 
     if (score >= 70)
         return "A";
@@ -853,11 +506,14 @@ function getGrade(score) {
 }
 
 
-/* =========================================================
-   REMARK
-========================================================= */
+// ============================================================
+// REMARK
+// ============================================================
 
-function getRemark(score) {
+function getRemark(total) {
+
+    const score =
+        Number(total) || 0;
 
     if (score >= 70)
         return "Excellent";
@@ -879,271 +535,1694 @@ function getRemark(score) {
 }
 
 
-/* =========================================================
-   SCORE INPUT EVENTS
-========================================================= */
+// ============================================================
+// UPDATE SCORE PREVIEW
+// ============================================================
 
-ca1.addEventListener(
-    "input",
-    calculateResult
-);
+function updateScorePreview() {
 
+    const total =
+        calculateTotal(
 
-ca2.addEventListener(
-    "input",
-    calculateResult
-);
+            getValue(classWork1),
 
+            getValue(classWork2),
 
-exam.addEventListener(
-    "input",
-    calculateResult
-);
+            getValue(assignment1),
 
+            getValue(assignment2),
 
-/* =========================================================
-   SAVE SINGLE RESULT
-========================================================= */
+            getValue(ca1),
 
-resultForm.addEventListener(
-    "submit",
-    async event => {
+            getValue(ca2),
 
-        event.preventDefault();
+            getValue(exam)
+
+        );
 
 
-        calculateResult();
+    if (resultTotal) {
+
+        resultTotal.value =
+            total;
+
+    }
 
 
-        const session =
-            resultSession.value;
+    if (resultGrade) {
 
-        const term =
-            resultTerm.value;
+        resultGrade.value =
+            getGrade(total);
 
-        const className =
-            resultClass.value;
-
-        const studentId =
-            resultStudent.value;
-
-        const subjectId =
-            resultSubject.value;
+    }
 
 
-        if (
-            !session ||
-            !term ||
-            !className ||
-            !studentId ||
-            !subjectId
-        ) {
+    if (resultRemark) {
 
-            alert(
-                "Please complete all required fields."
-            );
+        resultRemark.value =
+            getRemark(total);
 
+    }
+
+}
+
+
+// ============================================================
+// SCORE INPUT EVENTS
+// ============================================================
+
+[
+    classWork1,
+    classWork2,
+    assignment1,
+    assignment2,
+    ca1,
+    ca2,
+    exam
+]
+.forEach(
+    input => {
+
+        if (!input) {
             return;
-
         }
 
-
-        const student =
-            students.find(
-                item =>
-                    item.firestoreId ===
-                    studentId
-            );
-
-
-        const subject =
-            subjects.find(
-                item =>
-                    item.firestoreId ===
-                    subjectId
-            );
-
-
-        const resultData = {
-
-            session,
-
-            term,
-
-            class:
-                className,
-
-            studentId,
-
-            studentName:
-                `${student?.firstName || ""} ${student?.lastName || ""}`
-                    .trim(),
-
-            subjectId,
-
-            subjectName:
-                subject?.name || "",
-
-            subjectCode:
-                subject?.code || "",
-
-            ca1:
-                Number(ca1.value) || 0,
-
-            ca2:
-                Number(ca2.value) || 0,
-
-            exam:
-                Number(exam.value) || 0,
-
-            total:
-                Number(resultTotal.value) || 0,
-
-            grade:
-                resultGrade.value,
-
-            remark:
-                resultRemark.value,
-
-            updatedAt:
-                new Date().toISOString()
-
-        };
-
-
-        try {
-
-            if (editingResultId.value) {
-
-                await updateDoc(
-
-                    doc(
-                        db,
-                        "results",
-                        editingResultId.value
-                    ),
-
-                    resultData
-
-                );
-
-                alert(
-                    "Result updated successfully."
-                );
-
-            }
-
-            else {
-
-                await addDoc(
-                    resultsCollection,
-                    {
-                        ...resultData,
-
-                        createdAt:
-                            new Date().toISOString()
-                    }
-                );
-
-
-                alert(
-                    "Result saved successfully."
-                );
-
-            }
-
-
-            await loadResults();
-
-            closeResultModalFunction();
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Error saving result:",
-                error
-            );
-
-
-            alert(
-                "Unable to save result. Check your Firestore rules and Firebase configuration."
-            );
-
-        }
+        input.addEventListener(
+            "input",
+            updateScorePreview
+        );
 
     }
 );
 
 
-/* =========================================================
-   RENDER RESULTS
-========================================================= */
+// ============================================================
+// LOAD ALL DATA
+// ============================================================
 
-function renderResults() {
+async function loadAllData() {
 
-    const search =
-        resultSearch.value
+    try {
+
+        await Promise.all([
+
+            loadStudents(),
+
+            loadClasses(),
+
+            loadSubjects(),
+
+            loadResults()
+
+        ]);
+
+
+        populateClassFilters();
+
+        populateIndividualClassDropdown();
+
+        populateBulkClassDropdown();
+
+        populateSubjectDropdown(
+            resultSubject
+        );
+
+        populateSubjectDropdown(
+            bulkSubject
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading result data:",
+            error
+        );
+
+        alert(
+            "Unable to load result data from Firestore.\n\n" +
+            getFirebaseErrorMessage(error)
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// LOAD STUDENTS
+// ============================================================
+
+async function loadStudents() {
+
+    const snapshot =
+        await getDocs(
+            studentsCollection
+        );
+
+
+    students =
+        snapshot.docs.map(
+            studentDoc => ({
+
+                firestoreId:
+                    studentDoc.id,
+
+                ...studentDoc.data()
+
+            })
+        );
+
+}
+
+
+// ============================================================
+// LOAD CLASSES
+// ============================================================
+
+async function loadClasses() {
+
+    const snapshot =
+        await getDocs(
+            classesCollection
+        );
+
+
+    classes =
+        snapshot.docs.map(
+            classDoc => ({
+
+                firestoreId:
+                    classDoc.id,
+
+                ...classDoc.data()
+
+            })
+        );
+
+}
+
+
+// ============================================================
+// LOAD SUBJECTS
+// ============================================================
+
+async function loadSubjects() {
+
+    const snapshot =
+        await getDocs(
+            subjectsCollection
+        );
+
+
+    subjects =
+        snapshot.docs.map(
+            subjectDoc => ({
+
+                firestoreId:
+                    subjectDoc.id,
+
+                ...subjectDoc.data()
+
+            })
+        );
+
+}
+
+
+// ============================================================
+// LOAD RESULTS
+// ============================================================
+
+async function loadResults() {
+
+    const snapshot =
+        await getDocs(
+            resultsCollection
+        );
+
+
+    results =
+        snapshot.docs.map(
+            resultDoc => ({
+
+                firestoreId:
+                    resultDoc.id,
+
+                ...resultDoc.data()
+
+            })
+        );
+
+
+    renderResults();
+
+}
+
+
+// ============================================================
+// POPULATE CLASS DROPDOWN
+// ============================================================
+
+function populateClassDropdown(
+    selectElement,
+    includeAllOption = false
+) {
+
+    if (!selectElement) {
+        return;
+    }
+
+
+    const currentValue =
+        selectElement.value;
+
+
+    selectElement.innerHTML =
+        "";
+
+
+    const firstOption =
+        document.createElement(
+            "option"
+        );
+
+
+    firstOption.value =
+        "";
+
+
+    firstOption.textContent =
+        includeAllOption
+            ? "All Classes"
+            : "Select Class";
+
+
+    selectElement.appendChild(
+        firstOption
+    );
+
+
+    classes
+        .slice()
+        .sort(
+            (a, b) => {
+
+                const nameA =
+                    a.name ||
+                    a.className ||
+                    a.id ||
+                    "";
+
+                const nameB =
+                    b.name ||
+                    b.className ||
+                    b.id ||
+                    "";
+
+                return String(
+                    nameA
+                ).localeCompare(
+                    String(
+                        nameB
+                    )
+                );
+
+            }
+        )
+        .forEach(
+            classData => {
+
+                const className =
+                    classData.name ||
+                    classData.className ||
+                    classData.id ||
+                    classData.firestoreId;
+
+
+                if (!className) {
+                    return;
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    className;
+
+
+                option.textContent =
+                    className;
+
+
+                selectElement.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+    if (
+        [...selectElement.options]
+            .some(
+                option =>
+                    option.value ===
+                    currentValue
+            )
+    ) {
+
+        selectElement.value =
+            currentValue;
+
+    }
+
+}
+
+
+// ============================================================
+// CLASS DROPDOWNS
+// ============================================================
+
+function populateIndividualClassDropdown() {
+
+    populateClassDropdown(
+        resultClass,
+        false
+    );
+
+}
+
+
+function populateBulkClassDropdown() {
+
+    populateClassDropdown(
+        bulkClass,
+        false
+    );
+
+}
+
+
+function populateClassFilters() {
+
+    populateClassDropdown(
+        resultClassFilter,
+        true
+    );
+
+}
+
+
+// ============================================================
+// POPULATE SUBJECT DROPDOWN
+// ============================================================
+
+function populateSubjectDropdown(
+    selectElement
+) {
+
+    if (!selectElement) {
+        return;
+    }
+
+
+    const currentValue =
+        selectElement.value;
+
+
+    selectElement.innerHTML = `
+
+        <option value="">
+            Select Subject
+        </option>
+
+    `;
+
+
+    subjects
+        .slice()
+        .sort(
+            (a, b) => {
+
+                const nameA =
+                    a.name ||
+                    a.subjectName ||
+                    a.title ||
+                    "";
+
+                const nameB =
+                    b.name ||
+                    b.subjectName ||
+                    b.title ||
+                    "";
+
+                return String(
+                    nameA
+                ).localeCompare(
+                    String(
+                        nameB
+                    )
+                );
+
+            }
+        )
+        .forEach(
+            subject => {
+
+                const subjectName =
+                    subject.name ||
+                    subject.subjectName ||
+                    subject.title ||
+                    "";
+
+
+                if (!subjectName) {
+                    return;
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    subjectName;
+
+
+                option.textContent =
+                    subjectName;
+
+
+                selectElement.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+    if (
+        [...selectElement.options]
+            .some(
+                option =>
+                    option.value ===
+                    currentValue
+            )
+    ) {
+
+        selectElement.value =
+            currentValue;
+
+    }
+
+}
+
+
+// ============================================================
+// GET STUDENT CLASS
+// ============================================================
+
+function getStudentClass(student) {
+
+    return String(
+
+        student.studentClass ||
+
+        student.className ||
+
+        student.class ||
+
+        ""
+
+    ).trim();
+
+}
+
+
+// ============================================================
+// GET STUDENT NAME
+// ============================================================
+
+function getStudentName(student) {
+
+    const fullName =
+        `${student.firstName || ""} ${student.lastName || ""}`
+            .trim();
+
+
+    if (fullName) {
+        return fullName;
+    }
+
+
+    return (
+
+        student.name ||
+
+        student.fullName ||
+
+        student.studentName ||
+
+        "Unnamed Student"
+
+    );
+
+}
+
+
+// ============================================================
+// POPULATE STUDENT DROPDOWN
+// ============================================================
+
+function populateStudentDropdown(
+    classValue = "",
+    selectedStudent = ""
+) {
+
+    if (!resultStudent) {
+        return;
+    }
+
+
+    resultStudent.innerHTML = `
+
+        <option value="">
+            Select Student
+        </option>
+
+    `;
+
+
+    let filteredStudents =
+        students;
+
+
+    if (classValue) {
+
+        const wantedClass =
+            String(
+                classValue
+            )
             .trim()
             .toLowerCase();
 
 
-    const selectedSession =
-        resultSessionFilter.value;
+        filteredStudents =
+            students.filter(
+                student => {
+
+                    const studentClass =
+                        getStudentClass(
+                            student
+                        )
+                        .toLowerCase();
 
 
-    const selectedTerm =
-        resultTermFilter.value;
+                    return (
+                        studentClass ===
+                        wantedClass
+                    );
+
+                }
+            );
+
+    }
 
 
-    const selectedClass =
-        resultClassFilter.value;
+    filteredStudents
+        .slice()
+        .sort(
+            (a, b) => {
+
+                return getStudentName(a)
+                    .localeCompare(
+                        getStudentName(b)
+                    );
+
+            }
+        )
+        .forEach(
+            student => {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    student.firestoreId;
+
+
+                option.textContent =
+                    getStudentName(
+                        student
+                    );
+
+
+                resultStudent.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+    if (selectedStudent) {
+
+        resultStudent.value =
+            selectedStudent;
+
+    }
+
+}
+
+
+// ============================================================
+// RESULT CLASS CHANGE
+// ============================================================
+
+if (resultClass) {
+
+    resultClass.addEventListener(
+        "change",
+        function() {
+
+            populateStudentDropdown(
+                this.value
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// OPEN RESULT MODAL
+// ============================================================
+
+function openResultModal(
+    resultData = null
+) {
+
+    if (!resultModal) {
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // Reset the form first
+    // --------------------------------------------------------
+
+    if (resultForm) {
+
+        resultForm.reset();
+
+    }
+
+
+    // --------------------------------------------------------
+    // Clear editing ID
+    // --------------------------------------------------------
+
+    if (editingResultId) {
+
+        editingResultId.value =
+            "";
+
+    }
+
+
+    // --------------------------------------------------------
+    // Rebuild dropdowns
+    // --------------------------------------------------------
+
+    populateClassDropdown(
+        resultClass,
+        false
+    );
+
+    populateSubjectDropdown(
+        resultSubject
+    );
+
+
+    // --------------------------------------------------------
+    // EDIT MODE
+    // --------------------------------------------------------
+
+    if (resultData) {
+
+        if (resultModalTitle) {
+
+            resultModalTitle.textContent =
+                "Edit Result";
+
+        }
+
+
+        if (editingResultId) {
+
+            editingResultId.value =
+                resultData.firestoreId || "";
+
+        }
+
+
+        if (resultSession) {
+
+            resultSession.value =
+                resultData.session ||
+                resultData.academicSession ||
+                "";
+
+        }
+
+
+        if (resultTerm) {
+
+            resultTerm.value =
+                resultData.term ||
+                "";
+
+        }
+
+
+        if (resultClass) {
+
+            resultClass.value =
+                resultData.className ||
+                resultData.studentClass ||
+                resultData.class ||
+                "";
+
+        }
+
+
+        populateStudentDropdown(
+            getValue(resultClass),
+            resultData.studentId ||
+            ""
+        );
+
+
+        if (resultSubject) {
+
+            resultSubject.value =
+                resultData.subject ||
+                "";
+
+        }
+
+
+        if (classWork1) {
+
+            classWork1.value =
+                resultData.classWork1 ??
+                resultData.cw1 ??
+                0;
+
+        }
+
+
+        if (classWork2) {
+
+            classWork2.value =
+                resultData.classWork2 ??
+                resultData.cw2 ??
+                0;
+
+        }
+
+
+        if (assignment1) {
+
+            assignment1.value =
+                resultData.assignment1 ??
+                resultData.ass1 ??
+                0;
+
+        }
+
+
+        if (assignment2) {
+
+            assignment2.value =
+                resultData.assignment2 ??
+                resultData.ass2 ??
+                0;
+
+        }
+
+
+        if (ca1) {
+
+            ca1.value =
+                resultData.ca1 ??
+                0;
+
+        }
+
+
+        if (ca2) {
+
+            ca2.value =
+                resultData.ca2 ??
+                0;
+
+        }
+
+
+        if (exam) {
+
+            exam.value =
+                resultData.exam ??
+                resultData.examScore ??
+                0;
+
+        }
+
+
+        updateScorePreview();
+
+    }
+
+    // --------------------------------------------------------
+    // ADD MODE
+    // --------------------------------------------------------
+
+    else {
+
+        if (resultModalTitle) {
+
+            resultModalTitle.textContent =
+                "Enter Result";
+
+        }
+
+
+        if (resultSession) {
+
+            resultSession.value =
+                "2026/2027";
+
+        }
+
+
+        if (resultTerm) {
+
+            resultTerm.value =
+                "";
+
+        }
+
+
+        if (resultClass) {
+
+            resultClass.value =
+                "";
+
+        }
+
+
+        if (resultStudent) {
+
+            resultStudent.innerHTML = `
+
+                <option value="">
+                    Select Student
+                </option>
+
+            `;
+
+        }
+
+
+        if (resultSubject) {
+
+            resultSubject.value =
+                "";
+
+        }
+
+
+        if (classWork1)
+            classWork1.value = 0;
+
+        if (classWork2)
+            classWork2.value = 0;
+
+        if (assignment1)
+            assignment1.value = 0;
+
+        if (assignment2)
+            assignment2.value = 0;
+
+        if (ca1)
+            ca1.value = 0;
+
+        if (ca2)
+            ca2.value = 0;
+
+        if (exam)
+            exam.value = 0;
+
+
+        updateScorePreview();
+
+    }
+
+
+    // --------------------------------------------------------
+    // SHOW MODAL
+    //
+    // IMPORTANT:
+    // classList.add("show") is used every time.
+    // This allows the Enter Result button to work repeatedly.
+    // --------------------------------------------------------
+
+    resultModal.classList.add(
+        "show"
+    );
+
+}
+
+
+// ============================================================
+// ADD RESULT BUTTON
+// ============================================================
+
+if (addResultBtn) {
+
+    addResultBtn.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            openResultModal();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CLOSE RESULT MODAL
+// ============================================================
+
+function closeResultModalFunction() {
+
+    if (!resultModal) {
+        return;
+    }
+
+
+    resultModal.classList.remove(
+        "show"
+    );
+
+
+    if (resultForm) {
+
+        resultForm.reset();
+
+    }
+
+
+    if (editingResultId) {
+
+        editingResultId.value =
+            "";
+
+    }
+
+
+    if (resultModalTitle) {
+
+        resultModalTitle.textContent =
+            "Enter Result";
+
+    }
+
+
+    // Reset score fields
+
+    if (classWork1)
+        classWork1.value = 0;
+
+    if (classWork2)
+        classWork2.value = 0;
+
+    if (assignment1)
+        assignment1.value = 0;
+
+    if (assignment2)
+        assignment2.value = 0;
+
+    if (ca1)
+        ca1.value = 0;
+
+    if (ca2)
+        ca2.value = 0;
+
+    if (exam)
+        exam.value = 0;
+
+
+    updateScorePreview();
+
+}
+
+
+// ============================================================
+// CLOSE BUTTON
+// ============================================================
+
+if (closeResultModal) {
+
+    closeResultModal.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            closeResultModalFunction();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CANCEL BUTTON
+// ============================================================
+
+if (cancelResultBtn) {
+
+    cancelResultBtn.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            closeResultModalFunction();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CLICK OUTSIDE MODAL
+// ============================================================
+
+if (resultModal) {
+
+    resultModal.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                resultModal
+            ) {
+
+                closeResultModalFunction();
+
+            }
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// SAVE INDIVIDUAL RESULT
+// ============================================================
+
+if (resultForm) {
+
+    resultForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const editingId =
+                getValue(
+                    editingResultId
+                );
+
+
+            const session =
+                getValue(
+                    resultSession
+                );
+
+
+            const term =
+                getValue(
+                    resultTerm
+                );
+
+
+            const className =
+                getValue(
+                    resultClass
+                );
+
+
+            const studentId =
+                getValue(
+                    resultStudent
+                );
+
+
+            const subject =
+                getValue(
+                    resultSubject
+                );
+
+
+            // ------------------------------------------------
+            // VALIDATION
+            // ------------------------------------------------
+
+            if (
+                !session ||
+                !term ||
+                !className ||
+                !studentId ||
+                !subject
+            ) {
+
+                alert(
+                    "Please complete the session, term, class, student and subject fields."
+                );
+
+                return;
+
+            }
+
+
+            const student =
+                students.find(
+                    item =>
+                        item.firestoreId ===
+                        studentId
+                );
+
+
+            if (!student) {
+
+                alert(
+                    "Student could not be found."
+                );
+
+                return;
+
+            }
+
+
+            // ------------------------------------------------
+            // SCORES
+            // ------------------------------------------------
+
+            const cw1 =
+                numberWithinRange(
+                    getValue(classWork1),
+                    0,
+                    5
+                );
+
+
+            const cw2 =
+                numberWithinRange(
+                    getValue(classWork2),
+                    0,
+                    5
+                );
+
+
+            const ass1 =
+                numberWithinRange(
+                    getValue(assignment1),
+                    0,
+                    5
+                );
+
+
+            const ass2 =
+                numberWithinRange(
+                    getValue(assignment2),
+                    0,
+                    5
+                );
+
+
+            const caOne =
+                numberWithinRange(
+                    getValue(ca1),
+                    0,
+                    10
+                );
+
+
+            const caTwo =
+                numberWithinRange(
+                    getValue(ca2),
+                    0,
+                    10
+                );
+
+
+            const examScore =
+                numberWithinRange(
+                    getValue(exam),
+                    0,
+                    60
+                );
+
+
+            // ------------------------------------------------
+            // TOTAL
+            // ------------------------------------------------
+
+            const total =
+                calculateTotal(
+                    cw1,
+                    cw2,
+                    ass1,
+                    ass2,
+                    caOne,
+                    caTwo,
+                    examScore
+                );
+
+
+            const grade =
+                getGrade(total);
+
+
+            const remark =
+                getRemark(total);
+
+
+            // ------------------------------------------------
+            // DUPLICATE CHECK
+            // ------------------------------------------------
+
+            const duplicate =
+                results.find(
+                    item => {
+
+                        const itemStudent =
+                            item.studentId ||
+                            "";
+
+                        const itemClass =
+                            item.className ||
+                            item.studentClass ||
+                            item.class ||
+                            "";
+
+                        const itemSession =
+                            item.session ||
+                            item.academicSession ||
+                            "";
+
+                        const itemTerm =
+                            item.term ||
+                            "";
+
+                        const itemSubject =
+                            item.subject ||
+                            "";
+
+
+                        return (
+
+                            itemStudent ===
+                            studentId
+
+                            &&
+
+                            String(
+                                itemClass
+                            )
+                            .trim()
+                            .toLowerCase() ===
+                            String(
+                                className
+                            )
+                            .trim()
+                            .toLowerCase()
+
+                            &&
+
+                            String(
+                                itemSession
+                            ) ===
+                            String(
+                                session
+                            )
+
+                            &&
+
+                            String(
+                                itemTerm
+                            ) ===
+                            String(
+                                term
+                            )
+
+                            &&
+
+                            String(
+                                itemSubject
+                            )
+                            .trim()
+                            .toLowerCase() ===
+                            String(
+                                subject
+                            )
+                            .trim()
+                            .toLowerCase()
+
+                            &&
+
+                            item.firestoreId !==
+                            editingId
+
+                        );
+
+                    }
+                );
+
+
+            if (duplicate) {
+
+                alert(
+                    "A result already exists for this student, subject, term and session."
+                );
+
+                return;
+
+            }
+
+
+            // ------------------------------------------------
+            // RESULT DATA
+            // ------------------------------------------------
+
+            const resultData = {
+
+                studentId:
+                    studentId,
+
+                studentName:
+                    getStudentName(
+                        student
+                    ),
+
+                className:
+                    className,
+
+                subject:
+                    subject,
+
+                session:
+                    session,
+
+                academicSession:
+                    session,
+
+                term:
+                    term,
+
+
+                // Assessment
+
+                classWork1:
+                    cw1,
+
+                classWork2:
+                    cw2,
+
+                assignment1:
+                    ass1,
+
+                assignment2:
+                    ass2,
+
+                ca1:
+                    caOne,
+
+                ca2:
+                    caTwo,
+
+                exam:
+                    examScore,
+
+
+                // Calculated
+
+                total:
+                    total,
+
+                grade:
+                    grade,
+
+                remark:
+                    remark,
+
+                updatedAt:
+                    serverTimestamp()
+
+            };
+
+
+            // ------------------------------------------------
+            // SAVE
+            // ------------------------------------------------
+
+            try {
+
+                if (editingId) {
+
+                    await updateDoc(
+
+                        doc(
+                            db,
+                            "results",
+                            editingId
+                        ),
+
+                        resultData
+
+                    );
+
+
+                    alert(
+                        "Result updated successfully."
+                    );
+
+                }
+
+                else {
+
+                    await addDoc(
+
+                        resultsCollection,
+
+                        {
+
+                            ...resultData,
+
+                            createdAt:
+                                serverTimestamp()
+
+                        }
+
+                    );
+
+
+                    alert(
+                        "Result saved successfully."
+                    );
+
+                }
+
+
+                await loadResults();
+
+                closeResultModalFunction();
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Error saving result:",
+                    error
+                );
+
+
+                alert(
+                    "Unable to save result.\n\n" +
+                    getFirebaseErrorMessage(
+                        error
+                    )
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// RENDER RESULTS
+// ============================================================
+
+function renderResults() {
+
+    if (!resultsTableBody) {
+        return;
+    }
+
+
+    const search =
+        getValue(
+            resultSearch
+        )
+        .toLowerCase();
+
+
+    const sessionFilter =
+        getValue(
+            resultSessionFilter
+        );
+
+
+    const termFilter =
+        getValue(
+            resultTermFilter
+        );
+
+
+    const classFilter =
+        getValue(
+            resultClassFilter
+        );
 
 
     const filtered =
         results.filter(
             result => {
 
+                const studentName =
+                    String(
+                        result.studentName ||
+                        ""
+                    )
+                    .toLowerCase();
+
+
+                const subject =
+                    String(
+                        result.subject ||
+                        ""
+                    )
+                    .toLowerCase();
+
+
+                const className =
+                    String(
+                        result.className ||
+                        result.studentClass ||
+                        result.class ||
+                        ""
+                    );
+
+
+                const session =
+                    result.session ||
+                    result.academicSession ||
+                    "";
+
+
+                const term =
+                    result.term ||
+                    "";
+
+
                 const matchesSearch =
                     !search ||
 
-                    String(
-                        result.studentName || ""
-                    )
-                    .toLowerCase()
-                    .includes(search) ||
+                    studentName.includes(
+                        search
+                    ) ||
 
-                    String(
-                        result.subjectName || ""
-                    )
-                    .toLowerCase()
-                    .includes(search);
+                    subject.includes(
+                        search
+                    ) ||
+
+                    className
+                        .toLowerCase()
+                        .includes(
+                            search
+                        );
 
 
                 const matchesSession =
-                    !selectedSession ||
-                    result.session ===
-                    selectedSession;
+                    !sessionFilter ||
+
+                    session ===
+                    sessionFilter;
 
 
                 const matchesTerm =
-                    !selectedTerm ||
-                    result.term ===
-                    selectedTerm;
+                    !termFilter ||
+
+                    term ===
+                    termFilter;
 
 
                 const matchesClass =
-                    !selectedClass ||
-                    result.class ===
-                    selectedClass;
+                    !classFilter ||
+
+                    className ===
+                    classFilter;
 
 
                 return (
+
                     matchesSearch &&
+
                     matchesSession &&
+
                     matchesTerm &&
+
                     matchesClass
+
                 );
 
             }
@@ -1158,16 +2237,24 @@ function renderResults() {
         filtered.length === 0
     ) {
 
-        emptyResults.style.display =
-            "block";
+        if (emptyResults) {
+
+            emptyResults.style.display =
+                "block";
+
+        }
 
         return;
 
     }
 
 
-    emptyResults.style.display =
-        "none";
+    if (emptyResults) {
+
+        emptyResults.style.display =
+            "none";
+
+    }
 
 
     filtered.forEach(
@@ -1179,92 +2266,208 @@ function renderResults() {
                 );
 
 
+            // ------------------------------------------------
+            // SCORE VALUES
+            // ------------------------------------------------
+
+            const cw1 =
+                Number(
+                    result.classWork1 ??
+                    result.cw1 ??
+                    0
+                );
+
+
+            const cw2 =
+                Number(
+                    result.classWork2 ??
+                    result.cw2 ??
+                    0
+                );
+
+
+            const ass1 =
+                Number(
+                    result.assignment1 ??
+                    result.ass1 ??
+                    0
+                );
+
+
+            const ass2 =
+                Number(
+                    result.assignment2 ??
+                    result.ass2 ??
+                    0
+                );
+
+
+            const caOne =
+                Number(
+                    result.ca1 ??
+                    0
+                );
+
+
+            const caTwo =
+                Number(
+                    result.ca2 ??
+                    0
+                );
+
+
+            const examScore =
+                Number(
+                    result.exam ??
+                    result.examScore ??
+                    0
+                );
+
+
+            const calculatedTotal =
+                calculateTotal(
+                    cw1,
+                    cw2,
+                    ass1,
+                    ass2,
+                    caOne,
+                    caTwo,
+                    examScore
+                );
+
+
+            const total =
+                Number(
+                    result.total ??
+                    calculatedTotal
+                );
+
+
+            const grade =
+                result.grade ||
+                getGrade(total);
+
+
+            const remark =
+                result.remark ||
+                getRemark(total);
+
+
+            // ------------------------------------------------
+            // TABLE
+            // ------------------------------------------------
+
             row.innerHTML = `
 
                 <td>
+                    ${escapeHTML(
+                        result.studentName ||
+                        "Unknown Student"
+                    )}
+                </td>
 
+
+                <td>
+                    ${escapeHTML(
+                        result.className ||
+                        result.studentClass ||
+                        result.class ||
+                        ""
+                    )}
+                </td>
+
+
+                <td>
+                    ${escapeHTML(
+                        result.subject ||
+                        ""
+                    )}
+                </td>
+
+
+                <td>
+                    ${cw1}
+                </td>
+
+
+                <td>
+                    ${cw2}
+                </td>
+
+
+                <td>
+                    ${ass1}
+                </td>
+
+
+                <td>
+                    ${ass2}
+                </td>
+
+
+                <td>
+                    ${caOne}
+                </td>
+
+
+                <td>
+                    ${caTwo}
+                </td>
+
+
+                <td>
+                    ${examScore}
+                </td>
+
+
+                <td>
+                    <strong>
+                        ${total}
+                    </strong>
+                </td>
+
+
+                <td>
                     <strong>
                         ${escapeHTML(
-                            result.studentName
+                            grade
                         )}
                     </strong>
-
                 </td>
 
 
                 <td>
                     ${escapeHTML(
-                        result.class
-                    )}
-                </td>
-
-
-                <td>
-                    ${escapeHTML(
-                        result.subjectName
-                    )}
-                </td>
-
-
-                <td>
-                    ${result.ca1 ?? 0}
-                </td>
-
-
-                <td>
-                    ${result.ca2 ?? 0}
-                </td>
-
-
-                <td>
-                    ${result.exam ?? 0}
-                </td>
-
-
-                <td>
-
-                    <strong>
-                        ${result.total ?? 0}
-                    </strong>
-
-                </td>
-
-
-                <td>
-
-                    <strong>
-                        ${escapeHTML(
-                            result.grade
-                        )}
-                    </strong>
-
-                </td>
-
-
-                <td>
-                    ${escapeHTML(
-                        result.remark
+                        remark
                     )}
                 </td>
 
 
                 <td>
 
-                    <div class="table-actions">
+                    <div
+                        class="table-actions"
+                    >
 
                         <button
+                            type="button"
                             class="table-action"
                             title="Edit"
-                            onclick="editResult('${escapeAttribute(result.firestoreId)}')"
+                            data-edit-result="${escapeAttribute(
+                                result.firestoreId
+                            )}"
                         >
                             ✏️
                         </button>
 
 
                         <button
+                            type="button"
                             class="table-action"
                             title="Delete"
-                            onclick="deleteResult('${escapeAttribute(result.firestoreId)}')"
+                            data-delete-result="${escapeAttribute(
+                                result.firestoreId
+                            )}"
                         >
                             🗑️
                         </button>
@@ -1283,170 +2486,716 @@ function renderResults() {
         }
     );
 
+
+    attachResultActions();
+
 }
 
 
-/* =========================================================
-   EDIT RESULT
-========================================================= */
+// ============================================================
+// RESULT ACTION BUTTONS
+// ============================================================
 
-window.editResult =
-    function(id) {
+function attachResultActions() {
 
-        const result =
-            results.find(
-                item =>
-                    item.firestoreId ===
-                    id
-            );
+    document
+        .querySelectorAll(
+            "[data-edit-result]"
+        )
+        .forEach(
+            button => {
 
+                button.addEventListener(
+                    "click",
+                    function(event) {
 
-        if (result) {
+                        event.preventDefault();
 
-            openResultModal(
-                result
-            );
+                        editResult(
+                            this.dataset.editResult
+                        );
 
-        }
+                    }
+                );
 
-    };
-
-
-/* =========================================================
-   DELETE RESULT
-========================================================= */
-
-window.deleteResult =
-    async function(id) {
-
-        const result =
-            results.find(
-                item =>
-                    item.firestoreId ===
-                    id
-            );
+            }
+        );
 
 
-        if (!result)
-            return;
+    document
+        .querySelectorAll(
+            "[data-delete-result]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    function(event) {
+
+                        event.preventDefault();
+
+                        deleteResult(
+                            this.dataset.deleteResult
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
 
 
-        const confirmed =
-            confirm(
-                `Delete result for ${result.studentName} in ${result.subjectName}?`
-            );
+// ============================================================
+// EDIT RESULT
+// ============================================================
+
+function editResult(
+    firestoreId
+) {
+
+    const resultData =
+        results.find(
+            item =>
+                item.firestoreId ===
+                firestoreId
+        );
 
 
-        if (!confirmed)
-            return;
+    if (!resultData) {
+
+        alert(
+            "Result could not be found."
+        );
+
+        return;
+
+    }
 
 
-        try {
+    openResultModal(
+        resultData
+    );
 
-            await deleteDoc(
-
-                doc(
-                    db,
-                    "results",
-                    id
-                )
-
-            );
+}
 
 
-            await loadResults();
+// ============================================================
+// DELETE RESULT
+// ============================================================
+
+async function deleteResult(
+    firestoreId
+) {
+
+    const resultData =
+        results.find(
+            item =>
+                item.firestoreId ===
+                firestoreId
+        );
 
 
-            alert(
-                "Result deleted successfully."
-            );
+    if (!resultData) {
+        return;
+    }
 
-        }
 
-        catch (error) {
+    const confirmed =
+        confirm(
+            `Delete the result for ${resultData.studentName || "this student"} in ${resultData.subject || "this subject"}?`
+        );
 
-            console.error(
-                "Error deleting result:",
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await deleteDoc(
+
+            doc(
+                db,
+                "results",
+                firestoreId
+            )
+
+        );
+
+
+        alert(
+            "Result deleted successfully."
+        );
+
+
+        await loadResults();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error deleting result:",
+            error
+        );
+
+
+        alert(
+            "Unable to delete result.\n\n" +
+            getFirebaseErrorMessage(
                 error
-            );
+            )
+        );
+
+    }
+
+}
 
 
-            alert(
-                "Unable to delete result."
-            );
+// ============================================================
+// FILTER EVENTS
+// ============================================================
 
-        }
+if (resultSessionFilter) {
 
-    };
+    resultSessionFilter.addEventListener(
+        "change",
+        renderResults
+    );
 
-
-/* =========================================================
-   BULK: LOAD STUDENTS
-========================================================= */
-
-loadClassStudentsBtn.addEventListener(
-    "click",
-    () => {
-
-        const className =
-            bulkClass.value;
+}
 
 
-        const session =
-            bulkSession.value;
+if (resultTermFilter) {
+
+    resultTermFilter.addEventListener(
+        "change",
+        renderResults
+    );
+
+}
 
 
-        const term =
-            bulkTerm.value;
+if (resultClassFilter) {
+
+    resultClassFilter.addEventListener(
+        "change",
+        renderResults
+    );
+
+}
 
 
-        const subjectId =
-            bulkSubject.value;
+if (resultSearch) {
+
+    resultSearch.addEventListener(
+        "input",
+        renderResults
+    );
+
+}
 
 
-        if (
-            !className ||
-            !session ||
-            !term ||
-            !subjectId
-        ) {
+// ============================================================
+// BULK RESULT MODAL
+// ============================================================
 
-            alert(
-                "Please select session, term, class and subject."
-            );
+if (bulkResultBtn) {
 
-            return;
+    bulkResultBtn.addEventListener(
+        "click",
+        function(event) {
 
-        }
+            event.preventDefault();
 
-
-        const classStudents =
-            students.filter(
-                student =>
-                    student.class ===
-                    className
-            );
-
-
-        if (
-            classStudents.length === 0
-        ) {
-
-            alert(
-                "No students were found in this class."
-            );
-
-            return;
+            openBulkResultModal();
 
         }
+    );
 
+}
+
+
+// ============================================================
+// OPEN BULK MODAL
+// ============================================================
+
+function openBulkResultModal() {
+
+    if (!bulkResultModal) {
+        return;
+    }
+
+
+    bulkResultModal.classList.add(
+        "show"
+    );
+
+
+    populateClassDropdown(
+        bulkClass,
+        false
+    );
+
+
+    populateSubjectDropdown(
+        bulkSubject
+    );
+
+
+    if (bulkSession) {
+
+        bulkSession.value =
+            "2026/2027";
+
+    }
+
+
+    if (bulkTerm) {
+
+        bulkTerm.value =
+            "";
+
+    }
+
+
+    if (bulkClass) {
+
+        bulkClass.value =
+            "";
+
+    }
+
+
+    if (bulkSubject) {
+
+        bulkSubject.value =
+            "";
+
+    }
+
+
+    if (bulkResultTableContainer) {
+
+        bulkResultTableContainer.style.display =
+            "none";
+
+    }
+
+
+    if (saveBulkResultsBtn) {
+
+        saveBulkResultsBtn.style.display =
+            "none";
+
+    }
+
+
+    if (bulkResultTableBody) {
 
         bulkResultTableBody.innerHTML =
             "";
 
+    }
 
-        classStudents.forEach(
+}
+
+
+// ============================================================
+// CLOSE BULK MODAL
+// ============================================================
+
+function closeBulkResultModalFunction() {
+
+    if (!bulkResultModal) {
+        return;
+    }
+
+
+    bulkResultModal.classList.remove(
+        "show"
+    );
+
+
+    if (bulkResultTableBody) {
+
+        bulkResultTableBody.innerHTML =
+            "";
+
+    }
+
+
+    if (bulkResultTableContainer) {
+
+        bulkResultTableContainer.style.display =
+            "none";
+
+    }
+
+
+    if (saveBulkResultsBtn) {
+
+        saveBulkResultsBtn.style.display =
+            "none";
+
+    }
+
+}
+
+
+// ============================================================
+// BULK CLOSE BUTTON
+// ============================================================
+
+if (closeBulkResultModal) {
+
+    closeBulkResultModal.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            closeBulkResultModalFunction();
+
+        }
+    );
+
+}
+
+
+if (cancelBulkResultBtn) {
+
+    cancelBulkResultBtn.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            closeBulkResultModalFunction();
+
+        }
+    );
+
+}
+
+
+if (bulkResultModal) {
+
+    bulkResultModal.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                bulkResultModal
+            ) {
+
+                closeBulkResultModalFunction();
+
+            }
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// LOAD CLASS STUDENTS
+// ============================================================
+
+if (loadClassStudentsBtn) {
+
+    loadClassStudentsBtn.addEventListener(
+        "click",
+        function(event) {
+
+            event.preventDefault();
+
+            loadBulkStudents();
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// LOAD BULK STUDENTS
+// ============================================================
+
+function loadBulkStudents() {
+
+    const className =
+        getValue(
+            bulkClass
+        );
+
+
+    const session =
+        getValue(
+            bulkSession
+        );
+
+
+    const term =
+        getValue(
+            bulkTerm
+        );
+
+
+    const subject =
+        getValue(
+            bulkSubject
+        );
+
+
+    // --------------------------------------------------------
+    // VALIDATION
+    // --------------------------------------------------------
+
+    if (
+        !className ||
+        !session ||
+        !term ||
+        !subject
+    ) {
+
+        alert(
+            "Please select the session, term, class and subject."
+        );
+
+        return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // FIND CLASS STUDENTS
+    // --------------------------------------------------------
+
+    const classStudents =
+        students.filter(
+            student => {
+
+                return (
+
+                    getStudentClass(
+                        student
+                    )
+                    .toLowerCase() ===
+
+                    className
+                        .trim()
+                        .toLowerCase()
+
+                );
+
+            }
+        );
+
+
+    if (
+        classStudents.length === 0
+    ) {
+
+        alert(
+            "No students were found in the selected class."
+        );
+
+        if (bulkResultTableContainer) {
+
+            bulkResultTableContainer.style.display =
+                "none";
+
+        }
+
+        if (saveBulkResultsBtn) {
+
+            saveBulkResultsBtn.style.display =
+                "none";
+
+        }
+
+        return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // CLEAR TABLE
+    // --------------------------------------------------------
+
+    if (bulkResultTableBody) {
+
+        bulkResultTableBody.innerHTML =
+            "";
+
+    }
+
+
+    // --------------------------------------------------------
+    // CREATE ROW FOR EACH STUDENT
+    // --------------------------------------------------------
+
+    classStudents
+        .slice()
+        .sort(
+            (a, b) =>
+                getStudentName(a)
+                    .localeCompare(
+                        getStudentName(b)
+                    )
+        )
+        .forEach(
             (student, index) => {
+
+                const existingResult =
+                    results.find(
+                        result => {
+
+                            const resultClass =
+                                result.className ||
+                                result.studentClass ||
+                                result.class ||
+                                "";
+
+                            const resultSession =
+                                result.session ||
+                                result.academicSession ||
+                                "";
+
+                            const resultSubject =
+                                result.subject ||
+                                "";
+
+
+                            return (
+
+                                result.studentId ===
+                                student.firestoreId
+
+                                &&
+
+                                String(
+                                    resultClass
+                                )
+                                .toLowerCase() ===
+                                String(
+                                    className
+                                )
+                                .toLowerCase()
+
+                                &&
+
+                                resultSession ===
+                                session
+
+                                &&
+
+                                result.term ===
+                                term
+
+                                &&
+
+                                String(
+                                    resultSubject
+                                )
+                                .toLowerCase() ===
+                                String(
+                                    subject
+                                )
+                                .toLowerCase()
+
+                            );
+
+                        }
+                    );
+
+
+                const cw1 =
+                    existingResult
+                        ? Number(
+                            existingResult.classWork1 ??
+                            existingResult.cw1 ??
+                            0
+                        )
+                        : 0;
+
+
+                const cw2 =
+                    existingResult
+                        ? Number(
+                            existingResult.classWork2 ??
+                            existingResult.cw2 ??
+                            0
+                        )
+                        : 0;
+
+
+                const ass1 =
+                    existingResult
+                        ? Number(
+                            existingResult.assignment1 ??
+                            existingResult.ass1 ??
+                            0
+                        )
+                        : 0;
+
+
+                const ass2 =
+                    existingResult
+                        ? Number(
+                            existingResult.assignment2 ??
+                            existingResult.ass2 ??
+                            0
+                        )
+                        : 0;
+
+
+                const caOne =
+                    existingResult
+                        ? Number(
+                            existingResult.ca1 ??
+                            0
+                        )
+                        : 0;
+
+
+                const caTwo =
+                    existingResult
+                        ? Number(
+                            existingResult.ca2 ??
+                            0
+                        )
+                        : 0;
+
+
+                const examScore =
+                    existingResult
+                        ? Number(
+                            existingResult.exam ??
+                            existingResult.examScore ??
+                            0
+                        )
+                        : 0;
+
+
+                const total =
+                    calculateTotal(
+                        cw1,
+                        cw2,
+                        ass1,
+                        ass2,
+                        caOne,
+                        caTwo,
+                        examScore
+                    );
+
 
                 const row =
                     document.createElement(
@@ -1458,6 +3207,16 @@ loadClassStudentsBtn.addEventListener(
                     student.firestoreId;
 
 
+                if (
+                    existingResult
+                ) {
+
+                    row.dataset.existingResultId =
+                        existingResult.firestoreId;
+
+                }
+
+
                 row.innerHTML = `
 
                     <td>
@@ -1466,12 +3225,120 @@ loadClassStudentsBtn.addEventListener(
 
 
                     <td>
-
                         <strong>
                             ${escapeHTML(
-                                `${student.firstName || ""} ${student.lastName || ""}`
-                                    .trim()
+                                getStudentName(
+                                    student
+                                )
                             )}
+                        </strong>
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-cw1"
+                            min="0"
+                            max="5"
+                            step="0.01"
+                            value="${cw1}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-cw2"
+                            min="0"
+                            max="5"
+                            step="0.01"
+                            value="${cw2}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-assignment1"
+                            min="0"
+                            max="5"
+                            step="0.01"
+                            value="${ass1}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-assignment2"
+                            min="0"
+                            max="5"
+                            step="0.01"
+                            value="${ass2}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-ca1"
+                            min="0"
+                            max="10"
+                            step="0.01"
+                            value="${caOne}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-ca2"
+                            min="0"
+                            max="10"
+                            step="0.01"
+                            value="${caTwo}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <input
+                            type="number"
+                            class="bulk-score bulk-exam"
+                            min="0"
+                            max="60"
+                            step="0.01"
+                            value="${examScore}"
+                        >
+
+                    </td>
+
+
+                    <td>
+
+                        <strong
+                            class="bulk-total"
+                        >
+                            ${total}
                         </strong>
 
                     </td>
@@ -1479,214 +3346,333 @@ loadClassStudentsBtn.addEventListener(
 
                     <td>
 
-                        <input
-                            type="number"
-                            class="bulk-ca1"
-                            min="0"
-                            max="10"
-                            value="0"
+                        <strong
+                            class="bulk-grade"
                         >
+                            ${getGrade(total)}
+                        </strong>
 
                     </td>
 
 
                     <td>
 
-                        <input
-                            type="number"
-                            class="bulk-ca2"
-                            min="0"
-                            max="10"
-                            value="0"
+                        <span
+                            class="bulk-remark"
                         >
+                            ${escapeHTML(
+                                getRemark(total)
+                            )}
+                        </span>
 
-                    </td>
-
-
-                    <td>
-
-                        <input
-                            type="number"
-                            class="bulk-exam"
-                            min="0"
-                            max="80"
-                            value="0"
-                        >
-
-                    </td>
-
-
-                    <td class="bulk-total">
-                        0
-                    </td>
-
-
-                    <td class="bulk-grade">
-                        -
-                    </td>
-
-
-                    <td class="bulk-remark">
-                        -
                     </td>
 
                 `;
 
 
-                bulkResultTableBody.appendChild(
-                    row
-                );
+                if (bulkResultTableBody) {
 
+                    bulkResultTableBody.appendChild(
+                        row
+                    );
 
-                addBulkCalculationEvents(
-                    row
-                );
+                }
 
             }
         );
 
 
+    // --------------------------------------------------------
+    // SHOW TABLE
+    // --------------------------------------------------------
+
+    if (bulkResultTableContainer) {
+
         bulkResultTableContainer.style.display =
             "block";
 
+    }
+
+
+    if (saveBulkResultsBtn) {
 
         saveBulkResultsBtn.style.display =
-            "inline-block";
+            "inline-flex";
 
     }
-);
 
 
-/* =========================================================
-   BULK SCORE CALCULATION
-========================================================= */
+    attachBulkScoreEvents();
 
-function addBulkCalculationEvents(
+}
+
+
+// ============================================================
+// BULK SCORE CALCULATION
+// ============================================================
+
+function updateBulkRow(
     row
 ) {
 
-    const ca1Input =
-        row.querySelector(".bulk-ca1");
-
-    const ca2Input =
-        row.querySelector(".bulk-ca2");
-
-    const examInput =
-        row.querySelector(".bulk-exam");
+    if (!row) {
+        return;
+    }
 
 
-    const calculate = () => {
+    const cw1 =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-cw1"
+            )?.value,
+            0,
+            5
+        );
 
-        const total =
-            Number(ca1Input.value || 0) +
-            Number(ca2Input.value || 0) +
-            Number(examInput.value || 0);
+
+    const cw2 =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-cw2"
+            )?.value,
+            0,
+            5
+        );
 
 
+    const ass1 =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-assignment1"
+            )?.value,
+            0,
+            5
+        );
+
+
+    const ass2 =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-assignment2"
+            )?.value,
+            0,
+            5
+        );
+
+
+    const caOne =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-ca1"
+            )?.value,
+            0,
+            10
+        );
+
+
+    const caTwo =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-ca2"
+            )?.value,
+            0,
+            10
+        );
+
+
+    const examScore =
+        numberWithinRange(
+            row.querySelector(
+                ".bulk-exam"
+            )?.value,
+            0,
+            60
+        );
+
+
+    const total =
+        calculateTotal(
+            cw1,
+            cw2,
+            ass1,
+            ass2,
+            caOne,
+            caTwo,
+            examScore
+        );
+
+
+    const totalElement =
         row.querySelector(
             ".bulk-total"
-        ).textContent =
-            total;
+        );
 
 
+    const gradeElement =
         row.querySelector(
             ".bulk-grade"
-        ).textContent =
-            getGrade(total);
+        );
 
 
+    const remarkElement =
         row.querySelector(
             ".bulk-remark"
-        ).textContent =
+        );
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            total;
+
+    }
+
+
+    if (gradeElement) {
+
+        gradeElement.textContent =
+            getGrade(total);
+
+    }
+
+
+    if (remarkElement) {
+
+        remarkElement.textContent =
             getRemark(total);
 
-    };
+    }
+
+}
 
 
-    ca1Input.addEventListener(
-        "input",
-        calculate
-    );
+// ============================================================
+// BULK SCORE INPUT EVENTS
+// ============================================================
+
+function attachBulkScoreEvents() {
+
+    if (!bulkResultTableBody) {
+        return;
+    }
 
 
-    ca2Input.addEventListener(
-        "input",
-        calculate
-    );
+    bulkResultTableBody
+        .querySelectorAll(
+            ".bulk-score"
+        )
+        .forEach(
+            input => {
+
+                input.addEventListener(
+                    "input",
+                    function() {
+
+                        updateBulkRow(
+                            this.closest("tr")
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
 
 
-    examInput.addEventListener(
-        "input",
-        calculate
+// ============================================================
+// SAVE BULK RESULTS
+// ============================================================
+
+if (saveBulkResultsBtn) {
+
+    saveBulkResultsBtn.addEventListener(
+        "click",
+        async function(event) {
+
+            event.preventDefault();
+
+            await saveBulkResults();
+
+        }
     );
 
 }
 
 
-/* =========================================================
-   SAVE BULK RESULTS
-========================================================= */
+// ============================================================
+// SAVE BULK RESULTS FUNCTION
+// ============================================================
 
-saveBulkResultsBtn.addEventListener(
-    "click",
-    async () => {
+async function saveBulkResults() {
 
-        const session =
-            bulkSession.value;
-
-        const term =
-            bulkTerm.value;
-
-        const className =
-            bulkClass.value;
-
-        const subjectId =
-            bulkSubject.value;
+    const session =
+        getValue(
+            bulkSession
+        );
 
 
-        if (
-            !session ||
-            !term ||
-            !className ||
-            !subjectId
-        ) {
-
-            alert(
-                "Please complete all selections."
-            );
-
-            return;
-
-        }
+    const term =
+        getValue(
+            bulkTerm
+        );
 
 
-        const subject =
-            subjects.find(
-                item =>
-                    item.firestoreId ===
-                    subjectId
-            );
+    const className =
+        getValue(
+            bulkClass
+        );
 
 
-        const rows =
-            [
-                ...bulkResultTableBody
-                    .querySelectorAll("tr")
-            ];
+    const subject =
+        getValue(
+            bulkSubject
+        );
 
 
-        if (
-            rows.length === 0
-        ) {
+    if (
+        !session ||
+        !term ||
+        !className ||
+        !subject
+    ) {
 
-            alert(
-                "Please load the class students first."
-            );
+        alert(
+            "Please select the session, term, class and subject."
+        );
 
-            return;
+        return;
 
-        }
+    }
 
+
+    if (!bulkResultTableBody) {
+        return;
+    }
+
+
+    const rows =
+        [
+            ...bulkResultTableBody
+                .querySelectorAll("tr")
+        ];
+
+
+    if (rows.length === 0) {
+
+        alert(
+            "There are no students to save."
+        );
+
+        return;
+
+    }
+
+
+    // Prevent double clicking while saving
+
+    if (saveBulkResultsBtn) {
 
         saveBulkResultsBtn.disabled =
             true;
@@ -1694,138 +3680,269 @@ saveBulkResultsBtn.addEventListener(
         saveBulkResultsBtn.textContent =
             "Saving...";
 
-
-        try {
-
-            for (
-                const row of rows
-            ) {
-
-                const studentId =
-                    row.dataset.studentId;
+    }
 
 
-                const student =
-                    students.find(
-                        item =>
-                            item.firestoreId ===
-                            studentId
-                    );
+    try {
+
+        let savedCount = 0;
 
 
-                const score1 =
-                    Number(
-                        row.querySelector(
-                            ".bulk-ca1"
-                        ).value
-                    ) || 0;
+        for (
+            const row of rows
+        ) {
+
+            const studentId =
+                row.dataset.studentId;
 
 
-                const score2 =
-                    Number(
-                        row.querySelector(
-                            ".bulk-ca2"
-                        ).value
-                    ) || 0;
+            if (!studentId) {
+                continue;
+            }
 
 
-                const examination =
-                    Number(
-                        row.querySelector(
-                            ".bulk-exam"
-                        ).value
-                    ) || 0;
+            const student =
+                students.find(
+                    item =>
+                        item.firestoreId ===
+                        studentId
+                );
 
 
-                const total =
-                    score1 +
-                    score2 +
-                    examination;
+            if (!student) {
+                continue;
+            }
 
 
-                const resultData = {
+            const cw1 =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-cw1"
+                    )?.value,
+                    0,
+                    5
+                );
 
-                    session,
 
-                    term,
+            const cw2 =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-cw2"
+                    )?.value,
+                    0,
+                    5
+                );
 
-                    class:
-                        className,
 
+            const ass1 =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-assignment1"
+                    )?.value,
+                    0,
+                    5
+                );
+
+
+            const ass2 =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-assignment2"
+                    )?.value,
+                    0,
+                    5
+                );
+
+
+            const caOne =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-ca1"
+                    )?.value,
+                    0,
+                    10
+                );
+
+
+            const caTwo =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-ca2"
+                    )?.value,
+                    0,
+                    10
+                );
+
+
+            const examScore =
+                numberWithinRange(
+                    row.querySelector(
+                        ".bulk-exam"
+                    )?.value,
+                    0,
+                    60
+                );
+
+
+            const total =
+                calculateTotal(
+                    cw1,
+                    cw2,
+                    ass1,
+                    ass2,
+                    caOne,
+                    caTwo,
+                    examScore
+                );
+
+
+            const grade =
+                getGrade(total);
+
+
+            const remark =
+                getRemark(total);
+
+
+            const resultData = {
+
+                studentId:
                     studentId,
 
-                    studentName:
-                        `${student?.firstName || ""} ${student?.lastName || ""}`
-                            .trim(),
+                studentName:
+                    getStudentName(
+                        student
+                    ),
 
-                    subjectId,
+                className:
+                    className,
 
-                    subjectName:
-                        subject?.name || "",
+                subject:
+                    subject,
 
-                    subjectCode:
-                        subject?.code || "",
+                session:
+                    session,
 
-                    ca1:
-                        score1,
+                academicSession:
+                    session,
 
-                    ca2:
-                        score2,
+                term:
+                    term,
 
-                    exam:
-                        examination,
+                classWork1:
+                    cw1,
 
+                classWork2:
+                    cw2,
+
+                assignment1:
+                    ass1,
+
+                assignment2:
+                    ass2,
+
+                ca1:
+                    caOne,
+
+                ca2:
+                    caTwo,
+
+                exam:
+                    examScore,
+
+                total:
                     total,
 
-                    grade:
-                        getGrade(total),
+                grade:
+                    grade,
 
-                    remark:
-                        getRemark(total),
+                remark:
+                    remark,
 
-                    createdAt:
-                        new Date().toISOString(),
+                updatedAt:
+                    serverTimestamp()
 
-                    updatedAt:
-                        new Date().toISOString()
+            };
 
-                };
 
+            const existingResultId =
+                row.dataset.existingResultId ||
+                "";
+
+
+            if (existingResultId) {
+
+                await updateDoc(
+
+                    doc(
+                        db,
+                        "results",
+                        existingResultId
+                    ),
+
+                    resultData
+
+                );
+
+            }
+
+            else {
 
                 await addDoc(
+
                     resultsCollection,
-                    resultData
+
+                    {
+
+                        ...resultData,
+
+                        createdAt:
+                            serverTimestamp()
+
+                    }
+
                 );
 
             }
 
 
-            alert(
-                "All class results saved successfully."
-            );
-
-
-            await loadResults();
-
-            closeBulkModal();
+            savedCount++;
 
         }
 
-        catch (error) {
 
-            console.error(
-                "Error saving bulk results:",
+        alert(
+            `${savedCount} result${savedCount === 1 ? "" : "s"} saved successfully.`
+        );
+
+
+        await loadResults();
+
+
+        closeBulkResultModalFunction();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error saving bulk results:",
+            error
+        );
+
+
+        alert(
+            "Unable to save bulk results.\n\n" +
+            getFirebaseErrorMessage(
                 error
-            );
+            )
+        );
 
+    }
 
-            alert(
-                "Some results could not be saved. Check your Firebase configuration and Firestore rules."
-            );
+    finally {
 
-        }
-
-        finally {
+        if (saveBulkResultsBtn) {
 
             saveBulkResultsBtn.disabled =
                 false;
@@ -1836,104 +3953,25 @@ saveBulkResultsBtn.addEventListener(
         }
 
     }
-);
-
-
-/* =========================================================
-   FILTERS
-========================================================= */
-
-resultSessionFilter.addEventListener(
-    "change",
-    renderResults
-);
-
-
-resultTermFilter.addEventListener(
-    "change",
-    renderResults
-);
-
-
-resultClassFilter.addEventListener(
-    "change",
-    renderResults
-);
-
-
-resultSearch.addEventListener(
-    "input",
-    renderResults
-);
-
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHTML(
-    value
-) {
-
-    return String(
-        value ?? ""
-    )
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
 
 }
 
 
-/* =========================================================
-   ESCAPE ATTRIBUTE
-========================================================= */
+// ============================================================
+// INITIALIZE
+// ============================================================
 
-function escapeAttribute(
-    value
-) {
+async function initializeResultsPage() {
 
-    return String(
-        value ?? ""
-    )
+    updateScorePreview();
 
-        .replace(
-            /\\/g,
-            "\\\\"
-        )
-
-        .replace(
-            /'/g,
-            "\\'"
-        );
+    await loadAllData();
 
 }
 
 
-/* =========================================================
-   INITIALIZE
-========================================================= */
+// ============================================================
+// START
+// ============================================================
 
-loadAllData();
+initializeResultsPage();

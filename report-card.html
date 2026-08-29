@@ -10,12 +10,10 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Report Cards | Philip Model School</title>
+    <title>
+        Report Cards | Philip Model School
+    </title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
 
     <link
         rel="stylesheet"
@@ -35,9 +33,9 @@
 <div class="admin-layout">
 
 
-    <!-- =========================
+    <!-- =====================================================
          SIDEBAR
-    ========================== -->
+    ====================================================== -->
 
     <aside class="admin-sidebar">
 
@@ -62,64 +60,11 @@
         </div>
 
 
-        <nav class="admin-nav">
-
-            <a href="dashboard.html">
-                📊 Dashboard
-            </a>
-
-            <a href="students.html">
-                👨‍🎓 Students
-            </a>
-
-            <a href="teachers.html">
-                👨‍🏫 Teachers
-            </a>
-
-            <a href="classes.html">
-                🏫 Classes
-            </a>
-
-            <a href="subjects.html">
-                📚 Subjects
-            </a>
-
-            <a href="admissions.html">
-                📝 Admissions
-            </a>
-
-            <a href="results.html">
-                📊 Results
-            </a>
-
+        <nav>
             <a
-                href="report-cards.html"
-                class="active"
+                href="logout.html"
+                id="logoutBtn"
             >
-                📄 Report Cards
-            </a>
-
-            <a href="attendance.html">
-                📅 Attendance
-            </a>
-
-            <a href="fees.html">
-                💰 Fees
-            </a>
-
-            <a href="news.html">
-                📰 News
-            </a>
-
-            <a href="messages.html">
-                💬 Messages
-            </a>
-
-            <a href="settings.html">
-                ⚙️ Settings
-            </a>
-
-            <a href="logout.html" id="logoutBtn">
                 🚪 Logout
             </a>
 
@@ -128,12 +73,15 @@
     </aside>
 
 
-    <!-- =========================
+
+    <!-- =====================================================
          MAIN
-    ========================== -->
+    ====================================================== -->
 
     <main class="admin-main">
 
+
+        <!-- HEADER -->
 
         <header class="admin-header">
 
@@ -147,6 +95,9 @@
 
         </header>
 
+
+
+        <!-- CONTENT -->
 
         <section class="admin-content">
 
@@ -166,9 +117,10 @@
             </div>
 
 
-            <!-- =========================
-                 SELECTION
-            ========================== -->
+
+            <!-- =================================================
+                 SELECTION CARD
+            ================================================== -->
 
             <div class="admin-card">
 
@@ -180,7 +132,7 @@
 
                     <div class="form-group">
 
-                        <label>
+                        <label for="reportSession">
                             Academic Session
                         </label>
 
@@ -205,11 +157,12 @@
                     </div>
 
 
+
                     <!-- TERM -->
 
                     <div class="form-group">
 
-                        <label>
+                        <label for="reportTerm">
                             Term
                         </label>
 
@@ -238,11 +191,12 @@
                     </div>
 
 
+
                     <!-- CLASS -->
 
                     <div class="form-group">
 
-                        <label>
+                        <label for="reportClass">
                             Class
                         </label>
 
@@ -251,7 +205,7 @@
                         >
 
                             <option value="">
-                                Select Class
+                                Loading classes...
                             </option>
 
                         </select>
@@ -259,11 +213,12 @@
                     </div>
 
 
+
                     <!-- STUDENT -->
 
                     <div class="form-group">
 
-                        <label>
+                        <label for="reportStudent">
                             Student
                         </label>
 
@@ -282,6 +237,9 @@
                 </div>
 
 
+
+                <!-- GENERATE -->
+
                 <div
                     style="
                         margin-top:20px;
@@ -289,6 +247,7 @@
                 >
 
                     <button
+                        type="button"
                         class="btn btn-primary"
                         id="generateReportBtn"
                     >
@@ -300,9 +259,10 @@
             </div>
 
 
-            <!-- =========================
+
+            <!-- =================================================
                  REPORT CARD
-            ========================== -->
+            ================================================== -->
 
             <div
                 id="reportCard"
@@ -335,13 +295,16 @@
                         </p>
 
                         <p>
-                            Tel:+2348078046655
+                            Tel: +2348078046655
                         </p>
 
                     </div>
 
                 </div>
 
+
+
+                <!-- REPORT TITLE -->
 
                 <div class="report-title">
 
@@ -355,7 +318,10 @@
                 </div>
 
 
-                <!-- STUDENT INFORMATION -->
+
+                <!-- =================================================
+                     STUDENT INFORMATION
+                ================================================== -->
 
                 <div class="student-report-info">
 
@@ -415,62 +381,105 @@
 
                     </div>
 
+                </div>
+
+
+
+                <!-- =================================================
+                     RESULTS TABLE
+                ================================================== -->
+
+                <div class="report-table-wrapper">
+
+                    <table class="report-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    #
+                                </th>
+
+                                <th>
+                                    Subject
+                                </th>
+
+                                <th>
+                                    CW 1
+                                    <br>
+                                    <small>/5</small>
+                                </th>
+
+                                <th>
+                                    CW 2
+                                    <br>
+                                    <small>/5</small>
+                                </th>
+
+                                <th>
+                                    Assignment 1
+                                    <br>
+                                    <small>/5</small>
+                                </th>
+
+                                <th>
+                                    Assignment 2
+                                    <br>
+                                    <small>/5</small>
+                                </th>
+
+                                <th>
+                                    CA 1
+                                    <br>
+                                    <small>/10</small>
+                                </th>
+
+                                <th>
+                                    CA 2
+                                    <br>
+                                    <small>/10</small>
+                                </th>
+
+                                <th>
+                                    Exam
+                                    <br>
+                                    <small>/60</small>
+                                </th>
+
+                                <th>
+                                    Total
+                                    <br>
+                                    <small>/100</small>
+                                </th>
+
+                                <th>
+                                    Grade
+                                </th>
+
+                                <th>
+                                    Remark
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="reportResultsBody"
+                        >
+                        </tbody>
+
+                    </table>
 
                 </div>
 
 
-                <!-- RESULTS TABLE -->
 
-                
-<div class="report-table-wrapper">
-
-    <table class="report-table">
-
-        <thead>
-
-            <tr>
-
-                <th>#</th>
-
-                <th>Subject</th>
-
-                <th>CW 1<br><small>/5</small></th>
-
-                <th>CW 2<br><small>/5</small></th>
-
-                <th>Assignment 1<br><small>/5</small></th>
-
-                <th>Assignment 2<br><small>/5</small></th>
-
-                <th>CA 1<br><small>/10</small></th>
-
-                <th>CA 2<br><small>/10</small></th>
-
-                <th>Exam<br><small>/60</small></th>
-
-                <th>Total<br><small>/100</small></th>
-
-                <th>Grade</th>
-
-                <th>Remark</th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody id="reportResultsBody">
-
-        </tbody>
-
-    </table>
-
-
-
-                </div>
-
-
-                <!-- SUMMARY -->
+                <!-- =================================================
+                     SUMMARY
+                ================================================== -->
 
                 <div class="report-summary">
 
@@ -535,99 +544,124 @@
                     </div>
 
                 </div>
-                
-                <!-- =========================
-     ATTENDANCE
-========================= -->
-
-<div class="report-section">
-
-    <h3>
-        Attendance Record
-    </h3>
-
-    <div class="attendance-grid">
-
-        <div>
-            <strong>
-                School Days
-            </strong>
-
-            <span id="schoolDays">
-                0
-            </span>
-        </div>
-
-        <div>
-            <strong>
-                Days Present
-            </strong>
-
-            <span id="daysPresent">
-                0
-            </span>
-        </div>
-
-        <div>
-            <strong>
-                Days Absent
-            </strong>
-
-            <span id="daysAbsent">
-                0
-            </span>
-        </div>
-
-    </div>
-
-</div>
 
 
-<!-- =========================
-     CONDUCT
-========================= -->
 
-<div class="report-section">
+                <!-- =================================================
+                     ATTENDANCE
+                ================================================== -->
 
-    <h3>
-    Psychomotor & Behavioural Assessment
-</h3>
+                <div class="report-section">
 
-    <table class="conduct-table">
-
-        <thead>
-
-            <tr>
-
-                <th>
-                    Trait
-                </th>
-
-                <th>
-                    Rating
-                </th>
-
-            </tr>
-
-        </thead>
-
-        <tbody id="conductBody">
-
-        </tbody>
-
-    </table>
-
-</div>
+                    <h3>
+                        Attendance Record
+                    </h3>
 
 
-                <!-- COMMENTS -->
+                    <div class="attendance-grid">
+
+
+                        <div>
+
+                            <strong>
+                                School Days
+                            </strong>
+
+                            <span
+                                id="schoolDays"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Days Present
+                            </strong>
+
+                            <span
+                                id="daysPresent"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Days Absent
+                            </strong>
+
+                            <span
+                                id="daysAbsent"
+                            >
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     CONDUCT
+                ================================================== -->
+
+                <div class="report-section">
+
+                    <h3>
+                        Psychomotor & Behavioural Assessment
+                    </h3>
+
+
+                    <table class="conduct-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Trait
+                                </th>
+
+                                <th>
+                                    Rating
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody
+                            id="conductBody"
+                        >
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     COMMENTS
+                ================================================== -->
 
                 <div class="comments-section">
 
 
                     <div class="comment-box">
 
-                        <label>
+                        <label for="teacherComment">
                             Class Teacher's Comment
                         </label>
 
@@ -641,7 +675,7 @@
 
                     <div class="comment-box">
 
-                        <label>
+                        <label for="principalComment">
                             Principal's Comment
                         </label>
 
@@ -655,13 +689,19 @@
                 </div>
 
 
-                <!-- SIGNATURES -->
+
+                <!-- =================================================
+                     SIGNATURES
+                ================================================== -->
 
                 <div class="signature-section">
 
+
                     <div>
 
-                        <div class="signature-line">
+                        <div
+                            class="signature-line"
+                        >
                         </div>
 
                         <span>
@@ -673,7 +713,9 @@
 
                     <div>
 
-                        <div class="signature-line">
+                        <div
+                            class="signature-line"
+                        >
                         </div>
 
                         <span>
@@ -683,55 +725,72 @@
                     </div>
 
                 </div>
-                
+
+
+
+                <!-- =================================================
+                     PROMOTION
+                ================================================== -->
+
                 <div class="promotion-box">
 
-    <label>
-        Promotion Status
-    </label>
-
-    <select id="promotionStatus">
-
-        <option value="Promoted">
-            Promoted
-        </option>
-
-        <option value="Promoted on Trial">
-            Promoted on Trial
-        </option>
-
-        <option value="Repeat">
-            Repeat
-        </option>
-
-        <option value="Graduated">
-            Graduated
-        </option>
-
-    </select>
-
-</div>
+                    <label for="promotionStatus">
+                        Promotion Status
+                    </label>
 
 
-                <!-- PRINT -->
+                    <select
+                        id="promotionStatus"
+                    >
+
+                        <option value="Promoted">
+                            Promoted
+                        </option>
+
+                        <option value="Promoted on Trial">
+                            Promoted on Trial
+                        </option>
+
+                        <option value="Repeat">
+                            Repeat
+                        </option>
+
+                        <option value="Graduated">
+                            Graduated
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     ACTIONS
+                ================================================== -->
 
                 <div class="report-actions">
 
-    <button
-        class="btn btn-primary"
-        id="saveReportCardBtn"
-    >
-        💾 Save Report Card
-    </button>
 
-    <button
-        class="btn btn-primary"
-        id="printReportBtn"
-    >
-        🖨️ Print Report
-    </button>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="saveReportCardBtn"
+                    >
+                        💾 Save Report Card
+                    </button>
 
-</div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="printReportBtn"
+                    >
+                        🖨️ Print Report
+                    </button>
+
+                </div>
+
             </div>
 
         </section>
@@ -741,14 +800,25 @@
 </div>
 
 
+
+<!-- =========================================================
+     ADMIN LOGIN
+========================================================= -->
+
 <script
     src="admin-login.js"
 ></script>
 
+
+
+<!-- =========================================================
+     REPORT CARD JAVASCRIPT
+========================================================= -->
+
 <script
     type="module"
     src="report-card.js"
-</script>
+></script>
 
 </body>
 
