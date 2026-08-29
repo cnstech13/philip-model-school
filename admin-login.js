@@ -27,8 +27,8 @@ import {
 // These are the credentials the administrator enters
 // on your existing login page.
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_USERNAME = "myschool";
+const ADMIN_PASSWORD = "824105";
 
 
 // This is the Firebase Authentication account
