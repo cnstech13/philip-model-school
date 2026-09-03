@@ -127,6 +127,10 @@ faqQuestions.forEach(button => {
                 );
 
 
+            if (!faqItem)
+                return;
+
+
             const isOpen =
                 faqItem.classList.contains(
                     "active"
@@ -197,8 +201,8 @@ faqQuestions.forEach(button => {
 
 
 /* ============================================================
-   CONTACT FORM - WEB3FORMS
-   Philip Model School
+   CONTACT FORM
+   WEB3FORMS + SWEETALERT2
 
    No localStorage
    No Firebase
@@ -218,26 +222,6 @@ if (contactForm) {
         );
 
 
-    const buttonText =
-        submitBtn
-            ? submitBtn.querySelector(
-                ".button-text"
-            )
-            : null;
-
-
-    const spinner =
-        document.getElementById(
-            "contactSpinner"
-        );
-
-
-    const formMessage =
-        document.getElementById(
-            "contactFormMessage"
-        );
-
-
     contactForm.addEventListener(
         "submit",
         async function (event) {
@@ -246,7 +230,7 @@ if (contactForm) {
 
 
             /* =========================================
-               CHECK REQUIRED ELEMENTS
+               CHECK SUBMIT BUTTON
             ========================================= */
 
             if (!submitBtn) {
@@ -255,53 +239,50 @@ if (contactForm) {
                     "contactSubmitBtn was not found."
                 );
 
+                showError(
+                    "Form Error",
+                    "The submit button could not be found."
+                );
+
                 return;
 
             }
 
 
             /* =========================================
-               SHOW LOADING
+               PREVENT DOUBLE SUBMISSION
             ========================================= */
 
-            submitBtn.disabled =
-                true;
-
-
-            if (buttonText) {
-
-                buttonText.textContent =
-                    "Sending...";
-
+            if (submitBtn.disabled) {
+                return;
             }
 
 
-            if (spinner) {
+            /* =========================================
+               SAVE ORIGINAL BUTTON CONTENT
+            ========================================= */
 
-                spinner.style.display =
-                    "inline-block";
-
-            }
+            const originalButtonHTML =
+                submitBtn.innerHTML;
 
 
-            if (formMessage) {
+            submitBtn.disabled = true;
 
-                formMessage.style.display =
-                    "none";
 
-                formMessage.textContent =
-                    "";
+            /* =========================================
+               SHOW SWEETALERT LOADING
+            ========================================= */
 
-                formMessage.className =
-                    "form-message";
-
-            }
+            showLoading(
+                "Sending Message",
+                "Please wait while we send your message..."
+            );
 
 
             try {
 
                 /* =====================================
-                   GET FORM DATA
+                   CREATE FORM DATA
                 ===================================== */
 
                 const formData =
@@ -318,14 +299,15 @@ if (contactForm) {
                     await fetch(
                         "https://api.web3forms.com/submit",
                         {
-
                             method: "POST",
-
                             body: formData
-
                         }
                     );
 
+
+                /* =====================================
+                   READ RESPONSE
+                ===================================== */
 
                 const result =
                     await response.json();
@@ -340,20 +322,10 @@ if (contactForm) {
                     result.success
                 ) {
 
-                    if (formMessage) {
-
-                        formMessage.textContent =
-                            "✓ Message sent successfully! We will get back to you soon.";
-
-
-                        formMessage.className =
-                            "form-message success";
-
-
-                        formMessage.style.display =
-                            "block";
-
-                    }
+                    await showSuccess(
+                        "Message Sent Successfully!",
+                        "Thank you for contacting Philip Model School. We will get back to you soon."
+                    );
 
 
                     /* Clear form */
@@ -369,20 +341,11 @@ if (contactForm) {
 
                 else {
 
-                    if (formMessage) {
-
-                        formMessage.textContent =
-                            "✕ Message could not be sent. Please try again.";
-
-
-                        formMessage.className =
-                            "form-message error";
-
-
-                        formMessage.style.display =
-                            "block";
-
-                    }
+                    showError(
+                        "Message Not Sent",
+                        result.message ||
+                        "Your message could not be sent. Please try again."
+                    );
 
                 }
 
@@ -401,18 +364,181 @@ if (contactForm) {
                 );
 
 
-                if (formMessage) {
+                showError(
+                    "Connection Error",
+                    "Unable to send your message. Please check your internet connection and try again."
+                );
 
-                    formMessage.textContent =
-                        "✕ Unable to send message. Please check your internet connection and try again.";
-
-
-                    formMessage.className =
-                        "form-message error";
+            }
 
 
-                    formMessage.style.display =
-                        "block";
+            /* =========================================
+               RESTORE BUTTON
+            ========================================= */
+
+            finally {
+
+                submitBtn.disabled =
+                    false;
+
+
+                submitBtn.innerHTML =
+                    originalButtonHTML;
+
+            }
+
+        }
+    );
+
+}
+
+/* ============================================================
+   ADMISSION APPLICATION
+   WEB3FORMS + SWEETALERT2
+
+   No localStorage
+   No Firebase
+============================================================ */
+
+const admissionForm =
+    document.querySelector(
+        'form[action="https://api.web3forms.com/submit"]'
+    );
+
+
+if (admissionForm) {
+
+    const admissionSubmitBtn =
+        document.getElementById(
+            "admissionSubmitBtn"
+        );
+
+
+    admissionForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            /* =========================================
+               CHECK BUTTON
+            ========================================= */
+
+            if (!admissionSubmitBtn) {
+
+                console.error(
+                    "admissionSubmitBtn was not found."
+                );
+
+                showError(
+                    "Form Error",
+                    "The admission submit button could not be found."
+                );
+
+                return;
+
+            }
+
+
+            /* =========================================
+               PREVENT DOUBLE SUBMISSION
+            ========================================= */
+
+            if (admissionSubmitBtn.disabled) {
+                return;
+            }
+
+
+            /* =========================================
+               SAVE ORIGINAL BUTTON
+            ========================================= */
+
+            const originalButtonHTML =
+                admissionSubmitBtn.innerHTML;
+
+
+            admissionSubmitBtn.disabled =
+                true;
+
+
+            /* =========================================
+               SHOW LOADING
+            ========================================= */
+
+            showLoading(
+                "Submitting Application",
+                "Please wait while we submit your admission application..."
+            );
+
+
+            try {
+
+                /* =====================================
+                   CREATE FORM DATA
+                ===================================== */
+
+                const formData =
+                    new FormData(
+                        admissionForm
+                    );
+
+
+                /* =====================================
+                   SEND TO WEB3FORMS
+                ===================================== */
+
+                const response =
+                    await fetch(
+                        "https://api.web3forms.com/submit",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                /* =====================================
+                   GET RESPONSE
+                ===================================== */
+
+                const result =
+                    await response.json();
+
+
+                /* =====================================
+                   SUCCESS
+                ===================================== */
+
+                if (
+                    response.ok &&
+                    result.success
+                ) {
+
+                    await showSuccess(
+                        "Application Submitted!",
+                        "Your admission application has been submitted successfully. Philip Model School will contact you regarding the next steps."
+                    );
+
+
+                    /* Clear form */
+
+                    admissionForm.reset();
+
+                }
+
+
+                /* =====================================
+                   FAILURE
+                ===================================== */
+
+                else {
+
+                    showError(
+                        "Application Not Submitted",
+                        result.message ||
+                        "Your admission application could not be submitted. Please try again."
+                    );
 
                 }
 
@@ -420,25 +546,37 @@ if (contactForm) {
 
 
             /* =========================================
-               STOP LOADING
+               CONNECTION ERROR
             ========================================= */
 
-            submitBtn.disabled =
-                false;
+            catch (error) {
+
+                console.error(
+                    "Admission Web3Forms Error:",
+                    error
+                );
 
 
-            if (buttonText) {
-
-                buttonText.textContent =
-                    "Send Message";
+                showError(
+                    "Connection Error",
+                    "Unable to submit your application. Please check your internet connection and try again."
+                );
 
             }
 
 
-            if (spinner) {
+            /* =========================================
+               RESTORE BUTTON
+            ========================================= */
 
-                spinner.style.display =
-                    "none";
+            finally {
+
+                admissionSubmitBtn.disabled =
+                    false;
+
+
+                admissionSubmitBtn.innerHTML =
+                    originalButtonHTML;
 
             }
 

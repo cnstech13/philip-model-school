@@ -2255,3 +2255,147 @@ select {
     border-radius: 10px;
 
 }
+
+
+/* =========================================================
+   SWEETALERT2 MUST ALWAYS APPEAR ABOVE ADMIN MODALS
+========================================================= */
+
+.swal2-container {
+    z-index: 999999 !important;
+}
+
+.swal2-popup {
+    z-index: 1000000 !important;
+}
+
+/* =========================================================
+   SWEETALERT2 RESPONSIVE SIZE
+========================================================= */
+
+.pms-swal-popup {
+    width: min(90vw, 450px) !important;
+    max-width: calc(100vw - 30px) !important;
+    max-height: calc(100vh - 30px) !important;
+
+    margin: 15px auto !important;
+    padding: 25px 20px !important;
+
+    border-radius: 14px !important;
+
+    box-sizing: border-box !important;
+
+    overflow-y: auto !important;
+
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.pms-swal-title {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+    margin: 8px 0 !important;
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+.pms-swal-text {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    margin: 8px 0 !important;
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.pms-swal-confirm {
+    min-width: 95px !important;
+
+    padding: 10px 25px !important;
+
+    font-size: 16px !important;
+
+    border-radius: 7px !important;
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.pms-swal-icon {
+    transform: scale(0.85) !important;
+
+    margin: 5px auto 10px !important;
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .pms-swal-popup {
+        width: calc(100vw - 30px) !important;
+        max-width: calc(100vw - 30px) !important;
+
+        max-height: calc(100vh - 30px) !important;
+
+        padding: 22px 16px !important;
+
+        margin: 15px auto !important;
+    }
+
+    .pms-swal-title {
+        font-size: 23px !important;
+    }
+
+    .pms-swal-text {
+        font-size: 15px !important;
+    }
+
+    .pms-swal-confirm {
+        font-size: 15px !important;
+        padding: 9px 24px !important;
+    }
+
+    .pms-swal-icon {
+        transform: scale(0.75) !important;
+        margin: 0 auto 5px !important;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 360px) {
+
+    .pms-swal-popup {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
+
+        padding: 18px 12px !important;
+    }
+
+    .pms-swal-title {
+        font-size: 21px !important;
+    }
+
+    .pms-swal-text {
+        font-size: 14px !important;
+    }
+
+}

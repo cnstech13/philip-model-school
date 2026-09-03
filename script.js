@@ -2,64 +2,102 @@
    MOBILE MENU
 ========================= */
 
-const menuBtn = document.getElementById("menuBtn");
-const navbar = document.getElementById("navbar");
+const menuBtn =
+    document.getElementById("menuBtn");
 
-menuBtn.addEventListener("click", () => {
-
-    navbar.classList.toggle("show");
-
-    menuBtn.classList.toggle("open");
-
-});
+const navbar =
+    document.getElementById("navbar");
 
 
-/* Close mobile menu after clicking a link */
+if (menuBtn && navbar) {
 
-document.querySelectorAll(".navbar a").forEach(link => {
+    menuBtn.addEventListener(
+        "click",
+        () => {
 
-    link.addEventListener("click", () => {
+            navbar.classList.toggle("show");
 
-        navbar.classList.remove("show");
-        menuBtn.classList.remove("open");
+            menuBtn.classList.toggle("open");
 
-    });
+        }
+    );
 
-});
+
+    /* Close mobile menu after clicking a link */
+
+    document
+        .querySelectorAll(".navbar a")
+        .forEach(link => {
+
+            link.addEventListener(
+                "click",
+                () => {
+
+                    navbar.classList.remove("show");
+
+                    menuBtn.classList.remove("open");
+
+                }
+            );
+
+        });
+
+}
 
 
 /* =========================
    DARK MODE
 ========================= */
 
-const themeBtn = document.getElementById("themeBtn");
-
-const savedTheme = localStorage.getItem("schoolTheme");
-
-if (savedTheme === "dark") {
-
-    document.body.classList.add("dark");
-    themeBtn.textContent = "☀️";
-
-}
+const themeBtn =
+    document.getElementById("themeBtn");
 
 
-themeBtn.addEventListener("click", () => {
+if (themeBtn) {
 
-    document.body.classList.toggle("dark");
+    const savedTheme =
+        localStorage.getItem("schoolTheme");
 
-    const isDark =
-        document.body.classList.contains("dark");
 
-    localStorage.setItem(
-        "schoolTheme",
-        isDark ? "dark" : "light"
+    if (savedTheme === "dark") {
+
+        document.body.classList.add("dark");
+
+        themeBtn.textContent = "☀️";
+
+    }
+
+
+    themeBtn.addEventListener(
+        "click",
+        () => {
+
+            document.body.classList.toggle("dark");
+
+
+            const isDark =
+                document.body.classList.contains(
+                    "dark"
+                );
+
+
+            localStorage.setItem(
+                "schoolTheme",
+                isDark
+                    ? "dark"
+                    : "light"
+            );
+
+
+            themeBtn.textContent =
+                isDark
+                    ? "☀️"
+                    : "🌙";
+
+        }
     );
 
-    themeBtn.textContent =
-        isDark ? "☀️" : "🌙";
-
-});
+}
 
 
 /* =========================
@@ -69,9 +107,12 @@ themeBtn.addEventListener("click", () => {
 const yearElement =
     document.getElementById("year");
 
+
 if (yearElement) {
+
     yearElement.textContent =
         new Date().getFullYear();
+
 }
 
 
@@ -80,7 +121,10 @@ if (yearElement) {
 ========================= */
 
 const counters =
-    document.querySelectorAll("[data-count]");
+    document.querySelectorAll(
+        "[data-count]"
+    );
+
 
 if (counters.length > 0) {
 
@@ -88,51 +132,77 @@ if (counters.length > 0) {
         new IntersectionObserver(
             entries => {
 
-                entries.forEach(entry => {
+                entries.forEach(
+                    entry => {
 
-                    if (!entry.isIntersecting)
-                        return;
-
-                    const counter = entry.target;
-
-                    const target =
-                        Number(counter.dataset.count);
-
-                    let current = 0;
-
-                    const increment =
-                        Math.max(
-                            1,
-                            Math.ceil(target / 60)
-                        );
-
-                    const updateCounter = () => {
-
-                        current += increment;
-
-                        if (current >= target) {
-
-                            counter.textContent =
-                                target;
-
+                        if (
+                            !entry.isIntersecting
+                        )
                             return;
-                        }
 
-                        counter.textContent =
-                            current;
 
-                        requestAnimationFrame(
-                            updateCounter
+                        const counter =
+                            entry.target;
+
+
+                        const target =
+                            Number(
+                                counter.dataset.count
+                            );
+
+
+                        let current = 0;
+
+
+                        const increment =
+                            Math.max(
+                                1,
+                                Math.ceil(
+                                    target / 60
+                                )
+                            );
+
+
+                        const updateCounter =
+                            () => {
+
+                                current +=
+                                    increment;
+
+
+                                if (
+                                    current >=
+                                    target
+                                ) {
+
+                                    counter.textContent =
+                                        target;
+
+                                    return;
+
+                                }
+
+
+                                counter.textContent =
+                                    current;
+
+
+                                requestAnimationFrame(
+                                    updateCounter
+                                );
+
+                            };
+
+
+                        updateCounter();
+
+
+                        counterObserver.unobserve(
+                            counter
                         );
-                    };
 
-                    updateCounter();
-
-                    counterObserver.unobserve(
-                        counter
-                    );
-
-                });
+                    }
+                );
 
             },
             {
@@ -141,87 +211,241 @@ if (counters.length > 0) {
         );
 
 
-    counters.forEach(counter => {
+    counters.forEach(
+        counter => {
 
-        counterObserver.observe(counter);
+            counterObserver.observe(
+                counter
+            );
 
-    });
+        }
+    );
 
 }
 
 
 /* =========================
    CONTACT FORM
+   WEB3FORMS + SWEETALERT2
 ========================= */
 
 const contactForm =
-    document.getElementById("contactForm");
+    document.getElementById(
+        "contactForm"
+    );
 
 
 if (contactForm) {
 
     contactForm.addEventListener(
         "submit",
-        event => {
+        async event => {
 
             event.preventDefault();
 
+
+            /* =========================
+               GET FORM VALUES
+            ========================= */
+
             const name =
-                document.getElementById(
-                    "name"
-                ).value.trim();
+                document
+                    .getElementById("name")
+                    ?.value
+                    .trim();
+
 
             const email =
-                document.getElementById(
-                    "email"
-                ).value.trim();
+                document
+                    .getElementById("email")
+                    ?.value
+                    .trim();
+
 
             const subject =
-                document.getElementById(
-                    "subject"
-                ).value.trim();
+                document
+                    .getElementById("subject")
+                    ?.value
+                    .trim();
+
 
             const message =
-                document.getElementById(
-                    "message"
-                ).value.trim();
+                document
+                    .getElementById("message")
+                    ?.value
+                    .trim();
 
 
-            const messages =
-                JSON.parse(
-                    localStorage.getItem(
-                        "schoolMessages"
-                    )
-                ) || [];
+            /* =========================
+               VALIDATION
+            ========================= */
+
+            if (
+                !name ||
+                !email ||
+                !subject ||
+                !message
+            ) {
+
+                showWarning(
+                    "Incomplete Form",
+                    "Please fill in all required fields."
+                );
+
+                return;
+
+            }
 
 
-            messages.push({
+            /* =========================
+               EMAIL VALIDATION
+            ========================= */
 
-                id: Date.now(),
-
-                name,
-                email,
-                subject,
-                message,
-
-                date:
-                    new Date().toISOString()
-
-            });
+            const emailPattern =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 
-            localStorage.setItem(
-                "schoolMessages",
-                JSON.stringify(messages)
+            if (
+                !emailPattern.test(email)
+            ) {
+
+                showWarning(
+                    "Invalid Email",
+                    "Please enter a valid email address."
+                );
+
+                return;
+
+            }
+
+
+            /* =========================
+               WEB3FORMS DATA
+            ========================= */
+
+            const formData =
+    new FormData(contactForm);
+
+
+            
+
+            formData.append(
+                "name",
+                name
             );
 
 
-            alert(
-                "Thank you! Your message has been received."
+            formData.append(
+                "email",
+                email
             );
 
 
-            contactForm.reset();
+            formData.append(
+                "subject",
+                subject
+            );
+
+
+            formData.append(
+                "message",
+                message
+            );
+
+
+            /* =========================
+               WEB3FORMS SETTINGS
+            ========================= */
+
+            
+            try {
+
+                /* =========================
+                   SHOW LOADING
+                ========================= */
+
+                showLoading(
+                    "Sending Message...",
+                    "Please wait while your message is being sent."
+                );
+
+
+                /* =========================
+                   SEND TO WEB3FORMS
+                ========================= */
+
+                const response =
+                    await fetch(
+                        "https://api.web3forms.com/submit",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                /* =========================
+                   CLOSE LOADING
+                ========================= */
+
+                Swal.close();
+
+
+                /* =========================
+                   SUCCESS
+                ========================= */
+
+                if (
+                    result.success
+                ) {
+
+                    contactForm.reset();
+
+
+                    await showSuccess(
+                        "Message Sent!",
+                        "Thank you! Your message has been received successfully."
+                    );
+
+
+                    return;
+
+                }
+
+
+                /* =========================
+                   WEB3FORMS ERROR
+                ========================= */
+
+                showError(
+                    "Message Not Sent",
+                    result.message ||
+                    "We could not send your message. Please try again."
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Web3Forms error:",
+                    error
+                );
+
+
+                Swal.close();
+
+
+                showError(
+                    "Connection Error",
+                    "Unable to send your message. Please check your internet connection and try again."
+                );
+
+            }
 
         }
     );

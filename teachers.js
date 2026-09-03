@@ -2,6 +2,7 @@
 // TEACHERS.JS
 // Philip Model School
 // Firebase Firestore Version
+// SweetAlert2 Version
 // ======================================================
 
 import {
@@ -156,8 +157,8 @@ async function loadTeachers() {
 
 
         /*
-         * If the collection is empty or
-         * createdAt is not available,
+         * If createdAt is unavailable or
+         * the ordered query fails,
          * try loading without orderBy.
          */
 
@@ -200,8 +201,11 @@ async function loadTeachers() {
             );
 
 
-            alert(
-                "Unable to load teachers from Firestore."
+            await showError(
+                "Unable to Load Teachers",
+                getFirebaseErrorMessage(
+                    secondError
+                )
             );
 
         }
@@ -318,6 +322,7 @@ function openTeacherModal(
             "editingTeacherId"
         ).value =
             "";
+
 
         document.getElementById(
             "teacherStatus"
@@ -504,7 +509,8 @@ teacherForm.addEventListener(
                 !status
             ) {
 
-                alert(
+                await showWarning(
+                    "Incomplete Form",
                     "Please complete all required fields."
                 );
 
@@ -559,14 +565,24 @@ teacherForm.addEventListener(
                     );
 
 
+                showLoading(
+                    "Updating Teacher...",
+                    "Please wait while the teacher information is being updated."
+                );
+
+
                 await updateDoc(
                     teacherRef,
                     teacherData
                 );
 
 
-                alert(
-                    "Teacher updated successfully."
+                Swal.close();
+
+
+                await showSuccess(
+                    "Teacher Updated",
+                    "Teacher information has been updated successfully."
                 );
 
             }
@@ -595,14 +611,24 @@ teacherForm.addEventListener(
                 };
 
 
+                showLoading(
+                    "Adding Teacher...",
+                    "Please wait while the teacher is being added."
+                );
+
+
                 await addDoc(
                     teachersCollection,
                     newTeacher
                 );
 
 
-                alert(
-                    "Teacher added successfully."
+                Swal.close();
+
+
+                await showSuccess(
+                    "Teacher Added",
+                    "Teacher has been added successfully."
                 );
 
             }
@@ -638,24 +664,28 @@ teacherForm.addEventListener(
             );
 
 
+            Swal.close();
+
+
             if (
                 error.code ===
                 "permission-denied"
             ) {
 
-                alert(
-                    "Firestore permission denied.\n\n" +
-                    "Open Firebase Console → Firestore Database → Rules " +
-                    "and check your security rules."
+                await showError(
+                    "Permission Denied",
+                    "Firestore permission was denied. Please check your Firebase Firestore security rules."
                 );
 
             }
 
             else {
 
-                alert(
-                    "Unable to save teacher.\n\n" +
-                    error.message
+                await showError(
+                    "Unable to Save Teacher",
+                    getFirebaseErrorMessage(
+                        error
+                    )
                 );
 
             }
@@ -909,7 +939,7 @@ function renderTeachers() {
 
 
     // ==========================================
-    // ACTION BUTTONS
+    // EDIT BUTTONS
     // ==========================================
 
     teachersTableBody
@@ -949,6 +979,10 @@ function renderTeachers() {
             }
         );
 
+
+    // ==========================================
+    // DELETE BUTTONS
+    // ==========================================
 
     teachersTableBody
         .querySelectorAll(
@@ -990,13 +1024,26 @@ async function deleteTeacher(
         );
 
 
-    if (!teacher)
+    if (!teacher) {
+
+        await showError(
+            "Teacher Not Found",
+            "The selected teacher could not be found."
+        );
+
         return;
 
+    }
+
+
+    // ==========================================
+    // CONFIRM DELETE
+    // ==========================================
 
     const confirmed =
-        confirm(
-            `Delete ${teacher.firstName} ${teacher.lastName}?`
+        await confirmDelete(
+            `Delete ${teacher.firstName} ${teacher.lastName}?`,
+            "This teacher record will be permanently deleted."
         );
 
 
@@ -1005,6 +1052,20 @@ async function deleteTeacher(
 
 
     try {
+
+        // ==========================================
+        // LOADING
+        // ==========================================
+
+        showLoading(
+            "Deleting Teacher...",
+            "Please wait while the teacher record is being deleted."
+        );
+
+
+        // ==========================================
+        // DELETE
+        // ==========================================
 
         await deleteDoc(
             doc(
@@ -1015,10 +1076,22 @@ async function deleteTeacher(
         );
 
 
-        alert(
-            "Teacher deleted successfully."
+        Swal.close();
+
+
+        // ==========================================
+        // SUCCESS
+        // ==========================================
+
+        await showSuccess(
+            "Teacher Deleted",
+            `${teacher.firstName} ${teacher.lastName} has been deleted successfully.`
         );
 
+
+        // ==========================================
+        // REFRESH
+        // ==========================================
 
         await loadTeachers();
 
@@ -1032,10 +1105,35 @@ async function deleteTeacher(
         );
 
 
-        alert(
-            "Unable to delete teacher.\n\n" +
-            error.message
-        );
+        Swal.close();
+
+
+        // ==========================================
+        // ERROR
+        // ==========================================
+
+        if (
+            error.code ===
+            "permission-denied"
+        ) {
+
+            await showError(
+                "Permission Denied",
+                "You do not have permission to delete this teacher."
+            );
+
+        }
+
+        else {
+
+            await showError(
+                "Unable to Delete Teacher",
+                getFirebaseErrorMessage(
+                    error
+                )
+            );
+
+        }
 
     }
 
@@ -1096,6 +1194,48 @@ function escapeHTML(value) {
             /'/g,
             "&#039;"
         );
+
+}
+
+
+// ======================================================
+// FIREBASE ERROR MESSAGE
+// ======================================================
+
+function getFirebaseErrorMessage(
+    error
+) {
+
+    if (!error)
+        return "An unknown error occurred.";
+
+
+    switch (
+        error.code
+    ) {
+
+        case "permission-denied":
+
+            return "You do not have permission to perform this action. Please check your Firestore security rules.";
+
+        case "unavailable":
+
+            return "Firebase is temporarily unavailable. Please check your internet connection and try again.";
+
+        case "network-request-failed":
+
+            return "Network error. Please check your internet connection and try again.";
+
+        case "failed-precondition":
+
+            return "The requested operation could not be completed because a Firestore requirement is not satisfied.";
+
+        default:
+
+            return error.message ||
+                "An unexpected error occurred.";
+
+    }
 
 }
 

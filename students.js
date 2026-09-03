@@ -12,10 +12,17 @@
 // - Generate student ID
 // - Save parent details only
 //
+// SweetAlert2 added for:
+// - Success messages
+// - Error messages
+// - Delete confirmation
+// - Loading state
+//
 // IMPORTANT:
 // - No parent account creation
 // - No parent account linking
 // - No parent UID
+// - No localStorage
 // ============================================================
 
 
@@ -247,8 +254,8 @@ async function loadStudents() {
         renderStudents();
 
 
-        alert(
-            "Unable to load students from Firestore.\n\n" +
+        showError(
+            "Unable to Load Students",
             getFirebaseErrorMessage(error)
         );
 
@@ -812,6 +819,22 @@ if (studentForm) {
 
 
                 // =================================================
+                // SHOW LOADING
+                // =================================================
+
+                showLoading(
+                    editingId
+                        ? "Updating Student"
+                        : "Saving Student",
+
+                    editingId
+                        ? "Please wait while the student information is being updated..."
+                        : "Please wait while the student is being saved..."
+                );
+
+
+
+                // =================================================
                 // UPDATE EXISTING STUDENT
                 // =================================================
 
@@ -831,8 +854,12 @@ if (studentForm) {
                     );
 
 
-                    alert(
-                        "Student updated successfully."
+                    Swal.close();
+
+
+                    await showSuccess(
+                        "Student Updated!",
+                        `${firstName} ${lastName} has been updated successfully.`
                     );
 
                 }
@@ -868,8 +895,12 @@ if (studentForm) {
                     );
 
 
-                    alert(
-                        `Student saved successfully.\n\nStudent ID: ${studentId}`
+                    Swal.close();
+
+
+                    await showSuccess(
+                        "Student Added!",
+                        `${firstName} ${lastName} has been saved successfully.\n\nStudent ID: ${studentId}`
                     );
 
                 }
@@ -900,8 +931,11 @@ if (studentForm) {
                 );
 
 
-                alert(
-                    "Unable to save student.\n\n" +
+                Swal.close();
+
+
+                showError(
+                    "Unable to Save Student",
                     getFirebaseErrorMessage(error)
                 );
 
@@ -1283,7 +1317,7 @@ if (studentsTableBody) {
 
     studentsTableBody.addEventListener(
         "click",
-        function (event) {
+        async function (event) {
 
             const button =
                 event.target.closest(
@@ -1333,7 +1367,7 @@ if (studentsTableBody) {
                 "delete"
             ) {
 
-                deleteStudent(
+                await deleteStudent(
                     firestoreId
                 );
 
@@ -1364,8 +1398,9 @@ function editStudent(
 
     if (!student) {
 
-        alert(
-            "Student record could not be found."
+        showError(
+            "Student Not Found",
+            "The student record could not be found."
         );
 
         return;
@@ -1399,8 +1434,9 @@ async function deleteStudent(
 
     if (!student) {
 
-        alert(
-            "Student record could not be found."
+        showError(
+            "Student Not Found",
+            "The student record could not be found."
         );
 
         return;
@@ -1413,10 +1449,15 @@ async function deleteStudent(
             .trim();
 
 
+
+    // ========================================================
+    // SWEETALERT DELETE CONFIRMATION
+    // ========================================================
+
     const confirmed =
-        confirm(
-            `Are you sure you want to delete ${studentName}?\n\n` +
-            `This action cannot be undone.`
+        await confirmDelete(
+            "Delete Student?",
+            `Are you sure you want to delete ${studentName}?\n\nThis action cannot be undone.`
         );
 
 
@@ -1427,7 +1468,18 @@ async function deleteStudent(
     }
 
 
+
     try {
+
+        // ====================================================
+        // SHOW LOADING
+        // ====================================================
+
+        showLoading(
+            "Deleting Student",
+            `Please wait while ${studentName} is being deleted...`
+        );
+
 
         const studentRef =
             doc(
@@ -1442,8 +1494,12 @@ async function deleteStudent(
         );
 
 
-        alert(
-            "Student deleted successfully."
+        Swal.close();
+
+
+        await showSuccess(
+            "Student Deleted!",
+            `${studentName} has been deleted successfully.`
         );
 
 
@@ -1459,8 +1515,11 @@ async function deleteStudent(
         );
 
 
-        alert(
-            "Unable to delete student.\n\n" +
+        Swal.close();
+
+
+        showError(
+            "Delete Failed",
             getFirebaseErrorMessage(error)
         );
 

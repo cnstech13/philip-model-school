@@ -12,6 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 import { db } from "./firebase-config.js";
+
 let subjects = [];
 
 
@@ -26,44 +27,28 @@ const subjectForm =
     document.getElementById("subjectForm");
 
 const subjectsTableBody =
-    document.getElementById(
-        "subjectsTableBody"
-    );
+    document.getElementById("subjectsTableBody");
 
 const emptySubjects =
-    document.getElementById(
-        "emptySubjects"
-    );
+    document.getElementById("emptySubjects");
 
 const subjectSearch =
-    document.getElementById(
-        "subjectSearch"
-    );
+    document.getElementById("subjectSearch");
 
 const subjectLevelFilter =
-    document.getElementById(
-        "subjectLevelFilter"
-    );
+    document.getElementById("subjectLevelFilter");
 
 const subjectStatusFilter =
-    document.getElementById(
-        "subjectStatusFilter"
-    );
+    document.getElementById("subjectStatusFilter");
 
 const addSubjectBtn =
-    document.getElementById(
-        "addSubjectBtn"
-    );
+    document.getElementById("addSubjectBtn");
 
 const closeSubjectModal =
-    document.getElementById(
-        "closeSubjectModal"
-    );
+    document.getElementById("closeSubjectModal");
 
 const cancelSubjectBtn =
-    document.getElementById(
-        "cancelSubjectBtn"
-    );
+    document.getElementById("cancelSubjectBtn");
 
 
 /* =========================
@@ -115,8 +100,9 @@ async function loadSubjects() {
             error
         );
 
-        alert(
-            "Unable to load subjects from Firestore."
+        showError(
+            "Unable to Load Subjects",
+            getFirebaseErrorMessage(error)
         );
 
     }
@@ -257,6 +243,10 @@ function closeSubjectModalFunction() {
 }
 
 
+/* =========================
+   MODAL EVENTS
+========================= */
+
 addSubjectBtn.addEventListener(
     "click",
     () => openSubjectModal()
@@ -359,7 +349,8 @@ subjectForm.addEventListener(
             !status
         ) {
 
-            alert(
+            showWarning(
+                "Incomplete Form",
                 "Please complete all required fields."
             );
 
@@ -388,7 +379,8 @@ subjectForm.addEventListener(
 
         if (duplicateName) {
 
-            alert(
+            showWarning(
+                "Duplicate Subject",
                 "A subject with this name already exists."
             );
 
@@ -417,7 +409,8 @@ subjectForm.addEventListener(
 
         if (duplicateCode) {
 
-            alert(
+            showWarning(
+                "Duplicate Subject Code",
                 "A subject with this code already exists."
             );
 
@@ -426,16 +419,28 @@ subjectForm.addEventListener(
         }
 
 
+        /* =========================
+           FIND EXISTING SUBJECT
+        ========================= */
+
+        const existingSubject =
+            subjects.find(
+                subject =>
+                    subject.firestoreId ===
+                    editingId
+            );
+
+
+        /* =========================
+           SUBJECT DATA
+        ========================= */
+
         const subjectData = {
 
             id:
                 editingId
                     ? (
-                        subjects.find(
-                            subject =>
-                                subject.firestoreId ===
-                                editingId
-                        )?.id ||
+                        existingSubject?.id ||
                         generateSubjectId()
                     )
                     : generateSubjectId(),
@@ -461,6 +466,20 @@ subjectForm.addEventListener(
         try {
 
             /* =========================
+               SHOW LOADING
+            ========================= */
+
+            showLoading(
+                editingId
+                    ? "Updating Subject..."
+                    : "Adding Subject...",
+                editingId
+                    ? "Please wait while the subject is updated."
+                    : "Please wait while the subject is added."
+            );
+
+
+            /* =========================
                EDIT
             ========================= */
 
@@ -481,6 +500,7 @@ subjectForm.addEventListener(
 
             }
 
+
             /* =========================
                ADD
             ========================= */
@@ -499,16 +519,39 @@ subjectForm.addEventListener(
             }
 
 
-            alert(
-                editingId
-                    ? "Subject updated successfully."
-                    : "Subject added successfully."
-            );
+            /* =========================
+               CLOSE LOADING
+            ========================= */
 
+            Swal.close();
+
+
+            /* =========================
+               RELOAD SUBJECTS
+            ========================= */
 
             await loadSubjects();
 
+
+            /* =========================
+               CLOSE MODAL
+            ========================= */
+
             closeSubjectModalFunction();
+
+
+            /* =========================
+               SUCCESS MESSAGE
+            ========================= */
+
+            await showSuccess(
+                editingId
+                    ? "Subject Updated"
+                    : "Subject Added",
+                editingId
+                    ? "The subject has been updated successfully."
+                    : "The subject has been added successfully."
+            );
 
         }
 
@@ -519,8 +562,13 @@ subjectForm.addEventListener(
                 error
             );
 
-            alert(
-                "Unable to save subject. Please try again."
+
+            Swal.close();
+
+
+            showError(
+                "Unable to Save Subject",
+                getFirebaseErrorMessage(error)
             );
 
         }
@@ -711,7 +759,9 @@ function renderSubjects() {
                         <button
                             class="table-action"
                             title="Edit"
-                            onclick="editSubject('${subject.firestoreId}')"
+                            onclick="editSubject('${escapeAttribute(
+                                subject.firestoreId
+                            )}')"
                         >
                             ✏️
                         </button>
@@ -720,7 +770,9 @@ function renderSubjects() {
                         <button
                             class="table-action"
                             title="Delete"
-                            onclick="deleteSubject('${subject.firestoreId}')"
+                            onclick="deleteSubject('${escapeAttribute(
+                                subject.firestoreId
+                            )}')"
                         >
                             🗑️
                         </button>
@@ -758,13 +810,21 @@ function editSubject(
         );
 
 
-    if (subject) {
+    if (!subject) {
 
-        openSubjectModal(
-            subject
+        showError(
+            "Subject Not Found",
+            "The selected subject could not be found."
         );
 
+        return;
+
     }
+
+
+    openSubjectModal(
+        subject
+    );
 
 }
 
@@ -785,13 +845,26 @@ async function deleteSubject(
         );
 
 
-    if (!subject)
+    if (!subject) {
+
+        showError(
+            "Subject Not Found",
+            "The selected subject could not be found."
+        );
+
         return;
 
+    }
+
+
+    /* =========================
+       CONFIRM DELETE
+    ========================= */
 
     const confirmed =
-        confirm(
-            `Delete ${subject.name}?`
+        await confirmDelete(
+            `Delete ${subject.name}?`,
+            "This subject will be permanently removed from Firestore."
         );
 
 
@@ -800,6 +873,20 @@ async function deleteSubject(
 
 
     try {
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        showLoading(
+            "Deleting Subject...",
+            `Removing ${subject.name}. Please wait.`
+        );
+
+
+        /* =========================
+           DELETE
+        ========================= */
 
         await deleteDoc(
             doc(
@@ -810,7 +897,28 @@ async function deleteSubject(
         );
 
 
+        /* =========================
+           RELOAD
+        ========================= */
+
         await loadSubjects();
+
+
+        /* =========================
+           CLOSE LOADING
+        ========================= */
+
+        Swal.close();
+
+
+        /* =========================
+           SUCCESS
+        ========================= */
+
+        await showSuccess(
+            "Subject Deleted",
+            `${subject.name} has been deleted successfully.`
+        );
 
     }
 
@@ -821,8 +929,13 @@ async function deleteSubject(
             error
         );
 
-        alert(
-            "Unable to delete subject."
+
+        Swal.close();
+
+
+        showError(
+            "Unable to Delete Subject",
+            getFirebaseErrorMessage(error)
         );
 
     }
@@ -888,6 +1001,102 @@ function escapeHTML(value) {
         );
 
 }
+
+
+/* =========================
+   ESCAPE ATTRIBUTE
+========================= */
+
+function escapeAttribute(value) {
+
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+
+        .replace(
+            /'/g,
+            "\\'"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        );
+
+}
+
+
+/* =========================
+   FIREBASE ERROR MESSAGE
+========================= */
+
+function getFirebaseErrorMessage(
+    error
+) {
+
+    if (!error)
+        return "An unknown error occurred.";
+
+
+    switch (error.code) {
+
+        case "permission-denied":
+
+            return "You do not have permission to perform this action.";
+
+
+        case "unavailable":
+
+            return "Firebase is temporarily unavailable. Please check your internet connection.";
+
+
+        case "network-request-failed":
+
+            return "A network error occurred. Please check your internet connection.";
+
+
+        case "not-found":
+
+            return "The requested subject could not be found.";
+
+
+        default:
+
+            return (
+                error.message ||
+                "An unexpected error occurred. Please try again."
+            );
+
+    }
+
+}
+
+
+/* =========================
+   MAKE FUNCTIONS AVAILABLE
+   TO INLINE BUTTONS
+========================= */
+
+window.editSubject =
+    editSubject;
+
+window.deleteSubject =
+    deleteSubject;
 
 
 /* =========================

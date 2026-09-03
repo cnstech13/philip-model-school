@@ -2,6 +2,7 @@
    PHILIP MODEL SCHOOL
    CLASS MANAGEMENT
    FIRESTORE VERSION
+   SWEETALERT2 VERSION
 ========================================================= */
 
 import {
@@ -15,17 +16,17 @@ import {
 import { db } from "./firebase-config.js";
 
 
-/* =========================================================
-   DATA
-========================================================= */
+// =========================================================
+// DATA
+// =========================================================
 
 let classes = [];
 let teachers = [];
 
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
+// =========================================================
+// ELEMENTS
+// =========================================================
 
 const classModal =
     document.getElementById("classModal");
@@ -58,9 +59,9 @@ const classTeacher =
     document.getElementById("classTeacher");
 
 
-/* =========================================================
-   FIRESTORE COLLECTIONS
-========================================================= */
+// =========================================================
+// FIRESTORE COLLECTIONS
+// =========================================================
 
 const classesCollection =
     collection(db, "classes");
@@ -69,9 +70,9 @@ const teachersCollection =
     collection(db, "teachers");
 
 
-/* =========================================================
-   GENERATE CLASS ID
-========================================================= */
+// =========================================================
+// GENERATE CLASS ID
+// =========================================================
 
 function generateClassId() {
 
@@ -101,9 +102,9 @@ function generateClassId() {
 }
 
 
-/* =========================================================
-   LOAD TEACHERS
-========================================================= */
+// =========================================================
+// LOAD TEACHERS
+// =========================================================
 
 async function loadTeachers() {
 
@@ -145,14 +146,20 @@ async function loadTeachers() {
             error
         );
 
+
+        await showError(
+            "Unable to Load Teachers",
+            getFirebaseErrorMessage(error)
+        );
+
     }
 
 }
 
 
-/* =========================================================
-   POPULATE TEACHER DROPDOWN
-========================================================= */
+// =========================================================
+// POPULATE TEACHER DROPDOWN
+// =========================================================
 
 function populateTeacherDropdown() {
 
@@ -182,7 +189,9 @@ function populateTeacherDropdown() {
 
 
             const option =
-                document.createElement("option");
+                document.createElement(
+                    "option"
+                );
 
 
             option.value =
@@ -204,9 +213,9 @@ function populateTeacherDropdown() {
 }
 
 
-/* =========================================================
-   LOAD CLASSES
-========================================================= */
+// =========================================================
+// LOAD CLASSES
+// =========================================================
 
 async function loadClasses() {
 
@@ -249,8 +258,9 @@ async function loadClasses() {
         );
 
 
-        alert(
-            "Unable to load classes from Firestore."
+        await showError(
+            "Unable to Load Classes",
+            getFirebaseErrorMessage(error)
         );
 
     }
@@ -258,13 +268,17 @@ async function loadClasses() {
 }
 
 
-/* =========================================================
-   OPEN CLASS MODAL
-========================================================= */
+// =========================================================
+// OPEN CLASS MODAL
+// =========================================================
 
 function openClassModal(
     classData = null
 ) {
+
+    if (!classModal)
+        return;
+
 
     classModal.classList.add(
         "show"
@@ -368,11 +382,15 @@ function openClassModal(
 }
 
 
-/* =========================================================
-   CLOSE CLASS MODAL
-========================================================= */
+// =========================================================
+// CLOSE CLASS MODAL
+// =========================================================
 
 function closeClassModalFunction() {
+
+    if (!classModal || !classForm)
+        return;
+
 
     classModal.classList.remove(
         "show"
@@ -402,9 +420,9 @@ function closeClassModalFunction() {
 }
 
 
-/* =========================================================
-   OPEN MODAL BUTTON
-========================================================= */
+// =========================================================
+// OPEN MODAL BUTTON
+// =========================================================
 
 if (addClassBtn) {
 
@@ -420,9 +438,9 @@ if (addClassBtn) {
 }
 
 
-/* =========================================================
-   CLOSE BUTTONS
-========================================================= */
+// =========================================================
+// CLOSE BUTTONS
+// =========================================================
 
 if (closeClassModal) {
 
@@ -444,9 +462,9 @@ if (cancelClassBtn) {
 }
 
 
-/* =========================================================
-   CLOSE WHEN CLICKING OUTSIDE
-========================================================= */
+// =========================================================
+// CLOSE WHEN CLICKING OUTSIDE
+// =========================================================
 
 if (classModal) {
 
@@ -469,9 +487,9 @@ if (classModal) {
 }
 
 
-/* =========================================================
-   SAVE CLASS
-========================================================= */
+// =========================================================
+// SAVE CLASS
+// =========================================================
 
 if (classForm) {
 
@@ -526,9 +544,9 @@ if (classForm) {
                 ).value;
 
 
-            /* =============================================
-               VALIDATION
-            ============================================= */
+            // =================================================
+            // VALIDATION
+            // =================================================
 
             if (
                 !className ||
@@ -537,7 +555,8 @@ if (classForm) {
                 !maxStudents
             ) {
 
-                alert(
+                await showWarning(
+                    "Incomplete Form",
                     "Please complete all required fields."
                 );
 
@@ -546,9 +565,9 @@ if (classForm) {
             }
 
 
-            /* =============================================
-               DUPLICATE CLASS CHECK
-            ============================================= */
+            // =================================================
+            // DUPLICATE CLASS CHECK
+            // =================================================
 
             const duplicate =
                 classes.some(
@@ -569,7 +588,8 @@ if (classForm) {
 
             if (duplicate) {
 
-                alert(
+                await showWarning(
+                    "Class Already Exists",
                     "This class already exists for the selected academic session."
                 );
 
@@ -578,9 +598,9 @@ if (classForm) {
             }
 
 
-            /* =============================================
-               FIND TEACHER NAME
-            ============================================= */
+            // =================================================
+            // FIND TEACHER NAME
+            // =================================================
 
             const teacher =
                 teachers.find(
@@ -601,23 +621,29 @@ if (classForm) {
                     : "No Class Teacher";
 
 
-            /* =============================================
-               CLASS DATA
-            ============================================= */
+            // =================================================
+            // EXISTING CLASS
+            // =================================================
+
+            const existingClass =
+                editingId
+                    ? classes.find(
+                        item =>
+                            item.firestoreId ===
+                            editingId
+                    )
+                    : null;
+
+
+            // =================================================
+            // CLASS DATA
+            // =================================================
 
             const classData = {
 
                 id:
-                    editingId
-                        ? (
-                            classes.find(
-                                item =>
-                                    item.firestoreId ===
-                                    editingId
-                            )?.id ||
-                            generateClassId()
-                        )
-                        : generateClassId(),
+                    existingClass?.id ||
+                    generateClassId(),
 
                 name:
                     className,
@@ -641,15 +667,8 @@ if (classForm) {
                     status,
 
                 studentCount:
-                    editingId
-                        ? (
-                            classes.find(
-                                item =>
-                                    item.firestoreId ===
-                                    editingId
-                            )?.studentCount || 0
-                        )
-                        : 0,
+                    existingClass?.studentCount ||
+                    0,
 
                 updatedAt:
                     new Date().toISOString()
@@ -657,23 +676,30 @@ if (classForm) {
             };
 
 
-            /* =============================================
-               SAVE TO FIRESTORE
-            ============================================= */
+            // =================================================
+            // SAVE TO FIRESTORE
+            // =================================================
 
             try {
 
-                let classRef;
-
+                // =============================================
+                // UPDATE
+                // =============================================
 
                 if (editingId) {
 
-                    classRef =
+                    const classRef =
                         doc(
                             db,
                             "classes",
                             editingId
                         );
+
+
+                    showLoading(
+                        "Updating Class...",
+                        "Please wait while the class information is being updated."
+                    );
 
 
                     await setDoc(
@@ -685,11 +711,19 @@ if (classForm) {
                     );
 
 
-                    alert(
-                        "Class updated successfully."
+                    Swal.close();
+
+
+                    await showSuccess(
+                        "Class Updated",
+                        "Class information has been updated successfully."
                     );
 
                 }
+
+                // =============================================
+                // ADD
+                // =============================================
 
                 else {
 
@@ -697,12 +731,18 @@ if (classForm) {
                         classData.id;
 
 
-                    classRef =
+                    const classRef =
                         doc(
                             db,
                             "classes",
                             classId
                         );
+
+
+                    showLoading(
+                        "Adding Class...",
+                        "Please wait while the class is being added."
+                    );
 
 
                     await setDoc(
@@ -718,12 +758,20 @@ if (classForm) {
                     );
 
 
-                    alert(
-                        "Class added successfully."
+                    Swal.close();
+
+
+                    await showSuccess(
+                        "Class Added",
+                        "Class has been added successfully."
                     );
 
                 }
 
+
+                // =============================================
+                // REFRESH
+                // =============================================
 
                 await loadClasses();
 
@@ -740,9 +788,29 @@ if (classForm) {
                 );
 
 
-                alert(
-                    "Unable to save class. Check your Firestore rules and Firebase configuration."
-                );
+                Swal.close();
+
+
+                if (
+                    error.code ===
+                    "permission-denied"
+                ) {
+
+                    await showError(
+                        "Permission Denied",
+                        "You do not have permission to save this class. Please check your Firestore security rules."
+                    );
+
+                }
+
+                else {
+
+                    await showError(
+                        "Unable to Save Class",
+                        getFirebaseErrorMessage(error)
+                    );
+
+                }
 
             }
 
@@ -752,9 +820,9 @@ if (classForm) {
 }
 
 
-/* =========================================================
-   RENDER CLASSES
-========================================================= */
+// =========================================================
+// RENDER CLASSES
+// =========================================================
 
 function renderClasses() {
 
@@ -995,11 +1063,11 @@ function renderClasses() {
     );
 
 
-    /* =============================================
-       EDIT BUTTONS
-    ============================================= */
+    // =====================================================
+    // EDIT BUTTONS
+    // =====================================================
 
-    document
+    classesTableBody
         .querySelectorAll(
             "[data-edit-class]"
         )
@@ -1021,11 +1089,11 @@ function renderClasses() {
         );
 
 
-    /* =============================================
-       DELETE BUTTONS
-    ============================================= */
+    // =====================================================
+    // DELETE BUTTONS
+    // =====================================================
 
-    document
+    classesTableBody
         .querySelectorAll(
             "[data-delete-class]"
         )
@@ -1034,9 +1102,9 @@ function renderClasses() {
 
                 button.addEventListener(
                     "click",
-                    function() {
+                    async function() {
 
-                        deleteClass(
+                        await deleteClass(
                             this.dataset.deleteClass
                         );
 
@@ -1049,9 +1117,9 @@ function renderClasses() {
 }
 
 
-/* =========================================================
-   EDIT CLASS
-========================================================= */
+// =========================================================
+// EDIT CLASS
+// =========================================================
 
 function editClass(
     firestoreId
@@ -1065,8 +1133,16 @@ function editClass(
         );
 
 
-    if (!classData)
+    if (!classData) {
+
+        showError(
+            "Class Not Found",
+            "The selected class could not be found."
+        );
+
         return;
+
+    }
 
 
     openClassModal(
@@ -1076,9 +1152,9 @@ function editClass(
 }
 
 
-/* =========================================================
-   DELETE CLASS
-========================================================= */
+// =========================================================
+// DELETE CLASS
+// =========================================================
 
 async function deleteClass(
     firestoreId
@@ -1092,13 +1168,26 @@ async function deleteClass(
         );
 
 
-    if (!classData)
+    if (!classData) {
+
+        await showError(
+            "Class Not Found",
+            "The selected class could not be found."
+        );
+
         return;
 
+    }
+
+
+    // =====================================================
+    // CONFIRM DELETE
+    // =====================================================
 
     const confirmed =
-        confirm(
-            `Delete ${classData.name}?`
+        await confirmDelete(
+            `Delete ${classData.name}?`,
+            "This class record will be permanently deleted."
         );
 
 
@@ -1107,6 +1196,20 @@ async function deleteClass(
 
 
     try {
+
+        // =================================================
+        // LOADING
+        // =================================================
+
+        showLoading(
+            "Deleting Class...",
+            "Please wait while the class is being deleted."
+        );
+
+
+        // =================================================
+        // DELETE
+        // =================================================
 
         await deleteDoc(
 
@@ -1119,10 +1222,22 @@ async function deleteClass(
         );
 
 
-        alert(
-            "Class deleted successfully."
+        Swal.close();
+
+
+        // =================================================
+        // SUCCESS
+        // =================================================
+
+        await showSuccess(
+            "Class Deleted",
+            `${classData.name} has been deleted successfully.`
         );
 
+
+        // =================================================
+        // REFRESH
+        // =================================================
 
         await loadClasses();
 
@@ -1136,18 +1251,38 @@ async function deleteClass(
         );
 
 
-        alert(
-            "Unable to delete class."
-        );
+        Swal.close();
+
+
+        if (
+            error.code ===
+            "permission-denied"
+        ) {
+
+            await showError(
+                "Permission Denied",
+                "You do not have permission to delete this class."
+            );
+
+        }
+
+        else {
+
+            await showError(
+                "Unable to Delete Class",
+                getFirebaseErrorMessage(error)
+            );
+
+        }
 
     }
 
 }
 
 
-/* =========================================================
-   SEARCH
-========================================================= */
+// =========================================================
+// SEARCH
+// =========================================================
 
 if (classSearch) {
 
@@ -1159,9 +1294,9 @@ if (classSearch) {
 }
 
 
-/* =========================================================
-   SECTION FILTER
-========================================================= */
+// =========================================================
+// SECTION FILTER
+// =========================================================
 
 if (sectionFilter) {
 
@@ -1173,9 +1308,9 @@ if (sectionFilter) {
 }
 
 
-/* =========================================================
-   HTML ESCAPE
-========================================================= */
+// =========================================================
+// HTML ESCAPE
+// =========================================================
 
 function escapeHTML(
     value
@@ -1213,9 +1348,9 @@ function escapeHTML(
 }
 
 
-/* =========================================================
-   ATTRIBUTE ESCAPE
-========================================================= */
+// =========================================================
+// ATTRIBUTE ESCAPE
+// =========================================================
 
 function escapeAttribute(
     value
@@ -1253,9 +1388,54 @@ function escapeAttribute(
 }
 
 
-/* =========================================================
-   INITIALIZE
-========================================================= */
+// =========================================================
+// FIREBASE ERROR MESSAGE
+// =========================================================
+
+function getFirebaseErrorMessage(
+    error
+) {
+
+    if (!error) {
+
+        return "An unknown error occurred.";
+
+    }
+
+
+    switch (
+        error.code
+    ) {
+
+        case "permission-denied":
+
+            return "You do not have permission to perform this action. Please check your Firestore security rules.";
+
+        case "unavailable":
+
+            return "Firebase is temporarily unavailable. Please check your internet connection and try again.";
+
+        case "network-request-failed":
+
+            return "Network error. Please check your internet connection and try again.";
+
+        case "failed-precondition":
+
+            return "The requested operation could not be completed because a Firestore requirement is not satisfied.";
+
+        default:
+
+            return error.message ||
+                "An unexpected error occurred.";
+
+    }
+
+}
+
+
+// =========================================================
+// INITIALIZE
+// =========================================================
 
 async function initializeClassesPage() {
 

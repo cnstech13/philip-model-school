@@ -165,8 +165,11 @@ Monday - Friday: 8:00 AM - 4:00 PM
 
 </div>
 
-
-<form class="contact-form" id="contactForm">
+<form
+    action="https://api.web3forms.com/submit"
+    method="POST"
+    id="contactForm"
+>
 
     <!-- WEB3FORMS ACCESS KEY -->
     <input
@@ -175,10 +178,10 @@ Monday - Friday: 8:00 AM - 4:00 PM
         value="5382b599-6e27-4566-9faf-381d6659d148"
     >
 
-    <!-- EMAIL SUBJECT -->
+    <!-- FORM IDENTIFICATION -->
     <input
         type="hidden"
-        name="subject"
+        name="form_subject"
         value="New Contact Message - Philip Model School"
     >
 
@@ -189,7 +192,7 @@ Monday - Friday: 8:00 AM - 4:00 PM
         value="Philip Model School Website"
     >
 
-
+    <!-- NAME -->
     <input
         type="text"
         name="name"
@@ -198,7 +201,7 @@ Monday - Friday: 8:00 AM - 4:00 PM
         required
     >
 
-
+    <!-- EMAIL -->
     <input
         type="email"
         name="email"
@@ -207,7 +210,7 @@ Monday - Friday: 8:00 AM - 4:00 PM
         required
     >
 
-
+    <!-- SUBJECT -->
     <input
         type="text"
         name="subject"
@@ -216,7 +219,7 @@ Monday - Friday: 8:00 AM - 4:00 PM
         required
     >
 
-
+    <!-- MESSAGE -->
     <textarea
         name="message"
         id="message"
@@ -225,47 +228,42 @@ Monday - Friday: 8:00 AM - 4:00 PM
         required
     ></textarea>
 
-
-    <!-- HONEYPOT SPAM PROTECTION -->
-
+    <!-- HONEYPOT -->
     <input
         type="checkbox"
         name="botcheck"
         style="display:none;"
     >
 
-
+    <!-- SUBMIT -->
     <button
         type="submit"
         class="btn btn-primary"
         id="contactSubmitBtn"
     >
 
-        <span class="button-text">
+        <span
+            class="button-text"
+            id="contactButtonText"
+        >
             Send Message
         </span>
 
         <span
             class="spinner"
             id="contactSpinner"
+            style="display:none;"
         ></span>
 
     </button>
-
-
-    <!-- SUCCESS / ERROR MESSAGE -->
-
-    <div
-        id="contactFormMessage"
-        class="form-message"
-        role="alert"
-    ></div>
 
 </form>
 
 </div>
 
 </section>
+
+<!-- FORM LOADING OVERLAY -->
 
 
 <section class="page-content programs">
@@ -462,9 +460,47 @@ All Rights Reserved.
 
 </footer>
 
+<!-- =========================
+     CONTACT ALERT MODAL
+========================= -->
 
-<script src="script.js"></script>
-<script src="pages.js"></script>
+<div id="contactAlert" class="contact-alert-overlay">
+
+    <div class="contact-alert-box">
+
+        <!-- ICON -->
+        <div
+            id="contactAlertIcon"
+            class="contact-alert-icon"
+        >
+            ✓
+        </div>
+
+        <!-- TITLE -->
+        <h2 id="contactAlertTitle">
+            Success!
+        </h2>
+
+        <!-- MESSAGE -->
+        <p id="contactAlertMessage">
+            Your message has been sent successfully.
+        </p>
+
+        <!-- BUTTON -->
+        <button
+            type="button"
+            id="contactAlertButton"
+            class="contact-alert-button"
+        >
+            OK
+        </button>
+
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="sweetalert.js"></script>
+<script src="contact.js"></script>
 
 </body>
 
