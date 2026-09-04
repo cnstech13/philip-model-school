@@ -9,6 +9,16 @@
    DASHBOARD WELCOME
 ============================================================ */
 
+body {
+    background:
+        linear-gradient(
+            135deg,
+            #fff8d6 0%,
+            #f4d35e 45%,
+            #d4af37 100%
+        ) !important;
+}
+
 .dashboard-welcome {
 
     display: flex;
